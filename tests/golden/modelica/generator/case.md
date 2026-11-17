@@ -11,15 +11,17 @@ is relative to this directory.
 | Path | Kind |
 | --- | --- |
 | `GeneratedInterfaces/package.mo` | root package with the `Modelica` uses annotation |
-| `GeneratedInterfaces/package.order` | `Interfaces`, `GeneratedInterfaces` |
+| `GeneratedInterfaces/package.order` | `Interfaces`, `GeneratedInterfaces`, then per component `Generator_Interface` and `Generator` |
 | `GeneratedInterfaces/Interfaces.mo` | eight primitive input/output connector aliases |
 | `GeneratedInterfaces/GeneratedInterfaces.mo` | one connector per port definition |
+| `GeneratedInterfaces/Generator_Interface.mo` | generated `partial model` — parameters and connector instances |
+| `GeneratedInterfaces/Generator.mo` | implementer-owned `model`, created once, never rewritten |
 
 `case.md` is provenance, not a golden.
 
 ## What this case proves
 
-- **Conversion:** `generator.sysml` (SysML v2) → the four Modelica package
+- **Conversion:** `generator.sysml` (SysML v2) → the six Modelica package
   files under `GeneratedInterfaces/`.
 - **Requirement / fault:** the direct export must contribute its own output
   port to the connector set, and the parameter interface must not leak into it;
@@ -29,10 +31,14 @@ is relative to this directory.
   definition `Generator`); synthetic and self-contained.
 - **Expected:** the committed files listed under *Artifacts*.
 - **Independent oracle:** `omc`, the OpenModelica compiler — `loadFile` on
-  `package.mo` plus `checkModel` on both subpackages; the generator and the
-  fixture are this repository, the parser and checker are not.
-- **Comparison:** exact bytes against the committed files, plus the `omc` gate
-  in `tests/test_modelica.py::test_openmodelica_accepts_the_generated_packages`.
+  `package.mo` plus `checkModel` on both subpackages and on the generated
+  `Generator_Interface` partial model (three successful checks); the generator
+  and the fixture are this repository, the parser and checker are not.
+- **Comparison:** exact bytes against the committed files, plus the `omc` gates
+  in `tests/test_modelica.py::test_openmodelica_accepts_the_generated_packages`
+  and `tests/test_modelica.py::test_openmodelica_builds_hand_written_logic_against_the_partial`
+  (a hand-written model extending the partial must build; the untouched scaffold
+  must fail with `Too few equations`).
 - **Normalization:** none; the writer is a pure function of the parsed
   architecture and its arguments.
 - **Volatile fields:** none.
@@ -47,3 +53,4 @@ is relative to this directory.
 | Date | Change | Reason |
 | --- | --- | --- |
 | 2026-11-05 | Case added with the direct `FmuModel` fixture | Modelica coverage for the direct export pattern. |
+| 2026-11-17 | Modelica seam: generated partial model and implementer-owned model | Iterative model development: interface generated, logic hand-written |

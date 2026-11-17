@@ -300,6 +300,10 @@ FMU.package(
 - `<out>/fmi2/*.h` — byte copies of the bundled FMI 2.0 standard headers.
 - `<out>/<Package>/package.mo`, `package.order`, `Interfaces.mo`,
   `GeneratedInterfaces.mo` — one connector per port definition.
+- `<out>/<Package>/<Component>_Interface.mo` — generated `partial model` with
+  the parameters and one connector instance per port; replaced whole.
+- `<out>/<Package>/<Component>.mo` — created once, never rewritten; the
+  implementer's Modelica model, extending the generated partial model.
 - `<archive>.fmu` — `modelDescription.xml` at the root,
   `binaries/linux64/<modelIdentifier>.so`, and `sources/`, `resources/`,
   `documentation/` when supplied.
@@ -307,6 +311,21 @@ FMU.package(
 `Prefix` defaults to the architecture package name; `Package` defaults to
 `GeneratedInterfaces`. Value references restart at 0 per component: parameters
 first, then ports in declaration order, then fields.
+
+## Iterative development
+
+`tests/iterative/` is an executable walkthrough of the loop the generators
+exist for: generate the interface, write the model logic, change a port in the
+architecture, regenerate in place. The generated half is replaced, the
+hand-written model is untouched, and the build fails at the exact line that
+still names the old port.
+
+```bash
+cd tests/iterative && ./run.sh
+```
+
+It needs the `pyfmi` console script and OpenModelica; `PYFMI=` and `OMC=`
+override either path.
 
 ## Common errors
 

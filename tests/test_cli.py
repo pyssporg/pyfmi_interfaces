@@ -60,6 +60,8 @@ def test_modelica_subcommand(tmp_path: Path, capsys) -> None:
     expected = [
         root / "GeneratedInterfaces.mo",
         root / "Interfaces.mo",
+        root / "Tank.mo",
+        root / "Tank_Interface.mo",
         root / "package.mo",
         root / "package.order",
     ]

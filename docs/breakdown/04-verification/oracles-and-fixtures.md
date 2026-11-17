@@ -2,7 +2,7 @@
 id: TEST-003
 type: test
 title: Oracles, fixtures, and goldens
-summary: gcc and g++ syntax-check the headers, g++ compiles, links, and executes the generated runtime harness, fmpy validates and loads the packaged FMU, omc checkModel proves the Modelica package, and six shared fixtures carry case records and byte-compared goldens.
+summary: gcc and g++ syntax-check the headers, g++ compiles, links, and executes the generated runtime harness, fmpy validates and loads the packaged FMU, omc checkModel proves the generated Modelica package and buildModel proves the model seam, and six shared fixtures carry case records and byte-compared goldens.
 date: 2026-11-05
 status: current
 ---
@@ -21,11 +21,15 @@ External oracles, with the versions recorded on this machine:
   own FMI 2.0 checks, then loads a packaged `.fmu`, sets inputs, steps it, and
   reads outputs through its CoSimulation implementation;
 - `omc OpenModelica 1.26.1` — `loadFile` plus `checkModel` on both generated
-  subpackages, marked slow and skipped when `omc` is absent.
+  subpackages and each generated `partial model`, then `buildModel` on one
+  fixture twice: a hand-written model extending the partial must build, and the
+  untouched scaffold must fail with `Too few equations`. Marked slow and skipped
+  when `omc` is absent.
 
 The compiler tests skip with a reason when the compiler is missing; they do not
-silently pass. The omc test asserts zero `Error` text and two successful
-`checkModel` calls per fixture.
+silently pass. The omc check asserts zero `Error` text and three successful
+`checkModel` calls per fixture. `checkModel` is not a balance check: it accepts
+a model with no equations, which is why the seam is proven with `buildModel`.
 
 Fixtures live in `tests/fixtures/<subject>/<subject>.sysml` and are the shared
 architectures the goldens are built from:

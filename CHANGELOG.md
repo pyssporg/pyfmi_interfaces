@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Generate a `<Name>_Interface` partial model per exported component, carrying
+  the parameters with their authored values and one connector instance per port.
+- Generate `<Name>.mo`, the implementer-owned model that extends the partial
+  model; created once and never rewritten. `package.order` lists both.
+- Add `tests/iterative/`, an executable walkthrough that renames a port,
+  regenerates in place, and shows the build failing at the model line; run as a
+  slow test.
+
+### Changed
+
+- The Modelica oracle now also checks each generated partial model and builds a
+  hand-written model against it, because `checkModel` does not balance-check.
+
 ## [0.2.0] - 2026-11-09
 
 ### Added

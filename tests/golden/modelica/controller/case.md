@@ -5,7 +5,9 @@ Mixed primitives on both sides: an `input Integer` field and an
 
 - **Conversion:** `controller.sysml` (SysML v2) → `GeneratedInterfaces/package.mo`,
   `GeneratedInterfaces/package.order`, `GeneratedInterfaces/Interfaces.mo`,
-  `GeneratedInterfaces/GeneratedInterfaces.mo`
+  `GeneratedInterfaces/GeneratedInterfaces.mo`,
+  `GeneratedInterfaces/Controller_Interface.mo`,
+  `GeneratedInterfaces/Controller.mo`
 - **Requirement / fault:** the connector member type must be the FMI primitive,
   not a stringified SysML type, and the direction must come from the port usage.
   A generator that emits `Real` for every member, or that drops the `out` prefix
@@ -16,21 +18,25 @@ Mixed primitives on both sides: an `input Integer` field and an
   composition `ControllerComposition`); no external source, no licence obligation
 - **Expected:** the committed files listed under *Artifacts*
 - **Independent oracle:** `omc`, the OpenModelica compiler — `loadFile` on
-  `package.mo` plus `checkModel` on both subpackages. This case was verified with
-  `OpenModelica 1.26.1` (`/usr/bin/omc`). The generator is this repository; the
-  parser and checker are not.
-- **Comparison:** exact bytes against the committed file, plus the `omc` gate in
-  `tests/test_modelica.py::test_openmodelica_accepts_the_generated_packages`
+  `package.mo` plus `checkModel` on both subpackages and on the generated
+  `Controller_Interface` partial model (three successful checks). This case was
+  verified with `OpenModelica 1.26.1` (`/usr/bin/omc`). The generator is this
+  repository; the parser and checker are not.
+- **Comparison:** exact bytes against the committed file, plus the `omc` gates in
+  `tests/test_modelica.py::test_openmodelica_accepts_the_generated_packages` and
+  `tests/test_modelica.py::test_openmodelica_builds_hand_written_logic_against_the_partial`
+  (a hand-written model extending the partial must build; the untouched scaffold
+  must fail with `Too few equations`)
 - **Normalization:** none; the writer is a pure function of the parsed
   architecture and its arguments, with no clock, hash seed, or environment input
 - **Volatile fields:** none
 - **Update policy:** `UPDATE_GOLDENS=1`, read the diff, commit fixtures and
   goldens together; refused when `CI` is set
 - **Notes:** the parameter port (`ControllerParameters`, with a `Real[2]` and a
-  `String`) is not a signal port and correctly produces no connector; parameter
-  interface ports reach the artefacts through the FMI reduction, not here. The
-  `omc` gate is marked `slow` (about 2 s for all four fixtures in one
-  invocation); the text golden above is the default CI gate.
+  `String`) is not a signal port and correctly produces no connector; its values
+  appear as `parameter` declarations in `Controller_Interface`. The `omc` gate is
+  marked `slow` (about 1 s, one `omc` invocation each); the text
+  golden above is the default CI gate.
 
 ## Artifacts
 
@@ -40,9 +46,11 @@ is relative to this directory.
 | Path | Kind |
 | --- | --- |
 | `GeneratedInterfaces/package.mo` | root package with the `Modelica` uses annotation |
-| `GeneratedInterfaces/package.order` | `Interfaces`, `GeneratedInterfaces` |
+| `GeneratedInterfaces/package.order` | `Interfaces`, `GeneratedInterfaces`, then per component `Controller_Interface` and `Controller` |
 | `GeneratedInterfaces/Interfaces.mo` | eight primitive input/output connector aliases |
 | `GeneratedInterfaces/GeneratedInterfaces.mo` | one connector per port definition |
+| `GeneratedInterfaces/Controller_Interface.mo` | generated `partial model` — parameters and connector instances |
+| `GeneratedInterfaces/Controller.mo` | implementer-owned `model`, created once, never rewritten |
 
 `case.md` is provenance, not a golden.
 
@@ -59,3 +67,4 @@ the primitive-type mapping and the prefix together.
 | Date | Change | Reason |
 | --- | --- | --- |
 | 2026-11-05 | Case added with the generator | U3.4: Modelica interface package |
+| 2026-11-17 | Modelica seam: generated partial model and implementer-owned model | Iterative model development: interface generated, logic hand-written |
