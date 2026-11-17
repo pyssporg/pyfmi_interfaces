@@ -10,7 +10,10 @@ packages declare a definition with the same bare name.
 - `support/support.sysml` — the included root, package `Support`
 
 **Conversion**: SysML v2 architecture loaded from two roots -> the FMI 2.0
-artifacts (`modelDescription.xml`, C headers, Modelica package, packaged `.fmu`)
+artifact set: `modelDescription.xml`, C interface headers, C++17 runtime sources
+with the `<stem>_model.cpp` seam, and the Modelica package with connectors, a
+generated partial model and an implementer-owned `<Name>.mo`, plus the packaged
+`.fmu`
 **Requirement / fault**: a definition of the primary package is stored under its
 bare name and a definition of any other package under `"<package>::<name>"`.
 Root selection must compare stored keys on both sides; comparing a bare
@@ -53,3 +56,5 @@ second composition root, and that the qualifier stays in the namespace: no
 ## Update history
 
 - 2026-11-05 — Fixture and record created for the stored-key root rule.
+- 2026-11-17 — Conversion line updated to the current artifact set, including
+  the C++17 runtime and the Modelica partial/implementer seam.

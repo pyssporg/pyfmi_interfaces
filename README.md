@@ -1,8 +1,8 @@
 # pyfmi_sysml2
 
 Generate FMI 2.0 CoSimulation artifacts from a SysML v2 architecture:
-`modelDescription.xml`, C interface headers, a C++17 runtime with model hooks,
-Modelica connectors, and a packaged `.fmu`.
+`modelDescription.xml`, C interface headers, a C++17 runtime with a model seam,
+Modelica partial models and connectors, and a packaged `.fmu`.
 
 **Library boundary.** The SysML dialect is read *only* through
 [`pycps_sysml2`](https://github.com/pyssporg/pycps_sysml2); FMI XML is built,
@@ -20,10 +20,11 @@ linking, and producing the `.so` are the implementer's steps.
 ## Install
 
 The two runtime dependencies are direct-URL wheels pinned to sibling GitHub
-releases (`pycps-sysml2` v0.1.0 and `experimental-pyssp-standard` v0.9.2.dev0),
-so the tags must exist before any install resolves.
+releases (`pycps-sysml2` v0.2.0 and `experimental-pyssp-standard`
+v0.9.3.dev0), so the tags must exist before any install resolves.
+`pyfmi_sysml2` is version 0.2.0 and requires Python 3.11 or newer.
 
-From a checkout:
+The checkout does not ship a virtual environment; create one. From a checkout:
 
 ```bash
 python3 -m venv venv
@@ -36,10 +37,12 @@ index lookups.
 
 ## CLI
 
-`pyfmi` has one subcommand per artifact. The four generators default to
-`build/`; `pyfmi package` requires an output path. Every written path is printed
-on stdout, one per line. Handled model or input errors print
-`pyfmi: <message>` on stderr and exit 1; argument errors keep argparse's exit 2.
+`pyfmi` has five subcommands: four generators (`model-description`,
+`c-headers`, `c-runtime`, `modelica`) and the `package` command. The four
+generators default to `build/`; `pyfmi package` requires an output path. Every
+written path is printed on stdout, one per line. Handled model or input errors
+print `pyfmi: <message>` on stderr and exit 1; argument errors keep argparse's
+exit 2.
 
 ### `pyfmi --help`
 
@@ -68,7 +71,8 @@ an output archive path.
 
 ```text
 usage: pyfmi model-description [-h] [-o OUT] [--composition NAME]
-                               [--component NAME] [--generation-time ISO8601]
+                               [--base-index N] [--component NAME]
+                               [--generation-time ISO8601]
                                SOURCE
 
 Write modelDescription.xml per component to an output directory.
@@ -81,16 +85,24 @@ options:
   -o OUT, --output OUT  Output directory (default: build).
   --composition NAME    Composition part definition to export (default: the
                         single root).
+  --base-index N        First emitted array index (default: 0; 1 targets OMC-
+                        built Modelica FMUs, which declare arrays one-based).
   --component NAME      Restrict the output to one exported component.
   --generation-time ISO8601
                         Fixed generationDateAndTime, for example
-                        2026-01-01T00:00:00Z (default: now).
+                        2026-01-01T00:00:00Z (default: 2000-01-01T00:00:00Z,
+                        the fixed epoch).
 ```
+
+An omitted generation time is the fixed epoch `2000-01-01T00:00:00Z`, so repeated
+runs are byte-identical. The option accepts `2026-01-01T00:00:00Z` or an ISO
+8601 form with an explicit offset; a naive time is refused with exit 2.
 
 ### `pyfmi c-headers --help`
 
 ```text
-usage: pyfmi c-headers [-h] [-o OUT] [--composition NAME] [--prefix NAME]
+usage: pyfmi c-headers [-h] [-o OUT] [--composition NAME] [--base-index N]
+                       [--prefix NAME]
                        SOURCE
 
 Write the C interface headers to an output directory.
@@ -103,6 +115,8 @@ options:
   -o OUT, --output OUT  Output directory (default: build).
   --composition NAME    Composition part definition to export (default: the
                         single root).
+  --base-index N        First emitted array index (default: 0; 1 targets OMC-
+                        built Modelica FMUs, which declare arrays one-based).
   --prefix NAME         Header prefix and C type prefix (default: the package
                         name).
 ```
@@ -134,10 +148,12 @@ options:
                         marker; repeatable and comma-separated.
 ```
 
-`<Prefix>_<Component>_model.cpp` is created once and never rewritten. Every
-other generated file is replaced on each run. `--omit` exists for an implementer who
-supplies their own definition: the marker names the missing function and the
-link fails until it is provided.
+`c-runtime` regenerates the C interface headers first, so `c-headers` need not
+run before it. `<Prefix>_<Component>_model.cpp` is created once and never
+rewritten. Every other generated file, including the C++ runtime and the hooks
+header, is replaced on each run. `--omit` exists for an implementer who supplies
+their own definition: the file keeps a marker naming the missing function and
+the link fails until that definition is provided.
 
 ### `pyfmi modelica --help`
 
@@ -206,7 +222,7 @@ pyfmi package build/Plant.fmu \
 
 ## Python API
 
-The package exports five generator functions, `fmi2_headers`, and the
+The package exports four generator functions, `fmi2_headers`, and the
 reduction types (`Component`, `Variable`, `components`).
 
 ```python
@@ -217,6 +233,7 @@ def generate_model_description(
     composition: str | None = None,
     component: str | None = None,
     generation_time: datetime | None = None,
+    base_index: int = 0,
 ) -> list[Path]: ...
 
 def generate_c_headers(
@@ -225,6 +242,7 @@ def generate_c_headers(
     *,
     composition: str | None = None,
     prefix: str | None = None,
+    base_index: int = 0,
 ) -> list[Path]: ...
 
 def generate_c_runtime(
@@ -250,12 +268,13 @@ def fmi2_headers() -> tuple[Path, ...]: ...
 ```
 
 `source` is a `.sysml` file, a directory of them, or an already loaded
-`pycps_sysml2.Architecture`. `generation_time=None` stamps the current UTC time;
-pass a timezone-aware datetime for reproducible output. `fmi2_headers()` returns
-the bundled FMI 2.0 standard headers as real file paths, so an FMU build can pass
-them to the `pyssp_standard` `FMU` facade without copying them into the
-fixture. The `.fmu` archive is written by that facade; `pyfmi` emits only
-`linux64`/FMI 2.0 through its CLI.
+`pycps_sysml2.Architecture`. `generation_time=None` uses the fixed epoch
+`2000-01-01T00:00:00Z`; pass a timezone-aware datetime for any other stamp. A
+naive datetime is refused. `fmi2_headers()` returns the bundled FMI 2.0 standard
+headers as real file paths, so an FMU build can pass them to the
+`pyssp_standard` `FMU` facade without copying them into the fixture. The `.fmu`
+archive is written by that facade; `pyfmi` emits only `linux64`/FMI 2.0 through
+its CLI.
 
 ```python
 from datetime import datetime, timezone
@@ -269,7 +288,7 @@ out = Path("build")
 stamp = datetime(2026, 1, 1, tzinfo=timezone.utc)
 
 pyfmi_sysml2.generate_model_description(source, out, generation_time=stamp)
-pyfmi_sysml2.generate_c_headers(source, out)
+pyfmi_sysml2.generate_c_runtime(source, out)
 pyfmi_sysml2.generate_modelica(source, out)
 
 # The binary stem must equal the interface modelIdentifier (here: Tank).
@@ -291,14 +310,21 @@ FMU.package(
 - `<out>/<Prefix>_<Component>.h` — VR enum, `VrCount`, and the C++ `Instance`
   plus `initialize_vr_map()`; a direct FMU model whose definition names the
   package uses that name once (`Generator.h`).
-- `<out>/<Prefix>_<Component>_fmi.cpp` — C++17 runtime implementing every FMI
-  2.0 CoSimulation entry point from the VR map.
+- `<out>/<Prefix>_<Component>_fmi.cpp` — C++17 runtime with C linkage; implements
+  the 38 FMI 2.0 CoSimulation entry points from the VR map. Nine of them are
+  explicit `fmi2Error` stubs: the FMU-state, serialization, directional-derivative,
+  and input/output-derivative functions.
 - `<out>/<Prefix>_<Component>_hooks.h` — model hook declarations
-  (`model_initialize`, `model_do_step`, `model_terminate`).
+  (`<stem>_model_initialize`, `<stem>_model_do_step`,
+  `<stem>_model_terminate`).
 - `<out>/<Prefix>_<Component>_model.cpp` — created once, never rewritten; the
-  implementer's only file.
-- `<out>/fmi2/*.h` — byte copies of the bundled FMI 2.0 standard headers.
-- `<out>/<Package>/package.mo`, `package.order`, `Interfaces.mo`,
+  implementer's only C++ file. Its default step returns `fmi2Error` until the
+  hooks are implemented.
+- `<out>/fmi2/fmi2Functions.h`, `fmi2FunctionTypes.h`, `fmi2TypesPlatform.h` —
+  byte copies of the bundled FMI 2.0 standard headers.
+- `<out>/<Package>/package.mo`, `package.order` — the root Modelica package and
+  its member order.
+- `<out>/<Package>/Interfaces.mo` — primitive input/output connector aliases;
   `GeneratedInterfaces.mo` — one connector per port definition.
 - `<out>/<Package>/<Component>_Interface.mo` — generated `partial model` with
   the parameters and one connector instance per port; replaced whole.
@@ -306,11 +332,14 @@ FMU.package(
   implementer's Modelica model, extending the generated partial model.
 - `<archive>.fmu` — `modelDescription.xml` at the root,
   `binaries/linux64/<modelIdentifier>.so`, and `sources/`, `resources/`,
-  `documentation/` when supplied.
+  `documentation/` when supplied. `pyfmi package` only binds the command line;
+  the archive is written by `pyssp_standard`'s `FMU` facade, and `linux64` is
+  the only accepted platform.
 
 `Prefix` defaults to the architecture package name; `Package` defaults to
-`GeneratedInterfaces`. Value references restart at 0 per component: parameters
-first, then ports in declaration order, then fields.
+`GeneratedInterfaces`. Value references start at the requested `--base-index`
+(default 0) per component: parameters first, then ports in declaration order,
+then fields.
 
 ## Iterative development
 
@@ -336,7 +365,7 @@ override either path.
 - **Flat parameter attribute rejected** — parameters come from the parameter
   dialect (`in port parameters ...`), never from attributes on a part.
 - **`platform 'windows64' is not supported; supported platforms: linux64`** —
-  v0.1.0 emits `linux64` only; do not widen the allow-list ad hoc.
+  this package emits `linux64` only; do not widen the allow-list ad hoc.
 - **`modelIdentifier 'Tank' does not match binary stem 'libTank'`** — name the
   shared library exactly `<modelIdentifier>.so` (or pass the matching
   `--platform` binary).
@@ -370,8 +399,9 @@ instead:
 |---|---|
 | `pyssp_sysml2 generate fmi --architecture ...` | `pyfmi model-description ...` |
 | FMI C headers from the same generator | `pyfmi c-headers ...` |
-| Modelica connector export | `pyfmi modelica ...` |
-| FMU packaging | `pyfmi package ...` |
+| — (no runtime sources were generated) | `pyfmi c-runtime ...`, the C++17 runtime and the `<stem>_model.cpp` seam |
+| Modelica connector export | `pyfmi modelica ...`, now a partial model per component plus the `<Name>.mo` implementer seam |
+| in-package FMU archive writer | `pyfmi package ...`, which delegates to `pyssp_standard`'s `FMU` facade |
 
 The artifacts are migration-compatible: a container root keeps the `guid`
 namespace string `pyssp_sysml2/<composition>/<component>` and the

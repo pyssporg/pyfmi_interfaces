@@ -3,14 +3,13 @@ id: CP-003
 type: capability
 title: Errors and refusals
 summary: Ambiguous roots, flat parameters, non-fixed lists, flattened connectors, naive clocks, and platform or identifier mismatches are refused with an actionable message.
-date: 2026-11-05
+date: 2026-11-17
 status: current
 ---
 
 # Errors and refusals
 
-Generation fails rather than guessing. Each refusal names the offending model
-element or path.
+Generation fails rather than guessing; each refusal names the offending model element or path.
 
 Model errors:
 
@@ -25,20 +24,16 @@ Model errors:
 
 Time errors:
 
-- a naive `generation_time`; the value must carry a timezone so the artifact
-  does not depend on the host's locality;
+- a naive `generation_time`; the value must carry a timezone so the artifact does not depend on the host's locality;
 - a malformed CLI generation time (exit 2 from argparse).
 
-Packaging errors:
+Packaging errors, raised by `pyssp_standard.FMU` and surfaced by `pyfmi package`:
 
-- a platform token outside the allow-list (`linux64`), or one that contains a
-  path separator;
-- a `modelDescription.xml` that is missing, not UTF-8, not valid FMI 2.0 XML,
-  or not `fmiVersion="2.0"`;
+- a platform token containing a path separator (the CLI admits only `linux64`);
+- a `modelDescription.xml` that is missing, not UTF-8, not valid FMI 2.0 XML, or not `fmiVersion="2.0"`;
 - no `CoSimulation`/`ModelExchange` element, or one without `modelIdentifier`;
 - a `modelIdentifier` that does not equal the binary stem;
-- a non-empty staging directory without `overwrite`;
+- a missing `--binary`, `--header`, `--resource`, or `--documentation` path;
 - duplicate file names inside one archive folder.
 
-The CLI reports handled errors as `pyfmi: <message>` on stderr with exit 1.
-Argument errors keep argparse's exit 2. Unexpected exceptions propagate.
+The CLI reports handled errors as `pyfmi: <message>` on stderr with exit 1. Argument errors keep argparse's exit 2. Unexpected exceptions propagate.

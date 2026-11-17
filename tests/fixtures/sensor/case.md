@@ -7,8 +7,10 @@ output payload carrying a Boolean alongside two Reals.
 
 - `sensor.sysml`
 
-**Conversion**: SysML v2 architecture -> the four FMI 2.0 artifacts
-(`modelDescription.xml`, C headers, Modelica package, packaged `.fmu`)
+**Conversion**: SysML v2 architecture -> the FMI 2.0 artifact set:
+`modelDescription.xml`, C interface headers, C++17 runtime sources with the
+`<stem>_model.cpp` seam, and the Modelica package with connectors, a generated
+partial model and an implementer-owned `<Name>.mo`, plus the packaged `.fmu`
 **Requirement / fault**: a Boolean field must keep its type through the C
 spelling and the FMI `Boolean` data type, and two authored parameter defaults
 must survive as text; a Boolean degraded to `Real` or a lost `0.08` is a fault
@@ -51,3 +53,5 @@ other fixture has a mixed-type output payload.
 ## Update history
 
 - 2026-11-05 — Fixture and record created, U3.7.
+- 2026-11-17 — Conversion line updated to the current artifact set, including
+  the C++17 runtime and the Modelica partial/implementer seam.

@@ -54,3 +54,4 @@ is relative to this directory.
 | --- | --- | --- |
 | 2026-11-05 | Case added with the direct `FmuModel` fixture | Modelica coverage for the direct export pattern. |
 | 2026-11-17 | Modelica seam: generated partial model and implementer-owned model | Iterative model development: interface generated, logic hand-written |
+| 2026-11-17 | Case record reviewed | Artifact list and seam description verified against the committed package and `tests/test_modelica.py`. |

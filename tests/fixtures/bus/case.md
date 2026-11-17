@@ -7,8 +7,10 @@ reused across directions, and the only `inout` port in the fixture set.
 
 - `bus.sysml`
 
-**Conversion**: SysML v2 architecture -> the four FMI 2.0 artifacts
-(`modelDescription.xml`, C headers, Modelica package, packaged `.fmu`)
+**Conversion**: SysML v2 architecture -> the FMI 2.0 artifact set:
+`modelDescription.xml`, C interface headers, C++17 runtime sources with the
+`<stem>_model.cpp` seam, and the Modelica package with connectors, a generated
+partial model and an implementer-owned `<Name>.mo`, plus the packaged `.fmu`
 **Requirement / fault**: FMI 2.0 has no bidirectional scalar variable, so an
 `inout` port must degrade to an input rather than disappear; four payloads used
 by seven ports must be emitted once each, and a component with no parameter
@@ -58,3 +60,5 @@ a direction FMI cannot express degrades to an input instead of being dropped.
 ## Update history
 
 - 2026-11-05 — Fixture and record created, U3.7.
+- 2026-11-17 — Conversion line updated to the current artifact set, including
+  the C++17 runtime and the Modelica partial/implementer seam.

@@ -1,7 +1,6 @@
 # Case: `bus`
 
-A wide component with no parameters, six ports, and an inout plus an undirected
-port.
+A wide component with no parameters, seven ports, one of them `inout`.
 
 ## Artifacts
 
@@ -16,9 +15,9 @@ duplicated here; the fixture is the single source of the architecture.
 
 Twenty scalar variables with value references `0..19` and output indices
 `13..20` exercise the ordering bounds and the causalities the narrow fixtures do
-not reach. The `inout` port and the undirected port both become inputs, because
-FMI 2.0 has no bidirectional scalar variable, so `shared` appears as an input
-and no variable is silently dropped. A component with no parameter interface
+not reach. The `inout` port becomes an input, because FMI 2.0 has no
+bidirectional scalar variable, so `shared` appears as an input and no variable
+is silently dropped. A component with no parameter interface
 emits no `parameter`/`fixed` variables at all.
 
 - **Conversion:** SysML v2 text → `pyfmi_sysml2.core.reduction` reduction → FMI 2.0
@@ -48,3 +47,4 @@ emits no `parameter`/`fixed` variables at all.
 | Date | Change | Reason |
 | --- | --- | --- |
 | 2026-11-05 | Created | U3.2: first committed `modelDescription.xml` goldens. |
+| 2026-11-17 | Port description corrected | The fixture has seven ports and one `inout`; it has no undirected port. |

@@ -45,3 +45,4 @@ parameters keep their authored defaults while the single output stays in
 | Date | Change | Reason |
 | --- | --- | --- |
 | 2026-11-05 | Created | Direct `FmuModel` identity golden. |
+| 2026-11-17 | Record reviewed | Verified against `Generator/modelDescription.xml` and `tests/test_model_description.py`. |

@@ -21,6 +21,8 @@ the model seam alone.
 - **Unsupported features refuse.** FMU state, directional derivatives, and
   input/output derivatives return `fmi2Error`, and the modelDescription claims
   none of them.
-- **The model seam is a file, not an edit.** Model behaviour is three hooks in a
-  file created once and never rewritten; an interface change regenerates
-  everything else and leaves it alone (`CP-004`).
+- **The model seam is a file, not an edit.** `<stem>_model.cpp` defines
+  `<stem>_model_initialize`, `<stem>_model_do_step`, and
+  `<stem>_model_terminate`, declared in `<stem>_hooks.h`. The generator creates
+  it once with `TODO` bodies; the default step returns `fmi2Error` until
+  implemented, and regeneration never rewrites the file (`CP-004`).

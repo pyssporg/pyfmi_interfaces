@@ -22,7 +22,7 @@ compile pass, so the compiler is the oracle for it
 **Normalization**: none; the keyword escape is deterministic and part of the
 emitted format
 **Volatile fields**: none
-**Update policy**: `UPDATE_GOLDENS=1 ./venv/bin/python -m pytest
+**Update policy**: `UPDATE_GOLDENS=1 python -m pytest
 tests/test_c_headers.py`; never under `CI`
 **Notes**: the SysML field stays `auto`; only the member spelling becomes
 `auto_`, and the VR entry still names `COMMAND_AUTO`
@@ -37,3 +37,5 @@ compiler rejects.
 ## Update history
 
 - 2026-11-05 — Initial golden, U3.3.
+- 2026-11-17 — Record reviewed against the committed headers; removed the
+  stale interpreter path from the update policy.

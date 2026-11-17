@@ -15,14 +15,13 @@ dispatcher: it imports each family's `COMMANDS` tuple, concatenates them in
 arguments of its own.
 
 `core/cli.py` owns the shape every family registers against:
+`Command(name, help, description, configure, handler)`, the shared option
+helpers (`add_source`, `add_output`, `add_composition`, `add_base_index`,
+`add_generation_time`), `print_paths`, `build_parser()`, and `run()` with the
+exit-code policy. A family's `__init__.py` declares its options in `configure`
+and its work in a `handler` that calls one generator.
 
-- `Command(name, help, description, configure, handler)`, one per artifact;
-- the shared option helpers — `add_source`, `add_output`, `add_composition`,
-  `add_base_index`, `add_generation_time` — and `print_paths`;
-- `build_parser()` and `run()`, including the exit-code policy.
-
-A family's `__init__.py` declares its options in a `configure` callback and its
-work in a `handler` that calls one generator. The five subcommands:
+The five subcommands:
 
 - `pyfmi model-description SOURCE [-o OUT] [--composition NAME]
   [--base-index N] [--component NAME] [--generation-time ISO8601]`
@@ -33,13 +32,14 @@ work in a `handler` that calls one generator. The five subcommands:
 - `pyfmi modelica SOURCE [-o OUT] [--composition NAME] [--package NAME]
   [--within NAME]`
 - `pyfmi package -o OUT --model-description PATH --binary PATH
-  [--platform NAME] [--header PATH] [--resource PATH] [--documentation PATH]`
+  [--platform linux64] [--header PATH] [--resource PATH] [--documentation PATH]`
 
 Behaviour:
 
 - `SOURCE` is a `.sysml` file or a directory of them, loaded by `pycps_sysml2`.
 - The four generating subcommands default to `build/`; `package` requires an
-  output path.
+  output path. `--model-description` and `--binary` are required.
+- `package --platform` accepts only `linux64` (default `linux64`).
 - `--header`, `--resource`, `--documentation`, and `--omit` are repeatable.
 - Every written path is printed on stdout, one per line.
 - `ValueError`, `KeyError`, and `FileNotFoundError` print `pyfmi: <message>` on

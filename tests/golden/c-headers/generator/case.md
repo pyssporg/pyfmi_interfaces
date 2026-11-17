@@ -25,7 +25,7 @@ is cross-checked against `Component.variables`
 **Normalization**: none; the generator reads no clock and the direct export has
 exactly one component
 **Volatile fields**: none
-**Update policy**: `UPDATE_GOLDENS=1 ./venv/bin/python -m pytest
+**Update policy**: `UPDATE_GOLDENS=1 python -m pytest
 tests/test_c_headers.py`; never under `CI`
 **Notes**: the fixture package and the FMU definition share the name
 `Generator`, which is the case the collapse exists for; a container whose
@@ -40,3 +40,5 @@ without a repeated stem.
 ## Update history
 
 - 2026-11-05 — Initial golden for the direct `FmuModel` export pattern.
+- 2026-11-17 — Record reviewed against the committed headers; removed the
+  stale interpreter path from the update policy.

@@ -22,8 +22,8 @@ while a Real parameter carries `start="1"` and `start="2.5"` produced by the FMI
 text formatter; inputs keep `Real`/`Integer` types; the two output ports expand
 to `throttle.demand`, `throttle.enabled`, and `status.code`; and
 `ModelStructure` lists indices `7 8 9` under both `Outputs` and
-`InitialUnknowns`, exactly as v0.3.0 did. The `guid` is pinned in the test
-independent of the generator.
+`InitialUnknowns`. The `guid` is pinned in the test independent of the
+generator.
 
 - **Conversion:** SysML v2 text → `pyfmi_sysml2.core.reduction` reduction → FMI 2.0
   document dataclasses → `modelDescription.xml`.
@@ -53,3 +53,4 @@ independent of the generator.
 | Date | Change | Reason |
 | --- | --- | --- |
 | 2026-11-05 | Created | U3.2: first committed `modelDescription.xml` goldens. |
+| 2026-11-17 | Stale version reference removed | Verified against `Controller/modelDescription.xml` and `tests/test_model_description.py`. |

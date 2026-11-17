@@ -24,11 +24,12 @@ type-correct access, output write refusal, and the placeholder step failure
 **Comparison**: byte-for-byte against the golden text
 **Normalization**: none; no clock, path, or environment value enters the bytes
 **Volatile fields**: none
-**Update policy**: `UPDATE_GOLDENS=1 ./venv/bin/python -m pytest
+**Update policy**: `UPDATE_GOLDENS=1 python -m pytest
 tests/test_c_runtime.py`; never under `CI`
-**Notes**: the three `fmi2/` copies are compared against the packaged headers,
-not against a golden. The C headers are the existing
-`tests/golden/c-headers/minimal/` artifacts.
+**Notes**: the three `fmi2/` copies are compared byte-for-byte against the
+bundled headers returned by `pyfmi_sysml2.core.fmi2_headers()`, not against a
+golden. The C headers are the existing `tests/golden/c-headers/minimal/`
+artifacts.
 
 ## What this case proves
 
@@ -38,3 +39,5 @@ does not accidentally depend on a type the minimal component lacks.
 ## Update history
 
 - 2026-11-17 — Initial golden for the C++17 runtime generator.
+- 2026-11-17 — Bundled-header wording corrected; removed the stale interpreter
+  path from the update policy.

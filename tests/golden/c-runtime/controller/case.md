@@ -21,8 +21,8 @@ fault the golden makes visible
 the VR enum, eight typed get/set functions that validate the whole batch before
 writing, the CoSimulation status and event functions, nine `fmi2Error`
 placeholders for the unsupported state/derivative calls, and a model file whose
-`initialize`/`do_step` return `fmi2Error` with a TODO while `terminate` returns
-`fmi2OK`
+`do_step` returns `fmi2Error` with a TODO while `initialize` and `terminate`
+return `fmi2OK`
 **Independent oracle**: `g++ -std=c++17 -fsyntax-only` for every generated
 translation unit, and the linked harness `tests/c_runtime_harness.cpp`, which
 drives the public FMI API and checks the GUID, type, causality, parameter phase,
@@ -31,7 +31,7 @@ Boolean/String round-trips, and step-time bookkeeping
 **Normalization**: none; the generator reads no clock, path, or environment
 value, and the model file is deterministic on creation
 **Volatile fields**: none
-**Update policy**: `UPDATE_GOLDENS=1 ./venv/bin/python -m pytest
+**Update policy**: `UPDATE_GOLDENS=1 python -m pytest
 tests/test_c_runtime.py`; never under `CI`
 **Notes**: the three `fmi2/` copies are not goldens; the test compares them
 byte-for-byte against `pyfmi_sysml2.fmi2_headers()`. The generated C headers are
@@ -47,3 +47,5 @@ an honest placeholder rather than a silent success.
 ## Update history
 
 - 2026-11-17 — Initial golden for the C++17 runtime generator.
+- 2026-11-17 — Placeholder-step wording corrected to match the committed model
+  file; removed the stale interpreter path from the update policy.

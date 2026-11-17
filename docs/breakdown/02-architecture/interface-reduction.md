@@ -9,50 +9,32 @@ status: current
 
 # Interface reduction
 
-`core/reduction.py` is the single source of the variable set. `components()`
-resolves the export unit, validates the parameter dialect, and returns the
-exported components. A container root exports its leaf descendants sorted by
-name; a part definition marked `:> FmuModel` is itself the export unit and
-returns as the single component. Each `Component` carries parameter fields, port
-groups, and the flat `variables` tuple every generator iterates.
+`core/reduction.py` is the single source of the variable set: every generator
+reads it and none re-derives variables, causalities, or value references.
 
-The four interface dataclasses live in `core/model.py`:
+`components()` resolves the export unit, validates the parameter dialect, and
+returns the exported components: a container root's leaf descendants sorted by
+name, or a single part definition marked `:> FmuModel`. Each `Component` carries
+parameter fields, port groups, and the flat `variables` tuple every generator
+iterates.
 
-- `Field`: a declared member, scalar or fixed-length array, with `members()`
-  yielding `(suffix, member_expression)` per element.
-- `Variable`: one ScalarVariable — name, type, causality, variability, VR,
-  1-based `index`, description, start, and the C member expression.
-- `PortGroup`: one port usage with its definition, direction, causality, fields,
-  and the Modelica qualifier.
-- `Component`: a leaf definition with its complete interface and `outputs`.
+Rules encoded here, not repeated in the generators: parameters first, then ports
+and fields in declaration order, one VR per scalar restarting at 0 per
+component; `direction_causality()` maps `out` to output and everything else to
+input; `_fixed_count()` refuses a multiplicity FMI cannot express as scalars; a
+flat connector control is an explicit refusal. C, C++, `*_DataType`, and
+Modelica tables live in `core/spelling.py`, so no two artifacts spell a
+primitive differently.
 
-Rules encoded in the reduction, not repeated in the generators:
+`resolve_system()` picks the `:> FmuModel` definition as the export unit, or
+else the part definition that has parts and is not used as a part elsewhere;
+several candidates require `composition=` and are refused by name.
 
-- parameters first, then ports in declaration order, fields in declaration
-  order, one VR per scalar, restarting at 0 per component;
-- `direction_causality()` maps `out` to output and everything else to input;
-- `_fixed_count()` refuses a multiplicity that FMI cannot express as scalars;
-- a flat connector control is an explicit refusal, not a silent change;
-- C, C++, DataType, and Modelica type tables live in `core/spelling.py`, one
-  module, so the four artifacts cannot disagree about a primitive's spelling.
-  The reduction reads `DISCRETE_TYPES` and `INPUT_START` from those same tables
-  rather than keeping private copies.
+The namespace is package-scoped: own-package definitions store under their bare
+name and others under `<package>::<name>`, while `Definition.name` stays bare.
+Root selection compares stored keys, so a definition from a second load root is
+not itself a composition root; the qualifier never reaches an artifact.
 
-`resolve_system()` picks a part definition marked `:> FmuModel` as the export
-unit; several marked definitions require `composition=` and are refused by
-name. When none is marked, it picks the part definition that has parts and is
-not used as a part elsewhere; several such roots also require `composition=`.
-
-The namespace is package-scoped: a definition of the architecture's own package
-is stored under its bare name and a definition of any other package under
-`<package>::<name>`, while `Definition.name` stays bare everywhere. Root
-selection compares stored keys on both sides — `Architecture.stored_key()` for
-the resolved usage and for the candidate — so a part definition supplied by a
-second load root that the composition uses is not itself a composition root. The
-qualifier never reaches an artifact: names are bare at every output.
-
-`export_identity()` owns the naming rule for the selected unit: a container
-root names a component `<system>.<component>`, while a direct FMU model uses
-the bare definition name. `ExportIdentity` derives the modelDescription guid and
-the component guid from that one rule, so a direct FMU cannot become
-`Generator.Generator`.
+`export_identity()` owns the naming rule: a container root names a component
+`<system>.<component>`, a direct FMU uses the bare definition name, and both
+guids derive from that one rule.

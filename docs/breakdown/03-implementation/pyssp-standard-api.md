@@ -3,7 +3,7 @@ id: INFO-010
 type: info
 title: pyssp_standard API facts
 summary: The codec returns str, interface type and capabilities are both required, Boolean starts are text, ModelStructure indexes are 1-based, and package_archive normalizes modes and epoch.
-date: 2026-11-05
+date: 2026-11-17
 status: current
 ---
 
@@ -46,6 +46,6 @@ first.
   checks `fmiVersion == "2.0"`, the presence of an interface, and that the
   `modelIdentifier` equals the binary stem.
 
-`FMU.stage` and `FMU.package` are newer than the published wheel, so this
-repository needs an editable sibling checkout of `experimental_pyssp_standard`
-until the pin (`experimental-pyssp-standard` v0.9.3.dev0) carries them.
+The pinned `experimental-pyssp-standard` v0.9.3.dev0 wheel carries `FMU.stage`
+and `FMU.package`; `pyfmi_sysml2` needs no editable sibling checkout and adds
+no wrapper around either.

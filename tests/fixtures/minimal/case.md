@@ -7,8 +7,10 @@ one output, three scalar variables.
 
 - `minimal.sysml`
 
-**Conversion**: SysML v2 architecture -> the four FMI 2.0 artifacts
-(`modelDescription.xml`, C headers, Modelica package, packaged `.fmu`)
+**Conversion**: SysML v2 architecture -> the FMI 2.0 artifact set:
+`modelDescription.xml`, C interface headers, C++17 runtime sources with the
+`<stem>_model.cpp` seam, and the Modelica package with connectors, a generated
+partial model and an implementer-owned `<Name>.mo`, plus the packaged `.fmu`
 **Requirement / fault**: the floor of the input space; a generator that only
 works with a parameter interface, several ports, or a list parameter has no
 legal input at all if this case fails
@@ -41,3 +43,5 @@ definition. If this case fails, every wider fixture is meaningless.
 ## Update history
 
 - 2026-11-05 — Fixture and record created, U3.7.
+- 2026-11-17 — Conversion line updated to the current artifact set, including
+  the C++17 runtime and the Modelica partial/implementer seam.

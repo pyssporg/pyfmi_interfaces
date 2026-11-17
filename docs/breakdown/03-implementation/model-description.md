@@ -2,7 +2,7 @@
 id: INFO-005
 type: info
 title: modelDescription generation
-summary: model_description/document.py assembles a pyssp_standard FMI 2 document from the reduction, stamps the clock, serializes, validates, then writes one file per component.
+summary: model_description/document.py assembles a pyssp_standard FMI 2 document from the reduction, stamps the injected clock, serializes, validates, then writes one file per component.
 date: 2026-11-17
 status: current
 ---
@@ -14,11 +14,12 @@ in `model_description/document.py` writes XML by hand.
 
 Document fields:
 
-- `fmi_version="2.0"`, `model_name="<composition>.<component>"` for a container
-  root, or the bare `<definition>` for a direct FMU model;
-- `guid` from the frozen uuid5 namespace (`pyssp_sysml2/<composition>/<component>`
-  or `pyssp_sysml2/<definition>`), `generation_tool="pyfmi_sysml2 tooling"`;
-- `generation_date_and_time` from the injected clock;
+- `fmi_version="2.0"`, `model_name` = `<composition>.<component>` for a
+  container root or the bare definition for a direct FMU model;
+- `guid` from the frozen uuid5 key `pyssp_sysml2/<composition>/<component>` or
+  `pyssp_sysml2/<definition>`, `generation_tool="pyfmi_sysml2 tooling"`;
+- `generation_date_and_time` from the injected clock; omitted means the fixed
+  `2000-01-01T00:00:00Z` epoch, and a naive time is refused;
 - `variable_naming_convention="structured"`;
 - `interface_type="CoSimulation"` and `capabilities` with
   `model_identifier=<component>` — both are required for the codec to emit the
@@ -40,9 +41,5 @@ returns the paths; a named component that is not exported is a `ValueError`.
 The `start` text is produced by `pycps_sysml2.core.format_value`, so a Boolean
 is `true`/`false`, never `str(True)`.
 
-Parity with `pyssp_sysml2` v0.3.0 was checked against the frozen generator on
-its `identity` golden for a container composition: `modelName`, `guid`, every
-`ScalarVariable`, and both `ModelStructure` groups are identical. Three
-deliberate deviations remain: `generationTool` names this library, and the empty
-`description=""`, `version="1.0"`, and `numberOfEventIndicators="0"` root
-attributes are not invented (FMI authoring attributes are a v0.2.0 item).
+FMI authoring attributes are not chosen here: guid policy, modelName override,
+units, and declared variability or initial are a standing non-goal (`INFO-018`).

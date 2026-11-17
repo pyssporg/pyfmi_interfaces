@@ -7,8 +7,10 @@ interface in the fixture set with a fixed-size array and a String.
 
 - `controller.sysml`
 
-**Conversion**: SysML v2 architecture -> the four FMI 2.0 artifacts
-(`modelDescription.xml`, C headers, Modelica package, packaged `.fmu`)
+**Conversion**: SysML v2 architecture -> the FMI 2.0 artifact set:
+`modelDescription.xml`, C interface headers, C++17 runtime sources with the
+`<stem>_model.cpp` seam, and the Modelica package with connectors, a generated
+partial model and an implementer-owned `<Name>.mo`, plus the packaged `.fmu`
 **Requirement / fault**: a `Real[2]` list parameter expands element-wise and a
 `String` parameter has no FMI 2.0 scalar carrier, so the expansion and the
 `STRING` mapping must both be exact; a single lost array element or a String
@@ -57,3 +59,5 @@ that a field named after a C keyword still yields headers both compilers accept.
 ## Update history
 
 - 2026-11-05 — Fixture and record created, U3.7.
+- 2026-11-17 — Conversion line updated to the current artifact set, including
+  the C++17 runtime and the Modelica partial/implementer seam.

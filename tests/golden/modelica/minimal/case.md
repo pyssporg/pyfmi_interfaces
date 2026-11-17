@@ -66,3 +66,4 @@ only case where a single definition must remain undirected while its users are
 | --- | --- | --- |
 | 2026-11-05 | Case added with the generator | U3.4: Modelica interface package |
 | 2026-11-17 | Modelica seam: generated partial model and implementer-owned model | Iterative model development: interface generated, logic hand-written |
+| 2026-11-17 | Case record reviewed | Artifact list and seam description verified against the committed package and `tests/test_modelica.py`. |

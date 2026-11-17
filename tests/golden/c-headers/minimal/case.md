@@ -21,7 +21,7 @@ is cross-checked against `Component.variables`
 **Normalization**: none; the generator reads no clock and sorts components by
 name, so the same input always yields the same bytes
 **Volatile fields**: none
-**Update policy**: `UPDATE_GOLDENS=1 ./venv/bin/python -m pytest
+**Update policy**: `UPDATE_GOLDENS=1 python -m pytest
 tests/test_c_headers.py`; never under `CI`
 **Notes**: one scalar input and one scalar output exercise the output-writable
 rule with the smallest possible variable set
@@ -35,3 +35,5 @@ component header compiles in both C11 and C++17 without the C++ block leaking
 ## Update history
 
 - 2026-11-05 — Initial golden, U3.3.
+- 2026-11-17 — Record reviewed against the committed headers; removed the
+  stale interpreter path from the update policy.

@@ -12,12 +12,13 @@ status: suggested
 - **Question:** does the artifact carry anything that changes when the variable
   set changes and stays put when it does not?
 - **Evidence:** no. The guid is `uuid5` over a frozen
-  `pyssp_sysml2/<composition>/<component>` string, so adding, removing,
-  retyping, or reordering a variable leaves it byte-identical while every later
-  value reference moves. The name-derived C enum alias absorbs that shift inside
-  the one tree we rewrite, but a consumer that cached value references against
-  the guid — a Simulink FMI import block, a saved result file, a live `fmpy`
-  session — sees "same FMU" and misbinds silently.
+  `pyssp_sysml2/<composition>/<component>` key (`pyssp_sysml2/<component>` for a
+  direct FMU), so adding, removing, retyping, or reordering a variable leaves
+  it byte-identical while every later value reference moves. The name-derived C
+  enum alias absorbs that shift inside the one tree we rewrite, but a consumer
+  that cached value references against the guid — a Simulink FMI import block, a
+  saved result file, a live `fmpy` session — sees "same FMU" and misbinds
+  silently.
 - **Change:** emit one deterministic `interface hash` over the reduced variable
   set — per component, the ordered (name, type, causality, variability, value
   reference, count) tuples plus a generator schema version — as a separate,

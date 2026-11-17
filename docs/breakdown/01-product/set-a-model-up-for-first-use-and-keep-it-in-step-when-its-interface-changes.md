@@ -23,5 +23,6 @@ them to me again when the architecture's interface moves.
   `CP-002`); later consistency comes from regeneration and determinism
   (`INFO-004`), never from editing generated files.
 - **Where it strains:** regeneration replaces generated files wholesale and
-  merges no edits, so the implementer's code lives in the model file, which the
-  generator creates once and never rewrites.
+  merges no edits, so the implementer's code lives in the model seam —
+  `<stem>_model.cpp` for C++ or the `<Name>` model for Modelica — each created
+  once and never rewritten.

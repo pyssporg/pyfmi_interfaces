@@ -2,7 +2,7 @@
 id: INFO-019
 type: info
 title: Iterative development example
-summary: tests/iterative/run.sh generates the interface, adds the model logic, renames a port, and shows the build failing at the model line; a slow test runs it.
+summary: tests/iterative/run.sh generates the Modelica interface, adds the model logic, renames a port, and shows the build failing at the model line; tests/test_iterative_example.py runs it as a slow system test.
 date: 2026-11-17
 status: current
 ---
@@ -11,8 +11,7 @@ status: current
 
 `tests/iterative/` is the generator's loop made executable: three revisions
 of one architecture, one hand-written model, and a script that checks each
-outcome. It is the only place in the repository where a build command is part of
-the artifact: `omc` is driven from the script, never by `pyfmi`.
+outcome. `omc` is driven from the script, never by `pyfmi`.
 
 The script runs four stages in a temporary directory:
 
@@ -32,6 +31,6 @@ model is not, and the failure is a named symbol at a line, not a silent
 renumbering. Stage 4 shows the structural change a name check cannot catch; the
 balance check does.
 
-`tests/test_examples.py` runs the script as a `system`/`slow` test, so the
-example cannot rot into prose. It skips when `omc` is absent and resolves the
-`pyfmi` console script next to the test interpreter.
+`tests/test_iterative_example.py` runs the script as a `system`/`slow` test, so
+the example cannot rot into prose. It skips when `omc` is absent and resolves
+the `pyfmi` console script next to the test interpreter.

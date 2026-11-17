@@ -146,11 +146,11 @@ def component_interface(
             continue
         flat = definition.attributes.get(FLAT_CONNECTOR_ATTR)
         if flat is not None and bool(flat.value):
-            # v0.1.0 does not flatten connector payloads into the component;
-            # record rather than silently change the variable set.
+            # Connector payloads are not flattened into the component;
+            # refuse rather than silently change the variable set.
             raise ValueError(
                 f"{part_def.name}.{name} sets {FLAT_CONNECTOR_ATTR}; flattened "
-                "ports are not supported by pyfmi_sysml2 v0.1.0"
+                "ports are not supported by pyfmi_sysml2"
             )
         causality = direction_causality(usage.direction)
         fields: list[Field] = []

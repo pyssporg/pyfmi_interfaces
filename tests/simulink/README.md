@@ -1,5 +1,9 @@
 # Simulink and the generated/interface split
 
+This directory is a prototype and a design study, not a shipped generator
+family. The repository ships no Simulink backend, and this walkthrough exists to
+test whether one would be worth building.
+
 The Modelica artifact is an interface plus a scaffold: a generated package that
 compiles on its own, a hand-written model file the generator creates once and
 never rewrites, and a build that fails at exactly the member an interface change
@@ -134,8 +138,8 @@ still limits shipped artifacts to FMI, so this stays a proof, not a backend.
 ./tests/simulink/run.sh
 ```
 
-`MATLAB=` and `PYTHON=` override the executables when they are not on `PATH`,
-for example `MATLAB=/opt/MATLAB/R2023b/bin/matlab ./tests/simulink/run.sh`.
+`MATLAB=` and `PYTHON=` override the defaults, for example
+`MATLAB=/opt/MATLAB/R2023b/bin/matlab ./tests/simulink/run.sh`.
 The run needs `python3` with this package installed, and MATLAB with Simulink.
 
 The pytest entry point drives the same script, marked `slow` so it stays out of

@@ -133,7 +133,7 @@ def add_generation_time(parser: argparse.ArgumentParser) -> None:
         type=_parse_generation_time,
         help=(
             "Fixed generationDateAndTime, for example 2026-01-01T00:00:00Z "
-            "(default: now)."
+            "(default: 2000-01-01T00:00:00Z, the fixed epoch)."
         ),
     )
 

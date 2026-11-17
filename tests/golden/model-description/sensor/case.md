@@ -48,3 +48,4 @@ the identity contract to a second composition name.
 | Date | Change | Reason |
 | --- | --- | --- |
 | 2026-11-05 | Created | U3.2: first committed `modelDescription.xml` goldens. |
+| 2026-11-17 | Record reviewed | Verified against `Tank/modelDescription.xml` and `tests/test_model_description.py`. |

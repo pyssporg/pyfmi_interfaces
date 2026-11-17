@@ -26,20 +26,23 @@ PYFMI=/path/to/pyfmi OMC=/path/to/omc ./run.sh
 | 3 | the same model, one local rename | builds again |
 | 4 | `v3.sysml` (output member `clipped` added) | the build fails on the unbalanced member |
 
-Stage 2 is the point. Regenerating rewrites the whole generated half —
-`Scaler_Interface.mo`, `GeneratedInterfaces.mo`, `package.order` — and leaves
-`Scaler.mo` byte-identical. The build then reports:
+Stage 2 is the point. Regenerating rewrites the whole generated half in
+`GeneratedInterfaces/`: `package.mo`, `package.order`, `Interfaces.mo`,
+`GeneratedInterfaces.mo`, and `Scaler_Interface.mo`. It leaves `Scaler.mo`
+byte-identical. The build then names `Scaler.mo` and reports:
 
 ```
-Scaler.mo:7:3-7:43] Error: Variable raw.value not found in scope Scaler.
+Error: Variable raw.value not found in scope Scaler.
 ```
 
-That is the file and line the implementer owns, named by the port they no
-longer have. Stage 4 shows the structural change: adding a member does not
-break a name, it breaks the balance, and `buildModel` names the new member.
+That is the file the implementer owns, named by the port they no longer have.
+Stage 4 shows the structural change: adding a member does not break a name, it
+breaks the balance, and `buildModel` reports `Too few equations` and names
+`limited.clipped`.
 
 Nothing here invokes a compiler through `pyfmi`: `omc` is the oracle, driven
-from this script.
+from this script. `tests/test_iterative_example.py` runs the same script as a
+`system` and `slow` test, and skips with a reason when `omc` is absent.
 
 ## Files
 

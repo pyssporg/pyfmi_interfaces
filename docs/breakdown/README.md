@@ -12,12 +12,12 @@ it serves, and how generation is organized, verified, and released.
 
 - `00-intent/` — why the project exists and what it refuses to become.
 - `01-product/` — the artifact contract, the variable model, the
-  setup-and-refresh use case, and refusals.
+  setup-and-refresh use case, the generated-plumbing/model split, and refusals.
 - `02-architecture/` — module map, interface reduction, determinism.
 - `03-implementation/` — per-module notes, C++ runtime, API facts.
 - `04-verification/` — test levels, consistency gate, oracles, fixtures.
 - `05-operation/` — setup, the implementer's build, and release.
-- `06-evolution/` — roadmap and upstream gaps.
+- `06-evolution/` — candidate improvements and upstream gaps.
 - the decision archive (`docs/archive/archive.zip`) — dated decision stream,
   history only, read via `pb archive`.
 

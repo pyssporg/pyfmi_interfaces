@@ -18,8 +18,7 @@ parameter interface keeps its authored default as FMI text (`gain` → `2`), the
 input and the output keep their value references in declaration order
 (parameter, then ports), `CoSimulation` carries `modelIdentifier="Scale"`, and
 `ModelStructure` lists the single output both as an output and as an initial
-unknown. The `guid` and `modelName="Root.Scale"` pin the identity contract
-shared with pyssp_sysml2 v0.3.0.
+unknown. The `guid` and `modelName="Root.Scale"` pin the identity contract.
 
 - **Conversion:** SysML v2 text → `pyfmi_sysml2.core.reduction` reduction → FMI 2.0
   document dataclasses → `modelDescription.xml`.
@@ -47,3 +46,4 @@ shared with pyssp_sysml2 v0.3.0.
 | Date | Change | Reason |
 | --- | --- | --- |
 | 2026-11-05 | Created | U3.2: first committed `modelDescription.xml` goldens. |
+| 2026-11-17 | Stale version reference removed | Verified against `Scale/modelDescription.xml` and `tests/test_model_description.py`. |

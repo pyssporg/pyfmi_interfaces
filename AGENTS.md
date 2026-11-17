@@ -31,17 +31,20 @@ to read, not references of last resort.
 
 `pyfmi_sysml2` generates FMI 2.0 CoSimulation artifacts from a SysML v2
 architecture: `modelDescription.xml`, C interface headers, a C++17 runtime with
-model hooks, Modelica connectors, and a packaged `.fmu`. The artifact is the
-library boundary; the `pyfmi` CLI and the five generator functions are the
-public surface.
+model hooks, Modelica connectors with a partial-model implementer seam, and a
+packaged `.fmu`. The artifact is the library boundary; the `pyfmi` CLI, four
+generator functions, and `fmi2_headers` are the public surface.
 
 - The SysML dialect is owned by `pycps_sysml2`; this package implements the FMI
   half of that contract.
 - FMI XML is owned by `pyssp_standard.standard.fmi2`; this package maps the
   reduction onto it.
 - The code is one `core/` package plus one subpackage per artifact family
-  (`c/`, `model_description/`, `modelica/`, `fmu/`). A family imports `core/`
-  only and never another family; only the facade and `cli.py` import families.
+  (`c/`, `model_description/`, `modelica/`, `fmu/`), plus the bundled
+  `fmi2_headers/`. A family imports `core/` only and never another family; only
+  the facade and `cli.py` import families.
+- Packaging is upstream: `pyfmi package` delegates to `pyssp_standard`'s `FMU`
+  facade, and `fmu/` only binds the command line to it.
 - Current state, contracts, and design rationale live in `docs/breakdown/`; the
   code is the source of truth when the two disagree.
 
@@ -95,12 +98,12 @@ public surface.
 
 ## Environment
 
-- Python >= 3.11; the repository ships `./venv`.
-- Install: `./venv/bin/pip install -e ".[dev]"`. Both runtime dependencies are
-  direct-URL wheels pinned to sibling GitHub releases.
-- Tests: `./venv/bin/python -m pytest -q`; the CI subset is
-  `./venv/bin/python -m pytest -m "not slow"`.
-- Lint: `./venv/bin/ruff check src tests`.
+- Python >= 3.11. No virtualenv is tracked; create one per checkout.
+- Install: `python3 -m venv .venv && .venv/bin/pip install -e ".[dev]"`. Both
+  runtime dependencies are direct-URL wheels pinned to sibling GitHub releases.
+- Tests: `.venv/bin/python -m pytest -q`; the CI subset is
+  `.venv/bin/python -m pytest -m "not slow"`.
+- Lint: `.venv/bin/ruff check src tests`.
 - Oracles: `gcc`/`g++` syntax-check and link the C/C++ artifacts, `fmpy`
   validates the modelDescription and loads the packaged FMU, and `omc` checks
   the Modelica package; each skips with a reason when absent.

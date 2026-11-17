@@ -19,7 +19,7 @@ against `Component.variables`
 **Comparison**: byte-for-byte against the golden text
 **Normalization**: none
 **Volatile fields**: none
-**Update policy**: `UPDATE_GOLDENS=1 ./venv/bin/python -m pytest
+**Update policy**: `UPDATE_GOLDENS=1 python -m pytest
 tests/test_c_headers.py`; never under `CI`
 **Notes**: covers `Boolean` in both the C struct and the `SENSOR_DATA_BOOLEAN`
 mapping tag
@@ -33,3 +33,5 @@ formatting.
 ## Update history
 
 - 2026-11-05 — Initial golden, U3.3.
+- 2026-11-17 — Record reviewed against the committed headers; removed the
+  stale interpreter path from the update policy.

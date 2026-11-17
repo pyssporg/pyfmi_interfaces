@@ -22,7 +22,7 @@ because `inout` is an input in FMI 2.0
 **Normalization**: none; first-use order is fixed by the sorted component list
 and each component's declaration order
 **Volatile fields**: none
-**Update policy**: `UPDATE_GOLDENS=1 ./venv/bin/python -m pytest
+**Update policy**: `UPDATE_GOLDENS=1 python -m pytest
 tests/test_c_headers.py`; never under `CI`
 **Notes**: largest fixture; catches duplicate struct emission and the
 `inout`-as-input rule
@@ -36,3 +36,5 @@ references.
 ## Update history
 
 - 2026-11-05 — Initial golden, U3.3.
+- 2026-11-17 — Record reviewed against the committed headers; removed the
+  stale interpreter path from the update policy.

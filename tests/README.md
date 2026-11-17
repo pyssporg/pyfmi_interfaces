@@ -1,24 +1,23 @@
 # Tests
 
-Six levels. Each level owns a fault the others cannot see, so a green run at a
-lower level is not evidence for a higher one.
+Five levels plus an orthogonal `slow` marker. Each level owns a fault the others
+cannot see, so a green run at a lower level is not evidence for a higher one.
 
 | Marker | Level | What it can fail on | Where |
 | --- | --- | --- | --- |
 | `static` | source and repository policy | a rule that holds without running the package: layering (family isolation, registration completeness), dependency shape, fixture records, golden coverage, provenance | `test_fixture_policy.py`, `test_layering.py` |
-| `unit` | one object's behaviour | the reduction from a parsed architecture to variables: identifiers, defaults, variable order; no artifact written | asserted through `pyfmi_sysml2.core` inside the artifact tests until a dedicated `test_reduction.py` exists |
-| `component` | one generated artifact | the bytes of `modelDescription.xml`, a C header, a C++ runtime source, a Modelica package, a packaged `.fmu` — compared against its golden; the runtime also compiles, links, and executes its harness | `test_model_description.py`, `test_c_headers.py`, `test_c_runtime.py`, `test_modelica.py`, `test_package.py` |
+| `unit` | one object's behaviour | the bundled FMI 2.0 header set; the reduction from a parsed architecture to variables (identifiers, defaults, variable order) with no artifact written | `test_headers.py`; the reduction has no dedicated test module and is asserted through `pyfmi_sysml2.core` inside the artifact tests |
+| `component` | one generated artifact | the bytes of `modelDescription.xml`, the C interface headers, the C++17 runtime sources, the Modelica package with its implementer model, or the packaged `.fmu` — compared against its golden; the runtime also compiles, links, and executes its harness | `test_model_description.py`, `test_c_headers.py`, `test_c_runtime.py`, `test_modelica.py`, `test_package.py`, `test_package_roots.py` |
 | `contract` | two directions must agree | value-reference order between the XML and the C enum, the Modelica connector set against the FMI variables, and one component identity across XML, header, and archive | `test_cross_artifact.py`, recorded by `tests/golden/cross-artifact/case.md` |
-| `system` | the CLI end to end | argument parsing, exit codes, files written by one `pyfmi` invocation; a compiled and packaged FMU loads, steps, and returns outputs through fmpy | `test_cli.py`, `test_fmpy_load.py` |
-| `slow` | runtime qualifier | a check too expensive for the default run, such as the `omc` compile gate; combined with the level above, excluded with `-m "not slow"` | `test_modelica.py` |
+| `system` | the CLI end to end | argument parsing, exit codes, files written by one `pyfmi` invocation; a compiled and packaged FMU loads, steps, and returns outputs through fmpy; the executable walkthroughs run | `test_cli.py`, `test_fmpy_load.py`, `test_iterative_example.py`, `test_simulink_prototype.py` |
+| `slow` | runtime qualifier | a check too expensive for the default run, such as the `omc` compile gate or a MATLAB prototype run; combined with the level above, excluded with `-m "not slow"` | `test_modelica.py`, `test_iterative_example.py`, `test_simulink_prototype.py` |
 
-`slow` is not a level of its own: it is an orthogonal marker that keeps an
-expensive check out of the default subset.
+`slow` combines with the level above; it never stands alone.
 
 ```bash
-./venv/bin/python -m pytest tests/                  # everything, slow included
-./venv/bin/python -m pytest tests/ -m "not slow"    # the CI subset
-./venv/bin/python -m pytest tests/ -m static        # policy only
+python -m pytest tests/                  # everything, slow included
+python -m pytest tests/ -m "not slow"    # the CI subset
+python -m pytest tests/ -m static        # policy only
 ```
 
 ## Where the evidence lives
@@ -45,7 +44,7 @@ Goldens are regenerated deliberately, never as a side effect of running the
 suite:
 
 ```bash
-UPDATE_GOLDENS=1 ./venv/bin/python -m pytest tests/test_c_headers.py
+UPDATE_GOLDENS=1 python -m pytest tests/test_c_headers.py
 git diff tests/golden/        # read every line before committing
 ```
 

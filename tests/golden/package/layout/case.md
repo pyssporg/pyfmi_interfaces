@@ -6,7 +6,7 @@ normalized.
 
 - **Conversion:** staged FMU directory (`modelDescription.xml`,
   `binaries/linux64/Tank.so`, `sources/tank.h`, `resources/`, `documentation/`)
-  → deterministic `.fmu` zip
+  → deterministic `.fmu` archive written by `pyssp_standard.FMU.package`
 - **Requirement / fault:** the FMI 2.0 checklist requires
   `modelDescription.xml` at the archive root, the binary at
   `binaries/linux64/<modelIdentifier>.so` with execute bits, sorted entries, and
@@ -15,7 +15,7 @@ normalized.
   produces a zip every tool may reject at load.
 - **Level:** component
 - **Input:** synthesized inline by `tests/test_package.py::make_inputs` for
-  identifier `Tank` — a fake ELF payload, one generated header, one resource
+  identifier `Tank` — a fake ELF payload, one source header, one resource
   directory with a nested file, one loose resource, one documentation file, and
   a model description serialized by the `pyssp_standard` codec (1 input,
   1 output, one `CoSimulation` interface). No external source or licence
@@ -69,3 +69,4 @@ digest that a changed entry would move.
 | Date | Change | Reason |
 | --- | --- | --- |
 | 2026-11-05 | Case record and listing added | U3.5 introduced the deterministic FMU packager |
+| 2026-11-17 | Record corrected | Packaging named as the `pyssp_standard.FMU.package` path; the input header is a source stub, not generated. |
