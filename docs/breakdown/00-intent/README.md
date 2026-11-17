@@ -1,11 +1,12 @@
 ---
 title: Intent
-summary: Why pyfmi_sysml2 exists, what it commits to, and what it refuses to become.
+summary: Why pyfmi_sysml2 exists, the workflow it serves, what it commits to, and what it refuses to become.
 ---
 
 # Intent
 
-The reason this library exists, the boundary it keeps, and the work it refuses.
+The reason this library exists, the workflow it serves, the boundary it keeps,
+and the work it refuses.
 
 ## Contents
 

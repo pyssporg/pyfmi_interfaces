@@ -2,7 +2,7 @@
 id: INFO-001
 type: info
 title: Intent
-summary: pyfmi_sysml2 implements the FMI half of a SysML dialect owned by pycps_sysml2, and refuses to become an FMI authoring tool.
+summary: pyfmi_sysml2 generates the FMI artifacts that set a model up on first use and refresh it on interface change, and refuses to become an FMI authoring tool.
 date: 2026-11-05
 status: current
 ---
@@ -15,6 +15,12 @@ status: current
 artifacts a simulation workflow consumes: `modelDescription.xml`, C interface
 headers, Modelica connectors, and a packaged `.fmu`. It generates files; it does
 not compile models, run simulations, or judge results.
+
+That artifact set exists for two recurring moments in development. At first use
+it hands the implementer the interfaces to code against, so a new model starts
+from the architecture instead of a hand-copied variable list. When the interface
+changes, regenerating is the update path: artifacts are replaced whole, never
+patched, so the implementer maintains only their own code and the architecture.
 
 The SysML dialect is not owned here. `pycps_sysml2` is the dialect home: it
 parses the model and exposes parameters, ports, controls, and metadata.
@@ -47,6 +53,9 @@ Belongs elsewhere:
   `generation_time` produce byte-identical files, including the archive.
 - **The reduction is the contract.** Every generator reads the variable set
   through one module, so the artifacts cannot disagree about it.
+- **Regeneration is the update path.** Generated files are replaced whole,
+  never patched; an interface change is absorbed by re-running the generators,
+  never by reconciling artifacts by hand.
 
 ## Non-Goals
 
@@ -57,3 +66,5 @@ Belongs elsewhere:
 - Full C runtime generation or a Modelica wrapper around a compiled FMU; only
   headers, connectors, and the VR mapping are emitted.
 - Presenting generated placeholders as a complete FMU implementation.
+- Patching, merging, or diff-aware rewriting of an existing artifact; the
+  update path is whole-file regeneration.

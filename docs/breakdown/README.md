@@ -6,12 +6,14 @@ summary: Current-state record of why the FMI generator exists, its artifact cont
 # Product Breakdown — pyfmi_sysml2
 
 Current-state record of `pyfmi_sysml2`: why it exists, the FMI 2.0 CoSimulation
-artifact it promises, and how generation is organized, verified, and released.
+artifact it promises, the setup-and-refresh workflow that artifact serves, and
+how generation is organized, verified, and released.
 
 ## The Seven Layers
 
 - `00-intent/` — why the project exists and what it refuses to become.
-- `01-product/` — the artifact contract, the variable model, and refusals.
+- `01-product/` — the artifact contract, the variable model, the
+  setup-and-refresh use case, and refusals.
 - `02-architecture/` — module map, interface reduction, determinism.
 - `03-implementation/` — per-module notes and the library API facts.
 - `04-verification/` — test levels, consistency gate, oracles, fixtures.

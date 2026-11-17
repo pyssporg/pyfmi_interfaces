@@ -1,10 +1,15 @@
-<!-- GENERATED FILE — do not edit. Regenerate with pb-registers. -->
+<!-- GENERATED FILE — do not edit. Regenerate with `pb registers`. -->
 
 # Traceability Map
 
-Generated from each record's `state:` field: current-state leaf ->
-decisions -> artifacts. Current state is the leaf; the records are its
-history.
+Generated from record front-matter: each decision names the leaf that
+holds its outcome (`state:`). The breakdown never references a record —
+the leaf is the source of truth; the record is how the state got there.
 
-- **docs/breakdown/01-product/variable-model.md** — Decisions: AD-002 · Artifacts: `src/pyfmi_sysml2/interface.py`, `src/pyfmi_sysml2/modelica.py` · State: `docs/breakdown/01-product/variable-model.md`
-- **docs/breakdown/02-architecture/determinism.md** — Decisions: AD-001 · Artifacts: `src/pyfmi_sysml2/model_description.py` · State: `docs/breakdown/02-architecture/determinism.md`
+### Product
+
+- **AD-002** — State: `docs/breakdown/01-product/variable-model.md` (docs/breakdown/01-product/variable-model.md) · Artifacts: `src/pyfmi_sysml2/interface.py`, `src/pyfmi_sysml2/modelica.py`
+
+### Architecture
+
+- **AD-001** — State: `docs/breakdown/02-architecture/determinism.md` (docs/breakdown/02-architecture/determinism.md) · Artifacts: `src/pyfmi_sysml2/model_description.py`
