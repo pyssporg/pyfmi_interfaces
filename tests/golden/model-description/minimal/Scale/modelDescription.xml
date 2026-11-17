@@ -6,7 +6,7 @@
       <Real start="2" />
     </ScalarVariable>
     <ScalarVariable name="u.value" valueReference="1" causality="input">
-      <Real />
+      <Real start="0" />
     </ScalarVariable>
     <ScalarVariable name="y.value" valueReference="2" causality="output">
       <Real />

@@ -308,12 +308,12 @@ def test_controller_variable_summary_is_exact() -> None:
         ("gains[0]", 0, "parameter", "fixed", "1", "Real"),
         ("gains[1]", 1, "parameter", "fixed", "2.5", "Real"),
         ("label", 2, "parameter", "fixed", "nominal", "String"),
-        ("command.manual", 3, "input", None, None, "Real"),
-        ("command.auto", 4, "input", None, None, "Real"),
-        ("command.mode", 5, "input", None, None, "Integer"),
+        ("command.manual", 3, "input", None, "0", "Real"),
+        ("command.auto", 4, "input", None, "0", "Real"),
+        ("command.mode", 5, "input", "discrete", "0", "Integer"),
         ("throttle.demand", 6, "output", None, None, "Real"),
-        ("throttle.enabled", 7, "output", None, None, "Boolean"),
-        ("status.code", 8, "output", None, None, "Integer"),
+        ("throttle.enabled", 7, "output", "discrete", None, "Boolean"),
+        ("status.code", 8, "output", "discrete", None, "Integer"),
     ]
     assert [
         unknown.index for unknown in document.model_structure.outputs

@@ -6,12 +6,14 @@ FMI half of it. The public surface is one function per artifact plus the
 
 - :func:`generate_model_description` — ``modelDescription.xml``
 - :func:`generate_c_headers` — C interface headers
+- :func:`generate_c_runtime` — C++17 FMI 2.0 CoSimulation runtime
 - :func:`generate_modelica` — Modelica connectors and package files
 - :func:`package_fmu` — the packaged ``.fmu``
 - :func:`fmi2_headers` — the bundled FMI 2.0 standard C headers
 """
 
 from pyfmi_sysml2.c_interface import generate_c_headers
+from pyfmi_sysml2.c_runtime import generate_c_runtime
 from pyfmi_sysml2.headers import fmi2_headers
 from pyfmi_sysml2.interface import Component, Variable, components
 from pyfmi_sysml2.model_description import generate_model_description
@@ -27,6 +29,7 @@ __all__ = [
     "components",
     "fmi2_headers",
     "generate_c_headers",
+    "generate_c_runtime",
     "generate_model_description",
     "generate_modelica",
     "package_fmu",

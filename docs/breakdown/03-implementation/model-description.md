@@ -23,8 +23,9 @@ Document fields:
 - `interface_type="CoSimulation"` and `capabilities` with
   `model_identifier=<component>` — both are required for the codec to emit the
   interface element;
-- one `Fmi2ScalarVariable` per reduction variable, `start` already rendered as
-  FMI text;
+- one `Fmi2ScalarVariable` per reduction variable, with the reduction's
+  `variability` and `start` already rendered as FMI text; non-`Real` ports are
+  discrete and inputs carry their neutral start (`CP-002`);
 - `ModelStructure` outputs and initial unknowns from `component.outputs`, using
   the 1-based `Variable.index`;
 - `DefaultExperiment` only when the composition carries the start/stop control

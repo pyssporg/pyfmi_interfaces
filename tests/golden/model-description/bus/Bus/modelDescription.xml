@@ -3,40 +3,40 @@
   <CoSimulation modelIdentifier="Bus" />
   <ModelVariables>
     <ScalarVariable name="actuation.channel_a" valueReference="0" causality="input">
-      <Real />
+      <Real start="0" />
     </ScalarVariable>
     <ScalarVariable name="actuation.channel_b" valueReference="1" causality="input">
-      <Real />
+      <Real start="0" />
     </ScalarVariable>
     <ScalarVariable name="actuation.channel_c" valueReference="2" causality="input">
-      <Real />
+      <Real start="0" />
     </ScalarVariable>
     <ScalarVariable name="orientation_in.roll" valueReference="3" causality="input">
-      <Real />
+      <Real start="0" />
     </ScalarVariable>
     <ScalarVariable name="orientation_in.pitch" valueReference="4" causality="input">
-      <Real />
+      <Real start="0" />
     </ScalarVariable>
     <ScalarVariable name="orientation_in.yaw" valueReference="5" causality="input">
-      <Real />
+      <Real start="0" />
     </ScalarVariable>
     <ScalarVariable name="position_in.x" valueReference="6" causality="input">
-      <Real />
+      <Real start="0" />
     </ScalarVariable>
     <ScalarVariable name="position_in.y" valueReference="7" causality="input">
-      <Real />
+      <Real start="0" />
     </ScalarVariable>
     <ScalarVariable name="position_in.z" valueReference="8" causality="input">
-      <Real />
+      <Real start="0" />
     </ScalarVariable>
     <ScalarVariable name="shared.roll" valueReference="9" causality="input">
-      <Real />
+      <Real start="0" />
     </ScalarVariable>
     <ScalarVariable name="shared.pitch" valueReference="10" causality="input">
-      <Real />
+      <Real start="0" />
     </ScalarVariable>
     <ScalarVariable name="shared.yaw" valueReference="11" causality="input">
-      <Real />
+      <Real start="0" />
     </ScalarVariable>
     <ScalarVariable name="orientation_out.roll" valueReference="12" causality="output">
       <Real />
@@ -59,7 +59,7 @@
     <ScalarVariable name="status.speed" valueReference="18" causality="output">
       <Real />
     </ScalarVariable>
-    <ScalarVariable name="status.health" valueReference="19" causality="output">
+    <ScalarVariable name="status.health" valueReference="19" causality="output" variability="discrete">
       <Integer />
     </ScalarVariable>
   </ModelVariables>

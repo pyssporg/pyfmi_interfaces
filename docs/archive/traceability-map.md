@@ -6,9 +6,14 @@ Generated from record front-matter: each decision names the leaf that
 holds its outcome (`state:`). The breakdown never references a record —
 the leaf is the source of truth; the record is how the state got there.
 
+### Intent
+
+- **AD-003** — State: `docs/breakdown/03-implementation/c-runtime-generation-and-model-hooks.md` (docs/breakdown/03-implementation/c-runtime-generation-and-model-hooks.md) · Artifacts: `src/pyfmi_sysml2/c_runtime.py`, `src/pyfmi_sysml2/cli.py`, `tests/test_c_runtime.py`, `tests/c_runtime_harness.cpp`
+
 ### Product
 
 - **AD-002** — State: `docs/breakdown/01-product/variable-model.md` (docs/breakdown/01-product/variable-model.md) · Artifacts: `src/pyfmi_sysml2/interface.py`, `src/pyfmi_sysml2/modelica.py`
+- **AD-004** — State: `docs/breakdown/01-product/variable-model.md` (docs/breakdown/01-product/variable-model.md) · Artifacts: `src/pyfmi_sysml2/interface.py`, `tests/test_model_description.py`, `tests/test_fmpy_load.py`
 
 ### Architecture
 

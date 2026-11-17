@@ -17,4 +17,5 @@ refusals that keep an invalid model from becoming a file.
 - **CP-002** [Variable model](variable-model.md) — Parameters come from the parameter dialect, lists expand into scalars, port fields are dotted names, and value references restart at zero per component.
 - **CP-003** [Errors and refusals](errors-and-refusals.md) — Ambiguous roots, flat parameters, non-fixed lists, flattened connectors, naive clocks, and platform or identifier mismatches are refused with an actionable message.
 - **CP-004** [Set a model up for first use and keep it in step when its interface changes](set-a-model-up-for-first-use-and-keep-it-in-step-when-its-interface-changes.md) — An implementer generates interfaces to start coding, then re-generates after a port or parameter change; success is artifacts and code agreeing without hand reconciliation.
+- **CP-005** [Generated FMI plumbing, implementer-supplied model](generated-fmi-plumbing-implementer-supplied-model.md) — The runtime implements every FMI 2.0 CoSimulation entry point from the variable set; equations and event logic stay in a model file the generator creates once.
 <!-- pb:index:end -->

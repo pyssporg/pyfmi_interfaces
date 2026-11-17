@@ -12,21 +12,21 @@
       <String start="nominal" />
     </ScalarVariable>
     <ScalarVariable name="command.manual" valueReference="3" causality="input">
-      <Real />
+      <Real start="0" />
     </ScalarVariable>
     <ScalarVariable name="command.auto" valueReference="4" causality="input">
-      <Real />
+      <Real start="0" />
     </ScalarVariable>
-    <ScalarVariable name="command.mode" valueReference="5" causality="input">
-      <Integer />
+    <ScalarVariable name="command.mode" valueReference="5" causality="input" variability="discrete">
+      <Integer start="0" />
     </ScalarVariable>
     <ScalarVariable name="throttle.demand" valueReference="6" causality="output">
       <Real />
     </ScalarVariable>
-    <ScalarVariable name="throttle.enabled" valueReference="7" causality="output">
+    <ScalarVariable name="throttle.enabled" valueReference="7" causality="output" variability="discrete">
       <Boolean />
     </ScalarVariable>
-    <ScalarVariable name="status.code" valueReference="8" causality="output">
+    <ScalarVariable name="status.code" valueReference="8" causality="output" variability="discrete">
       <Integer />
     </ScalarVariable>
   </ModelVariables>

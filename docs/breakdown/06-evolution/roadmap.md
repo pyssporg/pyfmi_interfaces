@@ -25,7 +25,8 @@ Explicit non-goals for the next release as well:
 
 - FMI Model Exchange and FMI 3.0;
 - non-`linux64` binaries;
-- full C runtime generation (the FMI function skeleton) rather than headers;
+- model physics and a complete model implementation: the generated runtime is
+  plumbing, and its default step fails until the implementer writes the model;
 - reading or writing SSP/SSD/SSV/SSM, which stays in `pyssp_sysml2`.
 
 A candidate is selected only when the dialect side exists. Adding a control

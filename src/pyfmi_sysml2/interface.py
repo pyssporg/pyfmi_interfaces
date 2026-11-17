@@ -67,6 +67,13 @@ DATA_TYPE_TAGS = {
     "String": "STRING",
 }
 
+#: FMI 2.0 allows ``continuous`` variability only for Real variables.
+DISCRETE_TYPES = ("Integer", "Boolean", "String")
+
+#: FMI 2.0 requires a start value on inputs; the dialect authors none, so the
+#: neutral zero value of each primitive stands in.
+INPUT_START = {"Real": 0.0, "Integer": 0, "Boolean": False, "String": ""}
+
 #: FMI primitive name to the Modelica type used in connectors.
 MODELICA_TYPES = {
     "Real": "Real",
@@ -299,13 +306,19 @@ def component_interface(
                         name=f"{name}.{attribute.name}{suffix}",
                         type_name=type_name,
                         causality=causality,
-                        variability=None,
+                        variability=(
+                            "discrete" if type_name in DISCRETE_TYPES else None
+                        ),
                         value_reference=counter - 1,
                         index=counter,
                         description=(
                             attribute.doc or usage.doc or definition.doc
                         ),
-                        start=None,
+                        start=(
+                            INPUT_START[type_name]
+                            if causality == "input"
+                            else None
+                        ),
                         member=f"{name}.{member}",
                     )
                 )

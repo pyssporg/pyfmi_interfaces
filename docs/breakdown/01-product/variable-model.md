@@ -27,6 +27,10 @@ The variable set is fixed before any artifact is written. It has two sources.
   `<port>.<field>`; a list field expands to `<port>.<field>[<index>]`.
 - `out` becomes `causality="output"`. `in`, `inout`, and an undirected port
   become `causality="input"`, because FMI 2.0 has no bidirectional scalar.
+- `Integer`, `Boolean`, and `String` port fields are `variability="discrete"`;
+  only `Real` may stay continuous.
+- Every input carries a neutral `start` (`0`, `false`, `""`) because FMI 2.0
+  requires one and the dialect authors none. Outputs carry no start.
 - Parameters ports and control attributes are not signal fields.
 - A port definition that sets the flat-connector control is refused in v0.1.0
   rather than flattened.

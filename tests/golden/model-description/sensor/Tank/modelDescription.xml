@@ -9,7 +9,7 @@
       <Real start="0.08" />
     </ScalarVariable>
     <ScalarVariable name="supply.rate" valueReference="2" causality="input">
-      <Real />
+      <Real start="0" />
     </ScalarVariable>
     <ScalarVariable name="level.remaining" valueReference="3" causality="output">
       <Real />
@@ -17,7 +17,7 @@
     <ScalarVariable name="level.fraction" valueReference="4" causality="output">
       <Real />
     </ScalarVariable>
-    <ScalarVariable name="level.empty" valueReference="5" causality="output">
+    <ScalarVariable name="level.empty" valueReference="5" causality="output" variability="discrete">
       <Boolean />
     </ScalarVariable>
   </ModelVariables>

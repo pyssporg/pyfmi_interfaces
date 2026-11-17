@@ -6,8 +6,10 @@ Before you read code, edit files, or plan a change, read the project vision:
 
 **`docs/breakdown/00-intent/intent.md`**
 
-It states why this repository exists, what it commits to, and what it refuses to
-become. It is the first document to read, not a reference of last resort.
+It states why this repository exists. The binding rules are
+`docs/breakdown/00-intent/commitments.md` and the refusals are
+`docs/breakdown/00-intent/non-goals.md`. Together they are the first documents
+to read, not references of last resort.
 
 - Read it in full before making any change to code, tests, docs, or artifacts.
 - Judge every proposed change against it. If a change conflicts with the vision,
@@ -28,9 +30,10 @@ become. It is the first document to read, not a reference of last resort.
 ## Repository Focus
 
 `pyfmi_sysml2` generates FMI 2.0 CoSimulation artifacts from a SysML v2
-architecture: `modelDescription.xml`, C interface headers, Modelica connectors,
-and a packaged `.fmu`. The artifact is the library boundary; the `pyfmi` CLI and
-the four generator functions are the public surface.
+architecture: `modelDescription.xml`, C interface headers, a C++17 runtime with
+model hooks, Modelica connectors, and a packaged `.fmu`. The artifact is the
+library boundary; the `pyfmi` CLI and the five generator functions are the
+public surface.
 
 - The SysML dialect is owned by `pycps_sysml2`; this package implements the FMI
   half of that contract.
@@ -56,6 +59,9 @@ the four generator functions are the public surface.
   the writer might not use.
 - **One variable set.** Every generator reads `pyfmi_sysml2.interface`; none
   re-derives variables, causalities, or value references.
+- **Never build generated code.** The package writes C++ sources; it does not
+  invoke a compiler, emit a build system, or package an unbuilt binary. Build
+  commands live only in documentation examples and the test harness.
 - **`linux64` only.** Do not widen the platform allow-list without a decision.
 
 ## Code guidelines
@@ -85,14 +91,15 @@ the four generator functions are the public surface.
 
 ## Environment
 
-- Python >= 3.10; the repository ships `./venv`.
+- Python >= 3.11; the repository ships `./venv`.
 - Install: `./venv/bin/pip install -e ".[dev]"`. Both runtime dependencies are
   direct-URL wheels pinned to sibling GitHub releases.
 - Tests: `./venv/bin/python -m pytest -q`; the CI subset is
   `./venv/bin/python -m pytest -m "not slow"`.
 - Lint: `./venv/bin/ruff check src tests`.
-- Oracles: `gcc`/`g++` syntax-check the headers and `omc` checks the Modelica
-  package; both skip with a reason when absent.
+- Oracles: `gcc`/`g++` syntax-check and link the C/C++ artifacts, `fmpy`
+  validates the modelDescription and loads the packaged FMU, and `omc` checks
+  the Modelica package; each skips with a reason when absent.
 - Breakdown checks:
   `python3 <pb> check --strict --root docs/breakdown` and
   `python3 <pb> node-size --strict --root docs/breakdown`, where `<pb>` is the

@@ -1,15 +1,17 @@
 # pyfmi_sysml2
 
 Generate FMI 2.0 CoSimulation artifacts from a SysML v2 architecture:
-`modelDescription.xml`, C interface headers, Modelica connectors, and a packaged
-`.fmu`.
+`modelDescription.xml`, C interface headers, a C++17 runtime with model hooks,
+Modelica connectors, and a packaged `.fmu`.
 
 **Library boundary.** The SysML dialect is read *only* through
 [`pycps_sysml2`](https://github.com/pyssporg/pycps_sysml2); FMI XML is built,
 serialized, and validated *only* through `pyssp_standard.standard.fmi2`. This
 package must never depend on `pyssp_sysml2`: the two artifact libraries are
 siblings, not layers. What crosses to another project is the artifact — FMI XML,
-C headers, Modelica text, or the `.fmu` archive.
+C headers, C++ runtime sources, Modelica text, or the `.fmu` archive.
+**This package does not build C/C++ code.** It writes sources; compiling,
+linking, and producing the `.so` are the implementer's steps.
 
 - Users: this file and `pyfmi --help`.
 - Contributors: `AGENTS.md`, then `docs/breakdown/00-intent/intent.md`.
@@ -34,7 +36,7 @@ index lookups.
 
 ## CLI
 
-`pyfmi` has one subcommand per artifact. The three generators default to
+`pyfmi` has one subcommand per artifact. The four generators default to
 `build/`; `pyfmi package` requires an output path. Every written path is printed
 on stdout, one per line. Handled model or input errors print
 `pyfmi: <message>` on stderr and exit 1; argument errors keep argparse's exit 2.
@@ -51,14 +53,15 @@ positional arguments:
     model-description
                      Write modelDescription.xml per component.
     c-headers        Write C interface headers.
+    c-runtime        Write the C headers and a C++17 FMI runtime.
     modelica         Write a Modelica interface package.
     package          Write a deterministic .fmu archive.
 
 options:
   -h, --help         show this help message and exit
 
-The three generators write to build/ unless -o/--output is given; pyfmi
-package requires an output archive path.
+Generators write to build/ unless -o/--output is given; pyfmi package requires
+an output archive path.
 ```
 
 ### `pyfmi model-description --help`
@@ -103,6 +106,38 @@ options:
   --prefix NAME         Header prefix and C type prefix (default: the package
                         name).
 ```
+
+### `pyfmi c-runtime --help`
+
+```text
+usage: pyfmi c-runtime [-h] [-o OUT] [--composition NAME] [--base-index N]
+                       [--prefix NAME] [--omit NAME[,NAME...]]
+                       SOURCE
+
+Write the C interface headers, a C++17 FMI 2.0 CoSimulation runtime, and a
+user-owned model file to an output directory.
+
+positional arguments:
+  SOURCE                A .sysml file or a directory containing them.
+
+options:
+  -h, --help            show this help message and exit
+  -o OUT, --output OUT  Output directory (default: build).
+  --composition NAME    Composition part definition to export (default: the
+                        single root).
+  --base-index N        First emitted array index (default: 0; 1 targets OMC-
+                        built Modelica FMUs, which declare arrays one-based).
+  --prefix NAME         Header prefix and C type prefix (default: the package
+                        name).
+  --omit NAME[,NAME...]
+                        Skip the definition of an FMI function and leave a
+                        marker; repeatable and comma-separated.
+```
+
+`<Prefix>_<Component>_model.cpp` is created once and never rewritten. Every
+other generated file is replaced on each run. `--omit` exists for an implementer who
+supplies their own definition: the marker names the missing function and the
+link fails until it is provided.
 
 ### `pyfmi modelica --help`
 
@@ -156,8 +191,13 @@ Example:
 ```bash
 pyfmi model-description architecture/plant.sysml -o build \
   --generation-time 2026-01-01T00:00:00Z
-pyfmi c-headers architecture/plant.sysml -o build
+pyfmi c-runtime architecture/plant.sysml -o build
 pyfmi modelica architecture/plant.sysml -o build
+
+# Your build step, not part of pyfmi. The library never compiles.
+g++ -std=c++17 -shared -fPIC -Ibuild -Ibuild/fmi2 \
+  build/Plant_Tank_fmi.cpp build/Plant_Tank_model.cpp -o build/Tank.so
+
 pyfmi package build/Plant.fmu \
   --model-description build/Tank/modelDescription.xml \
   --binary build/Tank.so \
@@ -166,7 +206,7 @@ pyfmi package build/Plant.fmu \
 
 ## Python API
 
-The package exports four generator functions, `fmi2_headers`, `stage_fmu`, and
+The package exports five generator functions, `fmi2_headers`, `stage_fmu`, and
 the reduction types (`Component`, `Variable`, `components`).
 
 ```python
@@ -185,6 +225,16 @@ def generate_c_headers(
     *,
     composition: str | None = None,
     prefix: str | None = None,
+) -> list[Path]: ...
+
+def generate_c_runtime(
+    source: Architecture | str | PathLike[str],
+    output_dir: str | PathLike[str],
+    *,
+    composition: str | None = None,
+    prefix: str | None = None,
+    base_index: int = 0,
+    omit: Sequence[str] | str = (),
 ) -> list[Path]: ...
 
 def generate_modelica(
@@ -251,6 +301,13 @@ pyfmi_sysml2.package_fmu(
 - `<out>/<Prefix>_<Component>.h` — VR enum, `VrCount`, and the C++ `Instance`
   plus `initialize_vr_map()`; a direct FMU model whose definition names the
   package uses that name once (`Generator.h`).
+- `<out>/<Prefix>_<Component>_fmi.cpp` — C++17 runtime implementing every FMI
+  2.0 CoSimulation entry point from the VR map.
+- `<out>/<Prefix>_<Component>_hooks.h` — model hook declarations
+  (`model_initialize`, `model_do_step`, `model_terminate`).
+- `<out>/<Prefix>_<Component>_model.cpp` — created once, never rewritten; the
+  implementer's only file.
+- `<out>/fmi2/*.h` — byte copies of the bundled FMI 2.0 standard headers.
 - `<out>/<Package>/package.mo`, `package.order`, `Interfaces.mo`,
   `GeneratedInterfaces.mo` — one connector per port definition.
 - `<archive>.fmu` — `modelDescription.xml` at the root,

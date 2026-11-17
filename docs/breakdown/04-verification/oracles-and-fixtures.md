@@ -2,7 +2,7 @@
 id: TEST-003
 type: test
 title: Oracles, fixtures, and goldens
-summary: gcc and g++ syntax-check the headers, omc checkModel proves the Modelica package, and six shared fixtures carry case records and byte-compared goldens.
+summary: gcc and g++ syntax-check the headers, g++ compiles, links, and executes the generated runtime harness, fmpy validates and loads the packaged FMU, omc checkModel proves the Modelica package, and six shared fixtures carry case records and byte-compared goldens.
 date: 2026-11-05
 status: current
 ---
@@ -13,6 +13,13 @@ External oracles, with the versions recorded on this machine:
 
 - `gcc 13.4.0` — `-std=c11 -fsyntax-only` on the common header;
 - `g++ 13.4.0` — `-std=c++17 -fsyntax-only` on the instance helper;
+- `g++ 13.4.0` — compile and link the generated runtime with its model file
+  plus the test harness, then execute the harness: GUID rejection, VR
+  round-trips, type and writability refusals, step status, and last successful
+  time;
+- `fmpy 0.3.20` — reads and validates every fixture's modelDescription with its
+  own FMI 2.0 checks, then loads a packaged `.fmu`, sets inputs, steps it, and
+  reads outputs through its CoSimulation implementation;
 - `omc OpenModelica 1.26.1` — `loadFile` plus `checkModel` on both generated
   subpackages, marked slow and skipped when `omc` is absent.
 

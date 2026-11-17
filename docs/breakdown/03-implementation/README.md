@@ -17,4 +17,5 @@ What each module does, and the library behaviours it relies on.
 - **INFO-008** [FMU packaging](packaging.md) — stage_fmu lays out the FMU tree and validates identifier and platform; package_fmu writes the epoch-stamped sorted zip through package_archive.
 - **INFO-009** [CLI](cli.md) — The pyfmi entry point has four subcommands, prints one written path per line, exits 1 on handled model or input errors, and 2 on argument errors.
 - **INFO-010** [pyssp_standard API facts](pyssp-standard-api.md) — The codec returns str, interface type and capabilities are both required, Boolean starts are text, ModelStructure indexes are 1-based, and package_archive normalizes modes and epoch.
+- **INFO-015** [C++ runtime generation and model hooks](c-runtime-generation-and-model-hooks.md) — c_runtime.py writes a C++17 runtime plus hooks, copies the bundled FMI headers, and creates the model file once; --omit removes chosen function bodies.
 <!-- pb:index:end -->

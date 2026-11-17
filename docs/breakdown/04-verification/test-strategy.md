@@ -19,13 +19,15 @@ markers are declared in `pyproject.toml`:
   asserted through `pyfmi_sysml2.interface` inside the artifact tests until a
   dedicated `test_interface.py` exists.
 - **component** — a generated artifact is the unit under test: the bytes of
-  modelDescription, a header, a Modelica package, or a packed `.fmu`, compared
-  against its golden.
+  modelDescription, a header, a runtime source, a Modelica package, or a packed
+  `.fmu`, compared against its golden; the runtime also compiles, links, and
+  runs its harness.
 - **contract** — two directions must agree: VR order between XML and header,
   connector set against FMI variables, and one component identity across XML,
   header, and archive (`test_cross_artifact.py`).
 - **system** — the CLI end to end: parsing, exit codes, files written by one
-  `pyfmi` invocation (`test_cli.py`).
+  `pyfmi` invocation; the packaged FMU is also built and loaded by fmpy
+  (`test_cli.py`, `test_fmpy_load.py`).
 - **slow** — not a level but an orthogonal qualifier that keeps the `omc` check
   out of the default subset.
 

@@ -22,6 +22,11 @@ from the architecture instead of a hand-copied variable list. When the interface
 changes, regenerating is the update path: artifacts are replaced whole, never
 patched, so the implementer maintains only their own code and the architecture.
 
+The first use also emits a C++17 runtime that implements the FMI 2.0 entry
+points from the variable set, so the implementer starts from working plumbing
+instead of thirty empty functions. Model behaviour crosses one seam: a model
+file the generator creates once and never rewrites.
+
 The SysML dialect is not owned here. `pycps_sysml2` is the dialect home: it
 parses the model and exposes parameters, ports, controls, and metadata.
 `pyfmi_sysml2` implements the FMI half of that contract and nothing else.
@@ -31,7 +36,7 @@ parses the model and exposes parameters, ports, controls, and metadata.
 Belongs here:
 
 - the reduction of an architecture onto one FMI variable set;
-- modelDescription, C header, Modelica, and FMU archive generation;
+- modelDescription, C header, C++ runtime, Modelica, and FMU archive generation;
 - deterministic bytes from an injected generation time;
 - the `pyfmi` command line.
 
@@ -39,32 +44,11 @@ Belongs elsewhere:
 
 - SysML parsing, IR, variation, selection, parameter markers: `pycps_sysml2`;
 - FMI XML object model, codec, validator, archive writer: `pyssp_standard`;
+- compiling the generated C++ sources, build systems, and the FMU binary: the
+  implementer's build;
 - SSP, SSD, SSV, SSM emission and SysML synthesis: `pyssp_sysml2`.
 
-## Commitments
+## Boundaries
 
-- **The artifact is the library boundary.** Only FMI XML, C headers, Modelica
-  text, and the `.fmu` archive cross to another project.
-- **One dialect interface.** The SysML dialect is read only through
-  `pycps_sysml2`; this package must never import `pyssp_sysml2`.
-- **One FMI serializer.** FMI XML is built, serialized, and validated only
-  through `pyssp_standard.standard.fmi2`.
-- **Reproducibility is a feature.** The same architecture and the same injected
-  `generation_time` produce byte-identical files, including the archive.
-- **The reduction is the contract.** Every generator reads the variable set
-  through one module, so the artifacts cannot disagree about it.
-- **Regeneration is the update path.** Generated files are replaced whole,
-  never patched; an interface change is absorbed by re-running the generators,
-  never by reconciling artifacts by hand.
-
-## Non-Goals
-
-- FMI Model Exchange and FMI 3.0.
-- Binary platforms other than `linux64`.
-- FMI authoring attributes: guid policy, modelName override, capabilities,
-  units, declared variability or initial.
-- Full C runtime generation or a Modelica wrapper around a compiled FMU; only
-  headers, connectors, and the VR mapping are emitted.
-- Presenting generated placeholders as a complete FMU implementation.
-- Patching, merging, or diff-aware rewriting of an existing artifact; the
-  update path is whole-file regeneration.
+The commitments that bind the design are in `INFO-017`; the work it refuses is
+in `INFO-018`.

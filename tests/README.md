@@ -7,9 +7,9 @@ lower level is not evidence for a higher one.
 | --- | --- | --- | --- |
 | `static` | source and repository policy | a rule that holds without running the package: layering, dependency shape, fixture records, golden coverage, provenance | `test_fixture_policy.py`, `test_layering.py` |
 | `unit` | one object's behaviour | the reduction from a parsed architecture to variables: identifiers, defaults, variable order; no artifact written | asserted through `pyfmi_sysml2.interface` inside the artifact tests until a dedicated `test_interface.py` exists |
-| `component` | one generated artifact | the bytes of `modelDescription.xml`, a C header, a Modelica package, a packaged `.fmu` — compared against its golden | `test_model_description.py`, `test_c_headers.py`, `test_modelica.py`, `test_package.py` |
+| `component` | one generated artifact | the bytes of `modelDescription.xml`, a C header, a C++ runtime source, a Modelica package, a packaged `.fmu` — compared against its golden; the runtime also compiles, links, and executes its harness | `test_model_description.py`, `test_c_headers.py`, `test_c_runtime.py`, `test_modelica.py`, `test_package.py` |
 | `contract` | two directions must agree | value-reference order between the XML and the C enum, the Modelica connector set against the FMI variables, and one component identity across XML, header, and archive | `test_cross_artifact.py`, recorded by `tests/golden/cross-artifact/case.md` |
-| `system` | the CLI end to end | argument parsing, exit codes, files written by one `pyfmi` invocation | `test_cli.py` |
+| `system` | the CLI end to end | argument parsing, exit codes, files written by one `pyfmi` invocation; a compiled and packaged FMU loads, steps, and returns outputs through fmpy | `test_cli.py`, `test_fmpy_load.py` |
 | `slow` | runtime qualifier | a check too expensive for the default run, such as the `omc` compile gate; combined with the level above, excluded with `-m "not slow"` | `test_modelica.py` |
 
 `slow` is not a level of its own: it is an orthogonal marker that keeps an

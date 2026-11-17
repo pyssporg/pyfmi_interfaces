@@ -15,6 +15,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from pyfmi_sysml2.c_interface import generate_c_headers
+from pyfmi_sysml2.c_runtime import generate_c_runtime
 from pyfmi_sysml2.model_description import (
     GENERATION_TIME_FORMAT,
     generate_model_description,
@@ -22,7 +23,7 @@ from pyfmi_sysml2.model_description import (
 from pyfmi_sysml2.modelica import DEFAULT_PACKAGE, generate_modelica
 from pyfmi_sysml2.package import package_fmu
 
-#: Where the three generators write when no ``-o/--output`` is given.
+#: Where the generators write when no ``-o/--output`` is given.
 DEFAULT_OUTPUT = "build"
 
 #: Handled failures: authored-model errors and missing inputs.
@@ -85,6 +86,19 @@ def _run_c_headers(args: argparse.Namespace) -> int:
         composition=args.composition,
         prefix=args.prefix,
         base_index=args.base_index,
+    )
+    _print_paths(written)
+    return 0
+
+
+def _run_c_runtime(args: argparse.Namespace) -> int:
+    written = generate_c_runtime(
+        args.source,
+        args.output,
+        composition=args.composition,
+        prefix=args.prefix,
+        base_index=args.base_index,
+        omit=args.omit,
     )
     _print_paths(written)
     return 0
@@ -170,7 +184,7 @@ def _parser() -> argparse.ArgumentParser:
             "architecture."
         ),
         epilog=(
-            "The three generators write to build/ unless -o/--output is given; "
+            "Generators write to build/ unless -o/--output is given; "
             "pyfmi package requires an output archive path."
         ),
     )
@@ -222,6 +236,35 @@ def _parser() -> argparse.ArgumentParser:
         help="Header prefix and C type prefix (default: the package name).",
     )
     headers.set_defaults(handler=_run_c_headers)
+
+    runtime = subparsers.add_parser(
+        "c-runtime",
+        help="Write the C headers and a C++17 FMI runtime.",
+        description=(
+            "Write the C interface headers, a C++17 FMI 2.0 CoSimulation "
+            "runtime, and a user-owned model file to an output directory."
+        ),
+    )
+    _add_source(runtime)
+    _add_output(runtime, "Output directory (default: build).")
+    _add_composition(runtime)
+    _add_base_index(runtime)
+    runtime.add_argument(
+        "--prefix",
+        metavar="NAME",
+        help="Header prefix and C type prefix (default: the package name).",
+    )
+    runtime.add_argument(
+        "--omit",
+        metavar="NAME[,NAME...]",
+        action="append",
+        default=[],
+        help=(
+            "Skip the definition of an FMI function and leave a marker; "
+            "repeatable and comma-separated."
+        ),
+    )
+    runtime.set_defaults(handler=_run_c_runtime)
 
     modelica = subparsers.add_parser(
         "modelica",

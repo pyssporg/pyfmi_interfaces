@@ -15,7 +15,8 @@ Archive layout:
 
 - `modelDescription.xml` at the zip root, never nested;
 - `binaries/linux64/<modelIdentifier>.so`, executable;
-- `sources/` for generated headers, when supplied;
+- `sources/` for generated headers, when supplied; generated C++ runtime
+  sources are not packaged yet (`INFO-014`);
 - `resources/` and `documentation/` only when supplied.
 
 `modelDescription.xml`:

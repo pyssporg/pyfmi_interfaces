@@ -16,7 +16,7 @@ import pytest
 
 try:  # Python 3.11+
     import tomllib
-except ModuleNotFoundError:  # Python 3.10, the floor this package declares
+except ModuleNotFoundError:  # Python 3.10 runtime without tomllib
     import tomli as tomllib
 
 pytestmark = pytest.mark.static
@@ -38,7 +38,7 @@ FORBIDDEN_IMPORT = "pyssp_sysml2"
 #: Runtime dependencies are immutable release assets, pinned by direct URL.
 DIRECT_URL = re.compile(r"^[A-Za-z0-9_.-]+ @ https://\S+$")
 
-EXPECTED_PYTHON = ">=3.10"
+EXPECTED_PYTHON = ">=3.11"
 
 
 def _modules() -> dict[str, Path]:
