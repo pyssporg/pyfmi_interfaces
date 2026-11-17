@@ -16,11 +16,11 @@ import subprocess
 from pathlib import Path
 
 import pytest
+from pyssp_standard import FMU
 
 from conftest import GENERATION_TIME, fixture_path
 from pyfmi_sysml2.c.runtime import generate_c_runtime
 from pyfmi_sysml2.model_description.document import generate_model_description
-from pyfmi_sysml2.fmu.archive import package_fmu
 
 pytestmark = pytest.mark.system
 
@@ -139,10 +139,11 @@ def test_packaged_fmu_loads_and_steps_in_fmpy(tmp_path: Path) -> None:
         f"{' '.join(command)}\n{built.stdout}{built.stderr}"
     )
 
-    fmu_path = package_fmu(
+    fmu_path = FMU.package(
         tmp_path / f"{PACKAGE}.fmu",
         model_description=description,
-        binary=binary,
+        binaries={"linux64": binary},
+        fmi_version="2.0",
     )
 
     document = fmpy.read_model_description(str(fmu_path))

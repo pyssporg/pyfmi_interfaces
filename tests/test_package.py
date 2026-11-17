@@ -16,6 +16,7 @@ from pathlib import Path
 
 import pytest
 from golden_utils import assert_golden_text
+from pyssp_standard import FMU
 from pyssp_standard.common.archive.archive import package_archive
 from pyssp_standard.standard.fmi2.codec import Fmi2ModelDescriptionXmlCodec
 from pyssp_standard.standard.fmi2.model.model_description import (
@@ -27,8 +28,6 @@ from pyssp_standard.standard.fmi2.model.model_description import (
     Fmi2ScalarVariable,
     Fmi2Unknown,
 )
-
-from pyfmi_sysml2.fmu.archive import package_fmu, stage_fmu
 
 pytestmark = pytest.mark.component
 
@@ -124,13 +123,14 @@ def make_inputs(root: Path, identifier: str) -> Inputs:
 
 
 def full_package(output: Path, inputs: Inputs) -> Path:
-    return package_fmu(
+    return FMU.package(
         output,
         model_description=inputs.model_description,
-        binary=inputs.binary,
-        headers=[inputs.header],
+        binaries={"linux64": inputs.binary},
+        sources=[inputs.header],
         resources=[inputs.resource_dir, inputs.resource_file],
         documentation=[inputs.documentation],
+        fmi_version="2.0",
     )
 
 
@@ -190,12 +190,13 @@ def test_archive_layout_mode_and_epoch(tmp_path: Path) -> None:
                 assert mode_of(info) == 0o644, info.filename
 
 
-def test_stage_fmu_sets_executable_bit_on_disk(tmp_path: Path) -> None:
+def test_stage_sets_executable_bit_on_disk(tmp_path: Path) -> None:
     inputs = make_inputs(tmp_path / "inputs", "Tank")
-    stage = stage_fmu(
+    stage = FMU.stage(
         tmp_path / "stage",
         model_description=inputs.model_description,
-        binary=inputs.binary,
+        binaries={"linux64": inputs.binary},
+        fmi_version="2.0",
     )
 
     assert (stage / "modelDescription.xml").is_file()
@@ -207,7 +208,7 @@ def test_stage_fmu_sets_executable_bit_on_disk(tmp_path: Path) -> None:
     assert not (stage / "documentation").exists()
 
 
-def test_stage_fmu_refuses_non_empty_directory(tmp_path: Path) -> None:
+def test_stage_refuses_non_empty_directory(tmp_path: Path) -> None:
     inputs = make_inputs(tmp_path / "inputs", "Tank")
     stage = tmp_path / "stage"
     stage.mkdir()
@@ -215,12 +216,13 @@ def test_stage_fmu_refuses_non_empty_directory(tmp_path: Path) -> None:
 
     arguments = {
         "model_description": inputs.model_description,
-        "binary": inputs.binary,
+        "binaries": {"linux64": inputs.binary},
+        "fmi_version": "2.0",
     }
     with pytest.raises(FileExistsError, match="overwrite=True"):
-        stage_fmu(stage, **arguments)
+        FMU.stage(stage, **arguments)
 
-    stage_fmu(stage, overwrite=True, **arguments)
+    FMU.stage(stage, overwrite=True, **arguments)
     assert not (stage / "stale.txt").exists()
     assert (stage / "modelDescription.xml").is_file()
 
@@ -238,19 +240,20 @@ def test_mtime_does_not_change_packaged_bytes(tmp_path: Path) -> None:
     inputs = make_inputs(tmp_path / "inputs", "Tank")
     arguments = {
         "model_description": inputs.model_description,
-        "binary": inputs.binary,
-        "headers": [inputs.header],
+        "binaries": {"linux64": inputs.binary},
+        "sources": [inputs.header],
         "resources": [inputs.resource_dir, inputs.resource_file],
         "documentation": [inputs.documentation],
+        "fmi_version": "2.0",
     }
 
-    first_stage = stage_fmu(tmp_path / "stage-one", **arguments)
-    second_stage = stage_fmu(tmp_path / "stage-two", **arguments)
+    first_stage = FMU.stage(tmp_path / "stage-one", **arguments)
+    second_stage = FMU.stage(tmp_path / "stage-two", **arguments)
     for path in sorted(second_stage.rglob("*")):
         if path.is_file():
             os.utime(path, (1_000_000_000, 1_000_000_000))
 
-    # The same archive call package_fmu makes, on stages whose filesystem
+    # The same archive call FMU.package makes, on stages whose filesystem
     # timestamps differ.
     first = package_archive(first_stage, tmp_path / "one.fmu")
     second = package_archive(second_stage, tmp_path / "two.fmu")
@@ -260,11 +263,12 @@ def test_mtime_does_not_change_packaged_bytes(tmp_path: Path) -> None:
 
 def test_resources_and_documentation_are_optional(tmp_path: Path) -> None:
     inputs = make_inputs(tmp_path / "inputs", "Valve")
-    archive = package_fmu(
+    archive = FMU.package(
         tmp_path / "minimal.fmu",
         model_description=inputs.model_description,
-        binary=inputs.binary,
-        headers=[inputs.header],
+        binaries={"linux64": inputs.binary},
+        sources=[inputs.header],
+        fmi_version="2.0",
     )
 
     with zipfile.ZipFile(archive) as bundle:
@@ -280,39 +284,24 @@ def test_model_identifier_must_match_binary_stem(tmp_path: Path) -> None:
     valve = make_inputs(tmp_path / "valve", "Valve")
 
     with pytest.raises(ValueError, match="modelIdentifier"):
-        package_fmu(
+        FMU.package(
             tmp_path / "bad.fmu",
             model_description=valve.model_description,
-            binary=tank.binary,
+            binaries={"linux64": tank.binary},
+            fmi_version="2.0",
         )
-
-
-def test_unsupported_platform_names_the_allow_list(tmp_path: Path) -> None:
-    inputs = make_inputs(tmp_path / "inputs", "Tank")
-
-    with pytest.raises(ValueError) as error:
-        package_fmu(
-            tmp_path / "bad.fmu",
-            model_description=inputs.model_description,
-            binary=inputs.binary,
-            platform="windows64",
-        )
-
-    message = str(error.value)
-    assert "windows64" in message
-    assert "linux64" in message
 
 
 def test_platform_token_rejects_path_separator(tmp_path: Path) -> None:
     inputs = make_inputs(tmp_path / "inputs", "Tank")
 
-    for platform in ("../evil", "linux/64", ".."):
+    for index, platform in enumerate(("../evil", "linux/64", "..")):
         with pytest.raises(ValueError, match="platform"):
-            stage_fmu(
-                tmp_path / "stage",
+            FMU.stage(
+                tmp_path / f"stage-{index}",
                 model_description=inputs.model_description,
-                binary=inputs.binary,
-                platform=platform,
+                binaries={platform: inputs.binary},
+                fmi_version="2.0",
             )
 
 
@@ -320,10 +309,11 @@ def test_missing_model_description_is_actionable(tmp_path: Path) -> None:
     inputs = make_inputs(tmp_path / "inputs", "Tank")
 
     with pytest.raises(ValueError, match="modelDescription"):
-        package_fmu(
+        FMU.package(
             tmp_path / "bad.fmu",
             model_description=tmp_path / "absent.xml",
-            binary=inputs.binary,
+            binaries={"linux64": inputs.binary},
+            fmi_version="2.0",
         )
 
 
@@ -333,10 +323,11 @@ def test_invalid_model_description_is_actionable(tmp_path: Path) -> None:
     broken.write_text("<fmiModelDescription/>", encoding="utf-8")
 
     with pytest.raises(ValueError, match="valid FMI 2.0"):
-        package_fmu(
+        FMU.package(
             tmp_path / "bad.fmu",
             model_description=broken,
-            binary=inputs.binary,
+            binaries={"linux64": inputs.binary},
+            fmi_version="2.0",
         )
 
 
@@ -349,10 +340,11 @@ def test_wrong_fmi_version_is_rejected(tmp_path: Path) -> None:
     )
 
     with pytest.raises(ValueError, match="fmiVersion"):
-        package_fmu(
+        FMU.package(
             tmp_path / "bad.fmu",
             model_description=legacy,
-            binary=inputs.binary,
+            binaries={"linux64": inputs.binary},
+            fmi_version="2.0",
         )
 
 

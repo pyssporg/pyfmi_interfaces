@@ -206,8 +206,8 @@ pyfmi package build/Plant.fmu \
 
 ## Python API
 
-The package exports five generator functions, `fmi2_headers`, `stage_fmu`, and
-the reduction types (`Component`, `Variable`, `components`).
+The package exports five generator functions, `fmi2_headers`, and the
+reduction types (`Component`, `Variable`, `components`).
 
 ```python
 def generate_model_description(
@@ -247,33 +247,22 @@ def generate_modelica(
 ) -> list[Path]: ...
 
 def fmi2_headers() -> tuple[Path, ...]: ...
-
-def package_fmu(
-    output: str | Path,
-    *,
-    model_description: str | Path,
-    binary: str | Path,
-    platform: str = "linux64",
-    headers: tuple[str | Path, ...] | list[str | Path] = (),
-    resources: tuple[str | Path, ...] | list[str | Path] = (),
-    documentation: tuple[str | Path, ...] | list[str | Path] = (),
-    stage_dir: str | Path | None = None,
-) -> Path: ...
 ```
 
 `source` is a `.sysml` file, a directory of them, or an already loaded
 `pycps_sysml2.Architecture`. `generation_time=None` stamps the current UTC time;
 pass a timezone-aware datetime for reproducible output. `fmi2_headers()` returns
 the bundled FMI 2.0 standard headers as real file paths, so an FMU build can pass
-them to `package_fmu` without copying them into the fixture. `package_fmu` stages
-the tree itself because the `pyssp_standard` `FMU.create` facade cannot carry
-`sources/`.
+them to the `pyssp_standard` `FMU` facade without copying them into the
+fixture. The `.fmu` archive is written by that facade; `pyfmi` emits only
+`linux64`/FMI 2.0 through its CLI.
 
 ```python
 from datetime import datetime, timezone
 from pathlib import Path
 
 import pyfmi_sysml2
+from pyssp_standard import FMU
 
 source = Path("architecture/plant.sysml")
 out = Path("build")
@@ -284,11 +273,12 @@ pyfmi_sysml2.generate_c_headers(source, out)
 pyfmi_sysml2.generate_modelica(source, out)
 
 # The binary stem must equal the interface modelIdentifier (here: Tank).
-pyfmi_sysml2.package_fmu(
+FMU.package(
     out / "Plant.fmu",
     model_description=out / "Tank/modelDescription.xml",
-    binary=out / "Tank.so",
-    headers=[out / "Plant_InterfaceCommon.h"],
+    binaries={"linux64": out / "Tank.so"},
+    sources=[out / "Plant_InterfaceCommon.h"],
+    fmi_version="2.0",
 )
 ```
 

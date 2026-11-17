@@ -14,14 +14,14 @@ family; a new artifact type is a directory with one explicit registration line.
 
 ```
 src/pyfmi_sysml2/
-├── __init__.py        # public surface: generators, stage_fmu, types
+├── __init__.py        # public surface: generators, types
 ├── cli.py             # collects the family COMMANDS tuples, dispatches
 ├── fmi2_headers/*.h   # bundled FMI 2.0 standard headers, package data
 ├── core/              # model, reduction, spelling, identity, resources, cli
 ├── c/                 # headers, runtime
 ├── model_description/ # document
 ├── modelica/          # package
-└── fmu/               # archive
+└── fmu/               # the pyfmi package command only
 ```
 
 **Ownership.** `core/reduction.py` decides which variables exist and assigns
@@ -32,7 +32,8 @@ the `Command` registry, shared options, and error policy. `core/spelling.py`
 holds every C, C++, `*_DataType`, and Modelica table in one module on purpose:
 artifacts that share a variable set must share the primitive spelling. Each
 family owns its artifact: `c/` headers and runtime, `model_description/` the
-XML document, `modelica/` the package, `fmu/` the archive.
+XML document, `modelica/` the package, `fmu/` only the `pyfmi package` command (packaging
+lives in `pyssp_standard`'s `FMU` facade).
 
 **Dependency rule.** `core/` imports no family; a family imports `core/` and its
 own emitters, never another family; only `__init__.py` and `cli.py` import

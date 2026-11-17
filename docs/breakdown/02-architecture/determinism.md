@@ -32,7 +32,8 @@ A naive datetime is refused. The document is stamped
 
 ## Archive
 
-`package_fmu` stages the tree and calls `pyssp_standard`'s `package_archive`,
+`FMU.package`, called from the `pyfmi package` CLI, stages the tree and calls
+`pyssp_standard`'s `package_archive`,
 which sorts entries, stamps every entry with the FMI epoch (2000-01-01), and
 normalizes modes: metadata files `0o644`, files under `binaries/` `0o755`. A
 repack from a fresh stage is byte-identical, and filesystem mtimes do not leak

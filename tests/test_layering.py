@@ -67,8 +67,6 @@ EXPECTED_PUBLIC = frozenset(
         "generate_c_runtime",
         "generate_model_description",
         "generate_modelica",
-        "package_fmu",
-        "stage_fmu",
     }
 )
 

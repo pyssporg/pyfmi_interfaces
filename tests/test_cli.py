@@ -214,6 +214,29 @@ def test_bad_generation_time_is_a_usage_error(
     assert "Traceback" not in captured.err
 
 
+def test_unsupported_platform_is_a_usage_error(tmp_path: Path, capsys) -> None:
+    with pytest.raises(SystemExit) as raised:
+        main(
+            [
+                "package",
+                "-o",
+                str(tmp_path / "Tank.fmu"),
+                "--model-description",
+                str(tmp_path / "absent.xml"),
+                "--binary",
+                str(tmp_path / "Tank.so"),
+                "--platform",
+                "windows64",
+            ]
+        )
+
+    assert raised.value.code == 2
+    captured = capsys.readouterr()
+    assert captured.out == ""
+    assert "--platform" in captured.err
+    assert "Traceback" not in captured.err
+
+
 def test_missing_binary_is_reported_without_a_traceback(
     tmp_path: Path, capsys
 ) -> None:

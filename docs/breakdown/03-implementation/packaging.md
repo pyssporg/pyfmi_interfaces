@@ -2,36 +2,41 @@
 id: INFO-008
 type: info
 title: FMU packaging
-summary: stage_fmu lays out the FMU tree and validates identifier and platform; package_fmu writes the epoch-stamped sorted zip through package_archive.
-date: 2026-11-05
+summary: pyfmi_sysml2 has no packaging module; pyssp_standard's FMU.stage and FMU.package own layout, validation, staging, archive verification, and determinism, and the CLI calls FMU.package directly.
+date: 2026-11-17
 status: current
 ---
 
 # FMU packaging
 
-`stage_fmu(directory, *, model_description, binary, platform="linux64", headers,
-resources, documentation, overwrite=False)` writes a clean tree and returns it:
+`pyfmi_sysml2` keeps no packaging module and no wrapper functions. Packaging
+lives in `pyssp_standard`'s `FMU` facade, and the `pyfmi package` command in
+`fmu/__init__.py` calls `FMU.package` directly:
 
-- the modelDescription bytes are copied verbatim to the root;
-- the binary goes to `binaries/<platform>/` and gets the executable bit;
-- headers go to `sources/`, resources to `resources/`, documentation to
-  `documentation/`; directories are copied recursively; empty groups create no
-  directory.
+```python
+FMU.package(
+    args.output,
+    model_description=args.model_description,
+    binaries={args.platform: args.binary},
+    sources=args.header,
+    resources=args.resource,
+    documentation=args.documentation,
+    fmi_version="2.0",
+)
+```
 
-Before writing, `stage_fmu` parses the modelDescription once with the FMI codec
-and keeps the exact bytes for the copy. It refuses:
+Policy lives at the point of emission, not in a library wrapper: the CLI's
+`--platform` argument accepts only `linux64` (argparse `choices`, default
+`linux64`), and it passes `fmi_version="2.0"` so the facade rejects other
+versions. A direct Python caller imports `FMU` from `pyssp_standard` and chooses
+its own platform token and version.
 
-- `fmiVersion` other than `2.0`;
-- a document without an interface element or `modelIdentifier`;
-- a `modelIdentifier` unequal to the binary stem;
-- a platform token that is unsafe or outside `SUPPORTED_PLATFORMS` (`linux64`);
-- a non-empty staging directory unless `overwrite=True`;
-- duplicate file names under one archive folder.
+`FMU.stage` owns layout and validation: it gates the description on FMI 2.0,
+checks `modelIdentifier` against the binary stem, expands directory entries,
+refuses duplicate names, places every group, and sets the binary's executable
+bit. `FMU.package` owns staging (temporary unless `stage_dir` is given) and
+verifies that `modelDescription.xml` sits at the root and the binary under
+`binaries/<platform>/`.
 
-`package_fmu(output, *, model_description, binary, platform="linux64", headers,
-resources, documentation, stage_dir=None)` stages into a temporary directory (or
-`stage_dir`) and calls `package_archive`, then verifies that
-`modelDescription.xml` and `binaries/<platform>/<binary name>` are present.
-
-`pyssp_standard`'s `FMU.create` facade cannot carry a `sources/` group, so the
-packager uses `stage_fmu` plus `package_archive` rather than that facade.
+Determinism stays with `package_archive`: FMI epoch timestamps, sorted entries,
+`0o644` metadata modes, and `0o755` under `binaries/`.

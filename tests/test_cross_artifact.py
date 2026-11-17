@@ -25,12 +25,12 @@ from xml.etree import ElementTree as ET
 
 import pytest
 import pycps_sysml2
+from pyssp_standard import FMU
 from pyssp_standard.standard.fmi2.codec import Fmi2ModelDescriptionXmlCodec
 
 from conftest import GENERATION_TIME, fixture_path
 from pyfmi_sysml2.c.headers import generate_c_headers
 from pyfmi_sysml2.model_description.document import generate_model_description
-from pyfmi_sysml2.fmu.archive import package_fmu
 
 pytestmark = pytest.mark.contract
 
@@ -352,11 +352,12 @@ def build_artifacts(directory: Path, subject: str) -> Artifacts:
     binary.parent.mkdir(parents=True, exist_ok=True)
     binary.write_bytes(_BINARY_BYTES)
 
-    fmu = package_fmu(
+    fmu = FMU.package(
         directory / f"{component}.fmu",
         model_description=description,
-        binary=binary,
-        headers=[header],
+        binaries={"linux64": binary},
+        sources=[header],
+        fmi_version="2.0",
     )
     return Artifacts(description, header, fmu)
 

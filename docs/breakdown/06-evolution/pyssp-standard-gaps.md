@@ -2,22 +2,23 @@
 id: INFO-014
 type: info
 title: pyssp_standard gaps blocking v0.2.0
-summary: Two upstream gaps remain: the FMU facade cannot carry sources/, and SourceFiles/annotation content is not modelled.
+summary: One upstream gap remains: SourceFiles and vendor annotation content is not modelled. The FMU facade now owns staging and packaging.
 date: 2026-11-05
 status: current
 ---
 
 # pyssp_standard gaps blocking v0.2.0
 
-Two limitations in the pinned `experimental-pyssp-standard` build shape what
-this library can emit. Neither is worked around by hand-writing XML.
+One limitation in the pinned `experimental-pyssp-standard` build shapes what
+this library can emit. It is not worked around by hand-writing XML.
 
-## Sources and the FMU facade
+## Sources and the FMU facade (resolved)
 
-`FMU.create` cannot carry a `sources/` group. The packager therefore stages the
-tree itself and calls `package_archive`, which does include `sources/`. The
-workaround is deliberate and tested; a facade that accepts sources would let the
-packager drop one layer.
+`FMU.stage` carries every group, including `sources/`, and owns validation,
+layout, and placement; `FMU.package` owns staging and archive verification. This
+package therefore keeps no packaging module, no local layout or validation code,
+and no policy wrapper: the CLI calls `FMU.package` directly and pins `linux64`
+and FMI 2.0 at the call site. Determinism stays with `package_archive`.
 
 ## SourceFiles and annotations
 
@@ -36,6 +37,7 @@ XML is not an acceptable workaround.
 
 ## Verification
 
-Re-check both gaps after any `pyssp_standard` version bump; the pinned URL is
-v0.9.2.dev0. If the facade gains `sources/`, delete the staging path and its
-tests in the same change.
+Re-check the `SourceFiles`/annotation gap after any `pyssp_standard` version
+bump; the pinned URL is v0.9.3.dev0. Source placement is no longer a gap: the
+facade accepts `sources/`, and no local wrapper remains between the CLI and the
+facade.

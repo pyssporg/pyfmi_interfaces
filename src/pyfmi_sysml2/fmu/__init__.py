@@ -1,11 +1,16 @@
-"""Deterministic ``.fmu`` packaging and its ``pyfmi`` command."""
+"""The ``pyfmi package`` command.
+
+Packaging lives in ``pyssp_standard``'s ``FMU`` facade; this module only binds
+the command line to it.
+"""
 
 from __future__ import annotations
 
 import argparse
 
+from pyssp_standard import FMU
+
 from pyfmi_sysml2.core.cli import Command, print_paths
-from pyfmi_sysml2.fmu.archive import package_fmu, stage_fmu as stage_fmu
 
 
 def _configure(parser: argparse.ArgumentParser) -> None:
@@ -31,6 +36,7 @@ def _configure(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         "--platform",
         metavar="NAME",
+        choices=["linux64"],
         default="linux64",
         help="Platform directory under binaries/ (default: linux64).",
     )
@@ -58,14 +64,14 @@ def _configure(parser: argparse.ArgumentParser) -> None:
 
 
 def _run(args: argparse.Namespace) -> int:
-    archive = package_fmu(
+    archive = FMU.package(
         args.output,
         model_description=args.model_description,
-        binary=args.binary,
-        platform=args.platform,
-        headers=args.header,
+        binaries={args.platform: args.binary},
+        sources=args.header,
         resources=args.resource,
         documentation=args.documentation,
+        fmi_version="2.0",
     )
     print_paths([archive])
     return 0
