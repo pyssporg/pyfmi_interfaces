@@ -1,9 +1,9 @@
 within GeneratedInterfaces;
 package GeneratedInterfaces
   connector Actuation
-    input Real channel_a;
-    input Real channel_b;
-    input Real channel_c;
+    Real channel_a;
+    Real channel_b;
+    Real channel_c;
   end Actuation;
 
   connector Orientation
@@ -19,8 +19,8 @@ package GeneratedInterfaces
   end Position;
 
   connector StatusPacket
-    output Real speed;
-    output Integer health;
+    Real speed;
+    Integer health;
   end StatusPacket;
 
 end GeneratedInterfaces;

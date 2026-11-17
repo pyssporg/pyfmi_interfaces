@@ -13,7 +13,7 @@ is relative to this directory.
 | `GeneratedInterfaces/package.mo` | root package with the `Modelica` uses annotation |
 | `GeneratedInterfaces/package.order` | `Interfaces`, `GeneratedInterfaces`, then per component `Generator_Interface` and `Generator` |
 | `GeneratedInterfaces/Interfaces.mo` | eight primitive input/output connector aliases |
-| `GeneratedInterfaces/GeneratedInterfaces.mo` | one connector per port definition |
+| `GeneratedInterfaces/GeneratedInterfaces.mo` | one undirected connector per port definition |
 | `GeneratedInterfaces/Generator_Interface.mo` | generated `partial model` — parameters and connector instances |
 | `GeneratedInterfaces/Generator.mo` | implementer-owned `model`, created once, never rewritten |
 
@@ -46,7 +46,8 @@ is relative to this directory.
   goldens together; refused when `CI` is set.
 - **Notes:** `GeneratorParameters :> ParameterInterface` is a parameter port and
   is excluded, leaving only `RealSignal`; the only usage is `out`, so the
-  connector carries `output`.
+  partial model emits an `output ... y` instance and the connector stays
+  undirected.
 
 ## Update history
 
@@ -55,3 +56,4 @@ is relative to this directory.
 | 2026-11-05 | Case added with the direct `FmuModel` fixture | Modelica coverage for the direct export pattern. |
 | 2026-11-17 | Modelica seam: generated partial model and implementer-owned model | Iterative model development: interface generated, logic hand-written |
 | 2026-11-17 | Case record reviewed | Artifact list and seam description verified against the committed package and `tests/test_modelica.py`. |
+| 2026-11-17 | Direction restated on the partial model's instances | Connectors are undirected; the instance carries `input`/`output`. |

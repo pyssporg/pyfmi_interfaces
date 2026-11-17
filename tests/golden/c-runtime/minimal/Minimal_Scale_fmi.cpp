@@ -165,6 +165,7 @@ FMI2_Export void fmi2FreeInstance(fmi2Component c) {
   if (h == nullptr) {
     return;
   }
+  (void)Minimal_Scale_model_free(h->model);
   delete h->model;
   delete h;
 }
@@ -230,7 +231,14 @@ FMI2_Export fmi2Status fmi2Reset(fmi2Component c) {
   if (h == nullptr) {
     return fmi2Error;
   }
+  fmi2Status status = Minimal_Scale_model_reset(h->model);
+  if (status != fmi2OK) {
+    Minimal_Scale_log(c, status, "fmi2Reset: model reset failed");
+    return status;
+  }
+  void* user_data = h->model->user_data;
   *h->model = Minimal_Scale_Instance{};
+  h->model->user_data = user_data;
   Minimal_Scale_initialize_vr_map(h->model);
   h->initialized = false;
   h->terminated = false;

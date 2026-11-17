@@ -117,8 +117,14 @@ def component_interface(
         count = len(items)
         array = count if count > 1 or attribute.multiplicity else None
         parameters.append(Field(attribute.name, type_name, array, base_index))
-        for item in items:
+        for position, item in enumerate(items):
             counter += 1
+            # The FMI name is offset by base_index; the C member is not.
+            member = (
+                item.name
+                if array is None
+                else f"{attribute.name}[{position}]"
+            )
             variables.append(
                 Variable(
                     name=item.name,
@@ -129,7 +135,7 @@ def component_interface(
                     index=counter,
                     description=attribute.doc,
                     start=item.value,
-                    member=item.name,
+                    member=member,
                 )
             )
 

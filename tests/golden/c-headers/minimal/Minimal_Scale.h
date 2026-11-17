@@ -23,6 +23,8 @@ struct Minimal_Scale_Instance {
   double gain = 2;
   Minimal_Signal u = {};
   Minimal_Signal y = {};
+  /* Implementer-owned state; the runtime never reads or writes it. */
+  void* user_data = nullptr;
 };
 
 inline void Minimal_Scale_initialize_vr_map(Minimal_Scale_Instance* instance) {

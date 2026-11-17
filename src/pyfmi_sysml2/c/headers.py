@@ -25,6 +25,7 @@ from pyfmi_sysml2.core import (
     Variable,
     architecture,
     c_type,
+    component as select_component,
     components,
     export_identity,
     resolve_system,
@@ -142,10 +143,8 @@ def _parameter_member(component: Component, field: Field) -> str:
         return f"  {storage} {name} = {default};"
 
     elements = [
-        _parameter_variable(component, f"{field.name}[{index}]")
-        for index in range(
-            field.base_index, field.base_index + field.array
-        )
+        _parameter_variable(component, f"{field.name}[{position}]")
+        for position in range(field.array)
     ]
     if any(element is None for element in elements):
         return f"  {storage} {name}[{field.array}] = {IMPLICIT_DEFAULT};"
@@ -266,7 +265,14 @@ def component_header(
         lines.append(_parameter_member(component, field))
     for port in component.ports:
         lines.append(f"  {package}_{port.definition} {_escape(port.name)} = {{}};")
-    lines.extend(["};", ""])
+    lines.extend(
+        [
+            "  /* Implementer-owned state; the runtime never reads or writes it. */",
+            "  void* user_data = nullptr;",
+            "};",
+            "",
+        ]
+    )
 
     lines.append(
         f"inline void {stem}_initialize_vr_map("
@@ -292,6 +298,7 @@ def generate_c_headers(
     output_dir: str | PathLike[str],
     *,
     composition: str | None = None,
+    component: str | None = None,
     prefix: str | None = None,
     base_index: int = 0,
 ) -> list[Path]:
@@ -303,14 +310,25 @@ def generate_c_headers(
     component header carries a ``<PREFIX>_<COMPONENT>_GUID`` macro with the
     same guid the modelDescription generator writes for that component. A
     direct FMU model whose definition names the package uses that name once.
-    ``base_index`` shifts the ``[i]`` suffixes of array members in the
-    generated C (default 0; 1 targets OMC-built Modelica FMUs).
+    ``--base-index`` shifts the ``[i]`` suffixes of array members in the
+    generated C (default 0; 1 targets OMC-built Modelica FMUs). ``component``
+    restricts the output to one exported component while the common header
+    still carries the payload types that component uses.
     """
     parsed = architecture(source)
     package = prefix or parsed.package_name
     system = resolve_system(parsed, composition)
-    exported = components(
-        parsed, composition=composition, base_index=base_index
+    exported = (
+        [
+            select_component(
+                parsed,
+                component,
+                composition=composition,
+                base_index=base_index,
+            )
+        ]
+        if component is not None
+        else components(parsed, composition=composition, base_index=base_index)
     )
     direct = export_identity(parsed, system).direct
 

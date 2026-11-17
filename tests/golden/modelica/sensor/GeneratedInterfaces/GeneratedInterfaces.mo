@@ -1,13 +1,13 @@
 within GeneratedInterfaces;
 package GeneratedInterfaces
   connector LevelState
-    output Real remaining;
-    output Real fraction;
-    output Boolean empty;
+    Real remaining;
+    Real fraction;
+    Boolean empty;
   end LevelState;
 
   connector Rate
-    input Real rate;
+    Real rate;
   end Rate;
 
 end GeneratedInterfaces;

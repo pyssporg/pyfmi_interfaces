@@ -15,10 +15,11 @@ from balance checking, so the generated half always checks clean while the
 implementer's half fails to build until it has equations.
 
 A connector is a type, so a definition used by components in different
-directions cannot declare a direction that is true everywhere. The member prefix
-is the port direction when every usage agrees on it, and empty when the usages
-disagree or any of them is ``inout`` or undirected; a bidirectional connector
-has to stay undirected for the Modelica tool to accept it on both sides.
+directions cannot declare a direction that is true everywhere. The connectors are
+undirected, and each port instance in ``<Name>_Interface`` carries ``input``,
+``output``, or nothing when the usage is ``inout`` or undirected. Direction on
+the instance is what an FMU export reads; direction on the type would forbid
+reuse.
 
 The subpackages are declared inside their parent, so their ``within`` clause is
 the root package, nested under ``within`` when one is given; only the root
@@ -80,15 +81,14 @@ def _interface_model_name(component: Component) -> str:
 
 def _port_definitions(
     exported: list[Component],
-) -> dict[str, tuple[tuple[str, str], ...]]:
-    """Field sets and member prefix per distinct port definition.
+) -> dict[str, tuple[Field, ...]]:
+    """Field sets per distinct port definition, keyed by definition name.
 
-    Keyed by the definition name, sorted. Two usages of one definition must
-    agree on the fields; a definition that is used in one direction only keeps
-    that direction, anything else stays undirected.
+    Two usages of one definition must agree on the fields. Connectors stay
+    undirected: direction belongs on the instance in the partial model, so one
+    definition can serve an input and an output component.
     """
     fields_by_definition: dict[str, tuple[Field, ...]] = {}
-    qualifiers: dict[str, set[str]] = {}
     for component in exported:
         for port in component.ports:
             known = fields_by_definition.get(port.definition)
@@ -97,19 +97,7 @@ def _port_definitions(
                 f"{known} != {port.fields}"
             )
             fields_by_definition[port.definition] = port.fields
-            qualifiers.setdefault(port.definition, set()).add(
-                port.modelica_qualifier
-            )
-
-    result: dict[str, tuple[tuple[str, str], ...]] = {}
-    for definition in sorted(fields_by_definition):
-        prefixes = qualifiers[definition]
-        qualifier = next(iter(prefixes)) if len(prefixes) == 1 else ""
-        result[definition] = tuple(
-            (qualifier, _field_text(field))
-            for field in fields_by_definition[definition]
-        )
-    return result
+    return fields_by_definition
 
 
 def _field_text(field: Field) -> str:
@@ -143,7 +131,7 @@ def _parameter_declarations(component: Component) -> list[str]:
     }
     lines: list[str] = []
     for field in component.parameters:
-        values = [starts.get(member) for _, member in field.members()]
+        values = [starts.get(f"{field.name}{suffix}") for suffix, _ in field.members()]
         declaration = f"{INDENT}parameter {_field_text(field)}"
         if all(value is not None for value in values):
             if field.array is None:
@@ -165,7 +153,7 @@ def _interface_text(parent: str, component: Component) -> str:
     lines.extend(_parameter_declarations(component))
     for port in component.ports:
         lines.append(
-            f"{INDENT}{GENERATED}.{port.definition} "
+            f"{INDENT}{port.modelica_qualifier}{GENERATED}.{port.definition} "
             f"{_instance_name(port.name)};"
         )
     lines.append(f"end {name};")
@@ -228,13 +216,13 @@ def _interfaces_text(parent: str) -> str:
 
 
 def _generated_text(
-    parent: str, definitions: dict[str, tuple[tuple[str, str], ...]]
+    parent: str, definitions: dict[str, tuple[Field, ...]]
 ) -> str:
     lines = [f"within {parent};", f"package {GENERATED}"]
     for name in sorted(definitions):
         lines.append(f"{INDENT}connector {name}")
-        for qualifier, member in definitions[name]:
-            lines.append(f"{INDENT * 2}{qualifier}{member};")
+        for field in definitions[name]:
+            lines.append(f"{INDENT * 2}{_field_text(field)};")
         lines.append(f"{INDENT}end {name};")
         lines.append("")
     lines.append(f"end {GENERATED};")

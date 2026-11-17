@@ -23,3 +23,16 @@ fmi2Status Controller_Controller_model_terminate(Controller_Controller_Instance*
   (void)instance;
   return fmi2OK;
 }
+
+fmi2Status Controller_Controller_model_reset(Controller_Controller_Instance* instance) {
+  (void)instance;
+  /* TODO: release anything that must not survive a reset.
+     user_data itself survives; the runtime restores it. */
+  return fmi2OK;
+}
+
+fmi2Status Controller_Controller_model_free(Controller_Controller_Instance* instance) {
+  (void)instance;
+  /* TODO: release user_data and any resource it owns. */
+  return fmi2OK;
+}

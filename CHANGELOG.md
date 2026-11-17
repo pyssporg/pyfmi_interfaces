@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Add `user_data` to the generated instance struct plus two model hooks,
+  `<stem>_model_reset` (from `fmi2Reset`, before the instance fields are
+  cleared) and `<stem>_model_free` (from `fmi2FreeInstance`), so implementer
+  state survives a reset and is released on free; the hooks header and the
+  model template carry all five bodies.
 - Generate a C++17 FMI 2.0 CoSimulation runtime per exported component with
   `pyfmi c-runtime`: `<stem>_fmi.cpp`, a regenerated `<stem>_hooks.h`, a
   once-only `<stem>_model.cpp` implementer seam, and copies of the bundled FMI
@@ -22,6 +27,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add `tests/iterative/`, an executable walkthrough that renames a port,
   regenerates in place, and shows the build failing at the model line; run as a
   slow test.
+- Add `--component NAME` to `c-headers` and `c-runtime` (API:
+  `generate_c_headers(..., component=None)` and
+  `generate_c_runtime(..., component=None)`) to emit one exported component plus
+  the common header; an unknown name raises `KeyError`.
 
 ### Changed
 
@@ -36,6 +45,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Drop the in-package FMU archive writer; packaging is owned by
   `pyssp_standard`.
+
+### Fixed
+
+- `--base-index` no longer offsets storage: generated C arrays stay zero-based
+  with exactly `array` elements, and only the FMI element names and VR enum
+  labels shift, so `base_index=1` indexes `gains[0]..[n-1]` instead of one past
+  the end.
 
 ## [0.2.0] - 2026-11-09
 

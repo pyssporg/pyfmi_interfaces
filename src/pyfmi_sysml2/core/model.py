@@ -26,12 +26,17 @@ class Field:
     base_index: int = 0
 
     def members(self) -> list[tuple[str, str]]:
-        """``(fmi_suffix, member_expression)`` for every element."""
+        """``(fmi_suffix, member_expression)`` for every element.
+
+        The suffix is the FMI-facing index, offset by ``base_index``; the C
+        member is always zero-based, because the array the header declares has
+        exactly ``array`` elements whatever the FMI names say.
+        """
         if self.array is None:
             return [("", self.name)]
         start = self.base_index
         return [
-            (f"[{i}]", f"{self.name}[{i}]")
+            (f"[{i}]", f"{self.name}[{i - start}]")
             for i in range(start, start + self.array)
         ]
 

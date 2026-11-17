@@ -169,6 +169,7 @@ FMI2_Export void fmi2FreeInstance(fmi2Component c) {
   if (h == nullptr) {
     return;
   }
+  (void)Controller_Controller_model_free(h->model);
   delete h->model;
   delete h;
 }
@@ -234,7 +235,14 @@ FMI2_Export fmi2Status fmi2Reset(fmi2Component c) {
   if (h == nullptr) {
     return fmi2Error;
   }
+  fmi2Status status = Controller_Controller_model_reset(h->model);
+  if (status != fmi2OK) {
+    Controller_Controller_log(c, status, "fmi2Reset: model reset failed");
+    return status;
+  }
+  void* user_data = h->model->user_data;
   *h->model = Controller_Controller_Instance{};
+  h->model->user_data = user_data;
   Controller_Controller_initialize_vr_map(h->model);
   h->initialized = false;
   h->terminated = false;

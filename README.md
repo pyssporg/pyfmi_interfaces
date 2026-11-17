@@ -39,10 +39,11 @@ index lookups.
 
 `pyfmi` has five subcommands: four generators (`model-description`,
 `c-headers`, `c-runtime`, `modelica`) and the `package` command. The four
-generators default to `build/`; `pyfmi package` requires an output path. Every
-written path is printed on stdout, one per line. Handled model or input errors
-print `pyfmi: <message>` on stderr and exit 1; argument errors keep argparse's
-exit 2.
+generators default to `build/`. `c-headers` and `c-runtime` accept
+`--component NAME` to emit one exported component plus the common header.
+`pyfmi package` requires an output path. Every written path is printed on
+stdout, one per line. Handled model or input errors print `pyfmi: <message>` on
+stderr and exit 1; argument errors keep argparse's exit 2.
 
 ### `pyfmi --help`
 
@@ -102,7 +103,7 @@ runs are byte-identical. The option accepts `2026-01-01T00:00:00Z` or an ISO
 
 ```text
 usage: pyfmi c-headers [-h] [-o OUT] [--composition NAME] [--base-index N]
-                       [--prefix NAME]
+                       [--component NAME] [--prefix NAME]
                        SOURCE
 
 Write the C interface headers to an output directory.
@@ -117,6 +118,7 @@ options:
                         single root).
   --base-index N        First emitted array index (default: 0; 1 targets OMC-
                         built Modelica FMUs, which declare arrays one-based).
+  --component NAME      Restrict the output to one exported component.
   --prefix NAME         Header prefix and C type prefix (default: the package
                         name).
 ```
@@ -125,7 +127,8 @@ options:
 
 ```text
 usage: pyfmi c-runtime [-h] [-o OUT] [--composition NAME] [--base-index N]
-                       [--prefix NAME] [--omit NAME[,NAME...]]
+                       [--component NAME] [--prefix NAME]
+                       [--omit NAME[,NAME...]]
                        SOURCE
 
 Write the C interface headers, a C++17 FMI 2.0 CoSimulation runtime, and a
@@ -141,6 +144,7 @@ options:
                         single root).
   --base-index N        First emitted array index (default: 0; 1 targets OMC-
                         built Modelica FMUs, which declare arrays one-based).
+  --component NAME      Restrict the output to one exported component.
   --prefix NAME         Header prefix and C type prefix (default: the package
                         name).
   --omit NAME[,NAME...]
@@ -149,11 +153,13 @@ options:
 ```
 
 `c-runtime` regenerates the C interface headers first, so `c-headers` need not
-run before it. `<Prefix>_<Component>_model.cpp` is created once and never
-rewritten. Every other generated file, including the C++ runtime and the hooks
-header, is replaced on each run. `--omit` exists for an implementer who supplies
-their own definition: the file keeps a marker naming the missing function and
-the link fails until that definition is provided.
+run before it. `--component NAME` restricts either C command to one exported
+component plus the common header; an unknown name exits 1.
+`<Prefix>_<Component>_model.cpp` is created once and never rewritten. Every
+other generated file, including the C++ runtime and the hooks header, is
+replaced on each run. `--omit` exists for an implementer who supplies their own
+definition: the file keeps a marker naming the missing function and the link
+fails until that definition is provided.
 
 ### `pyfmi modelica --help`
 
@@ -314,20 +320,26 @@ FMU.package(
   the 38 FMI 2.0 CoSimulation entry points from the VR map. Nine of them are
   explicit `fmi2Error` stubs: the FMU-state, serialization, directional-derivative,
   and input/output-derivative functions.
-- `<out>/<Prefix>_<Component>_hooks.h` — model hook declarations
-  (`<stem>_model_initialize`, `<stem>_model_do_step`,
-  `<stem>_model_terminate`).
+- `<out>/<Prefix>_<Component>_hooks.h` — the five model hook declarations
+  (`<stem>_model_initialize`, `<stem>_model_do_step`, `<stem>_model_terminate`,
+  `<stem>_model_reset` called from `fmi2Reset`, and `<stem>_model_free` called
+  from `fmi2FreeInstance`).
 - `<out>/<Prefix>_<Component>_model.cpp` — created once, never rewritten; the
-  implementer's only C++ file. Its default step returns `fmi2Error` until the
-  hooks are implemented.
+  implementer's only edited C++ file. It holds all five hook bodies, reset and
+  free as no-ops; its default step returns `fmi2Error` until implemented. The
+  instance struct ends with `void* user_data`, implementer-owned: the runtime
+  never reads or writes it, `fmi2Reset` preserves it, and `model_free` releases
+  it.
 - `<out>/fmi2/fmi2Functions.h`, `fmi2FunctionTypes.h`, `fmi2TypesPlatform.h` —
   byte copies of the bundled FMI 2.0 standard headers.
 - `<out>/<Package>/package.mo`, `package.order` — the root Modelica package and
   its member order.
 - `<out>/<Package>/Interfaces.mo` — primitive input/output connector aliases;
-  `GeneratedInterfaces.mo` — one connector per port definition.
+  `GeneratedInterfaces.mo` — one undirected connector per port definition.
 - `<out>/<Package>/<Component>_Interface.mo` — generated `partial model` with
-  the parameters and one connector instance per port; replaced whole.
+  the parameters and one connector instance per port; the instance carries
+  `input`/`output`, or nothing for `inout`/undirected, so direction lives on
+  the instance rather than the connector type. Replaced whole.
 - `<out>/<Package>/<Component>.mo` — created once, never rewritten; the
   implementer's Modelica model, extending the generated partial model.
 - `<archive>.fmu` — `modelDescription.xml` at the root,
@@ -337,9 +349,12 @@ FMU.package(
   the only accepted platform.
 
 `Prefix` defaults to the architecture package name; `Package` defaults to
-`GeneratedInterfaces`. Value references start at the requested `--base-index`
-(default 0) per component: parameters first, then ports in declaration order,
-then fields.
+`GeneratedInterfaces`. `--component NAME` narrows the C headers and runtime to
+one exported component plus the common header. Value references start at the
+requested `--base-index` (default 0) per component: parameters first, then ports
+in declaration order, then fields. The C arrays stay zero-based and hold exactly
+`array` elements; `--base-index` shifts only the FMI element names and the VR
+enum labels, so `--base-index 1` still indexes `gains[0]..[n-1]`.
 
 ## Iterative development
 

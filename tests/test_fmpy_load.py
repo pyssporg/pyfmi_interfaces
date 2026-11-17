@@ -67,6 +67,18 @@ fmi2Status Controller_Controller_model_terminate(
   (void)instance;
   return fmi2OK;
 }
+
+fmi2Status Controller_Controller_model_reset(
+    Controller_Controller_Instance* instance) {
+  (void)instance;
+  return fmi2OK;
+}
+
+fmi2Status Controller_Controller_model_free(
+    Controller_Controller_Instance* instance) {
+  (void)instance;
+  return fmi2OK;
+}
 """
 
 

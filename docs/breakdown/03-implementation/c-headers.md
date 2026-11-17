@@ -10,11 +10,11 @@ status: current
 # C header generation
 
 `generate_c_headers()` writes `<prefix>_InterfaceCommon.h`, then one
-`<prefix>_<Component>.h` per exported component. `generate_c_runtime()` calls
-it, so both commands regenerate these headers; `pyfmi c-headers` is the
-header-only command. `prefix` defaults to the architecture package name.
-`header_stem()` keeps a direct FMU model at `Generator.h`, not
-`Generator_Generator.h`, and owns the file and C identifier rule.
+`<prefix>_<Component>.h` per exported component; `--component NAME` keeps one
+plus the common header, and an unknown name raises `KeyError`. `c-runtime` calls
+it, so both commands regenerate these headers and `c-headers` is header-only.
+`prefix` defaults to the package name; `header_stem()` keeps a direct FMU model
+at `Generator.h`, not `Generator_Generator.h`, and owns the file/identifier rule.
 
 Common header: include guard, `stdbool.h`/`stddef.h`/`stdint.h`; one
 `typedef struct <prefix>_<PortDefinition>` per distinct port definition in
@@ -31,7 +31,8 @@ Deliberate details:
 
 - outputs map `writable=false`; parameters and inputs `true`;
 - C/C++ keywords gain a trailing underscore on the struct member only;
-- array members are fixed-size, matching the expanded scalar variables;
+- arrays are fixed-size, exactly `array` elements and always zero-based;
+  `--base-index N` shifts only the FMI element names and VR enum labels;
 - string defaults are C-escaped and quoted.
 
 The common header is C11; only the instance helper needs C++17. Both are

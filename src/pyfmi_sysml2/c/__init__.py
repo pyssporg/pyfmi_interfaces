@@ -16,6 +16,7 @@ from pyfmi_sysml2.core.cli import (
 )
 
 _PREFIX_HELP = "Header prefix and C type prefix (default: the package name)."
+_COMPONENT_HELP = "Restrict the output to one exported component."
 
 
 def _configure_headers(parser: argparse.ArgumentParser) -> None:
@@ -23,6 +24,7 @@ def _configure_headers(parser: argparse.ArgumentParser) -> None:
     add_output(parser, "Output directory (default: build).")
     add_composition(parser)
     add_base_index(parser)
+    parser.add_argument("--component", metavar="NAME", help=_COMPONENT_HELP)
     parser.add_argument("--prefix", metavar="NAME", help=_PREFIX_HELP)
 
 
@@ -31,6 +33,7 @@ def _configure_runtime(parser: argparse.ArgumentParser) -> None:
     add_output(parser, "Output directory (default: build).")
     add_composition(parser)
     add_base_index(parser)
+    parser.add_argument("--component", metavar="NAME", help=_COMPONENT_HELP)
     parser.add_argument("--prefix", metavar="NAME", help=_PREFIX_HELP)
     parser.add_argument(
         "--omit",
@@ -49,6 +52,7 @@ def _run_headers(args: argparse.Namespace) -> int:
         args.source,
         args.output,
         composition=args.composition,
+        component=args.component,
         prefix=args.prefix,
         base_index=args.base_index,
     )
@@ -61,6 +65,7 @@ def _run_runtime(args: argparse.Namespace) -> int:
         args.source,
         args.output,
         composition=args.composition,
+        component=args.component,
         prefix=args.prefix,
         base_index=args.base_index,
         omit=args.omit,

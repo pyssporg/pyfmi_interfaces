@@ -1,11 +1,11 @@
 within GeneratedInterfaces;
 
 partial model Bus_Interface
-  GeneratedInterfaces.Actuation actuation;
-  GeneratedInterfaces.Orientation orientation_in;
-  GeneratedInterfaces.Position position_in;
+  input GeneratedInterfaces.Actuation actuation;
+  input GeneratedInterfaces.Orientation orientation_in;
+  input GeneratedInterfaces.Position position_in;
   GeneratedInterfaces.Orientation shared;
-  GeneratedInterfaces.Orientation orientation_out;
-  GeneratedInterfaces.Position position_out;
-  GeneratedInterfaces.StatusPacket status;
+  output GeneratedInterfaces.Orientation orientation_out;
+  output GeneratedInterfaces.Position position_out;
+  output GeneratedInterfaces.StatusPacket status;
 end Bus_Interface;

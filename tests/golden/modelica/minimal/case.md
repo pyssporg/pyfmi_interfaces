@@ -1,7 +1,8 @@
 # Case: `modelica/minimal`
 
 The smallest architecture that still exercises both directions: one input and one
-output share a single port definition, so the connector has to stay undirected.
+output share a single port definition, so the connector stays undirected and the
+partial model's port instances carry the direction.
 
 - **Conversion:** `minimal.sysml` (SysML v2) → `GeneratedInterfaces/package.mo`,
   `GeneratedInterfaces/package.order`, `GeneratedInterfaces/Interfaces.mo`,
@@ -31,9 +32,10 @@ output share a single port definition, so the connector has to stay undirected.
 - **Volatile fields:** none
 - **Update policy:** `UPDATE_GOLDENS=1`, read the diff, commit fixtures and
   goldens together; refused when `CI` is set
-- **Notes:** `Signal` is used as `u` (`in`) and `y` (`out`), so no direction
-  prefix is emitted — a connector that claims one direction would be wrong for
-  the other user. The `omc` gate is marked `slow` (about 1 s, one `omc`
+- **Notes:** `Signal` is used as `u` (`in`) and `y` (`out`); the connector is
+  undirected and the partial model emits `input ... u` and `output ... y`
+  instances, so a connector that claimed one direction would be wrong for the
+  other user. The `omc` gate is marked `slow` (about 1 s, one `omc`
   invocation each); the text golden above is the default CI gate.
 
 ## Artifacts
@@ -46,7 +48,7 @@ relative to this directory.
 | `GeneratedInterfaces/package.mo` | root package with the `Modelica` uses annotation |
 | `GeneratedInterfaces/package.order` | `Interfaces`, `GeneratedInterfaces`, then per component `Scale_Interface` and `Scale` |
 | `GeneratedInterfaces/Interfaces.mo` | eight primitive input/output connector aliases |
-| `GeneratedInterfaces/GeneratedInterfaces.mo` | one connector per port definition |
+| `GeneratedInterfaces/GeneratedInterfaces.mo` | one undirected connector per port definition |
 | `GeneratedInterfaces/Scale_Interface.mo` | generated `partial model` — parameters and connector instances |
 | `GeneratedInterfaces/Scale.mo` | implementer-owned `model`, created once, never rewritten |
 
@@ -54,11 +56,11 @@ relative to this directory.
 
 ## What this case proves
 
-If this case is deleted, a regression that gives an ambiguous connector a
-direction, or that drops the `package.order` entry, still passes the controller
+If this case is deleted, a regression that moves direction back onto the
+connector, or that drops the `package.order` entry, still passes the controller
 and bus cases: those never use one definition in two directions. This is the
-only case where a single definition must remain undirected while its users are
-`in` and `out`.
+only case where a single definition must remain undirected while its instances
+are `in` and `out`.
 
 ## Update history
 
@@ -67,3 +69,4 @@ only case where a single definition must remain undirected while its users are
 | 2026-11-05 | Case added with the generator | U3.4: Modelica interface package |
 | 2026-11-17 | Modelica seam: generated partial model and implementer-owned model | Iterative model development: interface generated, logic hand-written |
 | 2026-11-17 | Case record reviewed | Artifact list and seam description verified against the committed package and `tests/test_modelica.py`. |
+| 2026-11-17 | Direction restated on the partial model's instances | Connectors are undirected; the instance carries `input`/`output`. |

@@ -44,6 +44,8 @@ struct Bus_Bus_Instance {
   Bus_Orientation orientation_out = {};
   Bus_Position position_out = {};
   Bus_StatusPacket status = {};
+  /* Implementer-owned state; the runtime never reads or writes it. */
+  void* user_data = nullptr;
 };
 
 inline void Bus_Bus_initialize_vr_map(Bus_Bus_Instance* instance) {

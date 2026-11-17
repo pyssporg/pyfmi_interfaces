@@ -31,9 +31,9 @@ to read, not references of last resort.
 
 `pyfmi_sysml2` generates FMI 2.0 CoSimulation artifacts from a SysML v2
 architecture: `modelDescription.xml`, C interface headers, a C++17 runtime with
-model hooks, Modelica connectors with a partial-model implementer seam, and a
-packaged `.fmu`. The artifact is the library boundary; the `pyfmi` CLI, four
-generator functions, and `fmi2_headers` are the public surface.
+a five-hook model seam, Modelica connectors with a partial-model implementer
+seam, and a packaged `.fmu`. The artifact is the library boundary; the `pyfmi`
+CLI, four generator functions, and `fmi2_headers` are the public surface.
 
 - The SysML dialect is owned by `pycps_sysml2`; this package implements the FMI
   half of that contract.

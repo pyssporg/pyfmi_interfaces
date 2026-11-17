@@ -18,6 +18,14 @@ fmi2Status Minimal_Scale_model_do_step(
 
 fmi2Status Minimal_Scale_model_terminate(Minimal_Scale_Instance* instance);
 
+/* Called before fmi2Reset clears the instance. The returned status is
+   propagated; the user_data pointer survives the reset. */
+fmi2Status Minimal_Scale_model_reset(Minimal_Scale_Instance* instance);
+
+/* Called from fmi2FreeInstance, before the instance is deleted. The
+   status is ignored: the FMI interface cannot report a free failure. */
+fmi2Status Minimal_Scale_model_free(Minimal_Scale_Instance* instance);
+
 #ifdef __cplusplus
 }
 #endif

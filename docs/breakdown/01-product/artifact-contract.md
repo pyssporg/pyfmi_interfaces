@@ -14,7 +14,7 @@ All outputs read the one `core/` reduction:
 - `modelDescription.xml`, validated through `pyssp_standard.standard.fmi2`;
 - C interface headers `<prefix>_InterfaceCommon.h` and one `<prefix>_<Component>.h` per exported component;
 - C++17 runtime with C linkage: `<stem>_fmi.cpp`, `<stem>_hooks.h`, and the bundled headers under `<out>/fmi2/`, all regenerated whole;
-- the model seam `<stem>_model.cpp`, created once and never rewritten, with three hooks (`CP-005`);
+- the model seam `<stem>_model.cpp`, created once and never rewritten, with five hooks and an implementer-owned `user_data` that survives `fmi2Reset` (`CP-005`);
 - a Modelica package: connector set, `<Name>_Interface` partial models, and `<Name>` implementer models created once and never rewritten;
 - the packaged `.fmu`, written by `pyssp_standard.FMU` through `pyfmi package`; this package writes no archive.
 

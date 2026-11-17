@@ -26,9 +26,9 @@ The five subcommands:
 - `pyfmi model-description SOURCE [-o OUT] [--composition NAME]
   [--base-index N] [--component NAME] [--generation-time ISO8601]`
 - `pyfmi c-headers SOURCE [-o OUT] [--composition NAME] [--base-index N]
-  [--prefix NAME]`
+  [--component NAME] [--prefix NAME]`
 - `pyfmi c-runtime SOURCE [-o OUT] [--composition NAME] [--base-index N]
-  [--prefix NAME] [--omit NAME[,NAME...]]`
+  [--component NAME] [--prefix NAME] [--omit NAME[,NAME...]]`
 - `pyfmi modelica SOURCE [-o OUT] [--composition NAME] [--package NAME]
   [--within NAME]`
 - `pyfmi package -o OUT --model-description PATH --binary PATH
@@ -46,8 +46,11 @@ Behaviour:
   stderr and return 1; argparse keeps exit 2; anything unexpected propagates.
 - `--generation-time` accepts the emitted `...Z` form or an ISO 8601 form with
   an offset; a naive time is rejected.
-- `--base-index` shifts the emitted array index; 0 is the default, 1 targets
-  OMC-built Modelica FMUs.
+- `--base-index` shifts the emitted FMI element names and VR enum labels only;
+  the C arrays stay zero-based and hold exactly `array` elements. 0 is the
+  default, 1 targets OMC-built Modelica FMUs.
+- `--component NAME` restricts `model-description`, `c-headers`, and
+  `c-runtime` to one exported component; an unknown name exits 1.
 
 The CLI adds no behaviour the API lacks: each handler calls one generator with
 the parsed arguments, and a family that registers no command has no shell

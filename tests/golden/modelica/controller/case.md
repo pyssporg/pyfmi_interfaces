@@ -1,7 +1,7 @@
 # Case: `modelica/controller`
 
-Mixed primitives on both sides: an `input Integer` field and an
-`output Boolean` field in the same package.
+Mixed primitives on both sides: an `Integer` member inside an input `Command`
+and a `Boolean` member inside an output `Throttle`.
 
 - **Conversion:** `controller.sysml` (SysML v2) → `GeneratedInterfaces/package.mo`,
   `GeneratedInterfaces/package.order`, `GeneratedInterfaces/Interfaces.mo`,
@@ -9,10 +9,11 @@ Mixed primitives on both sides: an `input Integer` field and an
   `GeneratedInterfaces/Controller_Interface.mo`,
   `GeneratedInterfaces/Controller.mo`
 - **Requirement / fault:** the connector member type must be the FMI primitive,
-  not a stringified SysML type, and the direction must come from the port usage.
-  A generator that emits `Real` for every member, or that drops the `out` prefix
-  on `Throttle`, produces a package that still loads — the fault only shows up
-  when a tool wires the connector.
+  not a stringified SysML type, and direction belongs on the partial model's
+  port instance, never on the undirected connector. A generator that emits
+  `Real` for every member, or that omits `output` on the `throttle` instance,
+  produces a package that still loads — the fault only shows up when a tool
+  wires the instance.
 - **Level:** component
 - **Input:** `tests/fixtures/controller/controller.sysml` (package `Controller`,
   composition `ControllerComposition`); no external source, no licence obligation
@@ -48,7 +49,7 @@ is relative to this directory.
 | `GeneratedInterfaces/package.mo` | root package with the `Modelica` uses annotation |
 | `GeneratedInterfaces/package.order` | `Interfaces`, `GeneratedInterfaces`, then per component `Controller_Interface` and `Controller` |
 | `GeneratedInterfaces/Interfaces.mo` | eight primitive input/output connector aliases |
-| `GeneratedInterfaces/GeneratedInterfaces.mo` | one connector per port definition |
+| `GeneratedInterfaces/GeneratedInterfaces.mo` | one undirected connector per port definition |
 | `GeneratedInterfaces/Controller_Interface.mo` | generated `partial model` — parameters and connector instances |
 | `GeneratedInterfaces/Controller.mo` | implementer-owned `model`, created once, never rewritten |
 
@@ -57,10 +58,10 @@ is relative to this directory.
 ## What this case proves
 
 If this case is deleted, a regression that flattens every member to `Real`, or
-that loses the `input `/`output ` prefix on a single-direction connector, still
+that loses the `input `/`output ` prefix on a single-direction instance, still
 passes the minimal and sensor cases only if those happen to carry the same type
 mix — they do not: neither has an `output Integer`. This is the case that keeps
-the primitive-type mapping and the prefix together.
+the primitive-type mapping and the instance prefix together.
 
 ## Update history
 
@@ -69,3 +70,4 @@ the primitive-type mapping and the prefix together.
 | 2026-11-05 | Case added with the generator | U3.4: Modelica interface package |
 | 2026-11-17 | Modelica seam: generated partial model and implementer-owned model | Iterative model development: interface generated, logic hand-written |
 | 2026-11-17 | Case record reviewed | Artifact list and seam description verified against the committed package and `tests/test_modelica.py`. |
+| 2026-11-17 | Direction restated on the partial model's instances | Connectors are undirected; the instance carries `input`/`output`. |

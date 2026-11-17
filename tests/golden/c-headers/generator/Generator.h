@@ -23,6 +23,8 @@ struct Generator_Instance {
   double gain = 2;
   double offset = 0.5;
   Generator_RealSignal y = {};
+  /* Implementer-owned state; the runtime never reads or writes it. */
+  void* user_data = nullptr;
 };
 
 inline void Generator_initialize_vr_map(Generator_Instance* instance) {

@@ -31,6 +31,8 @@ struct Controller_Controller_Instance {
   Controller_Command command = {};
   Controller_Throttle throttle = {};
   Controller_Status status = {};
+  /* Implementer-owned state; the runtime never reads or writes it. */
+  void* user_data = nullptr;
 };
 
 inline void Controller_Controller_initialize_vr_map(Controller_Controller_Instance* instance) {

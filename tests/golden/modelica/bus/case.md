@@ -1,16 +1,17 @@
 # Case: `modelica/bus`
 
 One inout port and one definition used both `in` and `out`: the bus is the case
-that decides what a connector may claim about direction.
+that decides where direction lives — on the partial model's instances, never on
+the connector.
 
 - **Conversion:** `bus.sysml` (SysML v2) → `GeneratedInterfaces/package.mo`,
   `GeneratedInterfaces/package.order`, `GeneratedInterfaces/Interfaces.mo`,
   `GeneratedInterfaces/GeneratedInterfaces.mo`,
   `GeneratedInterfaces/Bus_Interface.mo`, `GeneratedInterfaces/Bus.mo`
-- **Requirement / fault:** a connector is a type, so a port definition used from
-  more than one side cannot carry a single member direction. Emitting `input `
-  for `Orientation` (used `in`, `out`, and `inout`) or for `Position` (used `in`
-  and `out`) compiles but lies about the signal direction on one side, and a
+- **Requirement / fault:** a connector is a type, so it is always undirected;
+  the partial model's port instances carry `input`/`output`. Putting direction
+  on the connector for `Orientation` (used `in`, `out`, and `inout`) or for
+  `Position` (used `in` and `out`) compiles but lies about one side, and a
   Modelica model that connects the wrong half then looks correct.
 - **Level:** component
 - **Input:** `tests/fixtures/bus/bus.sysml` (package `Bus`, composition
@@ -31,11 +32,12 @@ that decides what a connector may claim about direction.
 - **Volatile fields:** none
 - **Update policy:** `UPDATE_GOLDENS=1`, read the diff, commit fixtures and
   goldens together; refused when `CI` is set
-- **Notes:** `Actuation` (all `in`) keeps `input `, `StatusPacket` (all `out`)
-  keeps `output `, and the two mixed definitions emit bare members. `Integer`
-  direction is visible in `StatusPacket.health`. The `omc` gate is marked `slow`
-  (about 1 s, one `omc` invocation each); the text golden above is
-  the default CI gate.
+- **Notes:** `Actuation` (all `in`) yields an `input ` instance, `StatusPacket`
+  (all `out`) an `output ` instance; `Position` (used `in` and `out`) yields
+  prefixed instances too, and only `Orientation`'s `inout` use is bare. The
+  `Integer` member `StatusPacket.health` rides on that `output` instance. The
+  `omc` gate is marked `slow` (about 1 s, one `omc` invocation each); the text
+  golden above is the default CI gate.
 
 ## Artifacts
 
@@ -47,7 +49,7 @@ to this directory.
 | `GeneratedInterfaces/package.mo` | root package with the `Modelica` uses annotation |
 | `GeneratedInterfaces/package.order` | `Interfaces`, `GeneratedInterfaces`, then per component `Bus_Interface` and `Bus` |
 | `GeneratedInterfaces/Interfaces.mo` | eight primitive input/output connector aliases |
-| `GeneratedInterfaces/GeneratedInterfaces.mo` | one connector per port definition |
+| `GeneratedInterfaces/GeneratedInterfaces.mo` | one undirected connector per port definition |
 | `GeneratedInterfaces/Bus_Interface.mo` | generated `partial model` — parameters and connector instances |
 | `GeneratedInterfaces/Bus.mo` | implementer-owned `model`, created once, never rewritten |
 
@@ -55,10 +57,10 @@ to this directory.
 
 ## What this case proves
 
-If this case is deleted, a regression that prefixes every connector with the
-first usage's direction escapes: the controller, minimal, and sensor fixtures
-each use a definition one way (or, in `minimal`, without an `inout` port), so
-they would still pass. Here the mixed and `inout` definitions are the contract.
+If this case is deleted, a regression that emits a direction on the connector
+from the first usage escapes: the controller, minimal, and sensor fixtures each
+use a definition one way (or, in `minimal`, without an `inout` port), so they
+would still pass. Here the mixed and `inout` definitions are the contract.
 
 ## Update history
 
@@ -67,3 +69,4 @@ they would still pass. Here the mixed and `inout` definitions are the contract.
 | 2026-11-05 | Case added with the generator | U3.4: Modelica interface package |
 | 2026-11-17 | Modelica seam: generated partial model and implementer-owned model | Iterative model development: interface generated, logic hand-written |
 | 2026-11-17 | Case record reviewed | Artifact list and seam description verified against the committed package and `tests/test_modelica.py`. |
+| 2026-11-17 | Direction restated on the partial model's instances | Connectors are undirected; the instance carries `input`/`output`. |

@@ -27,6 +27,8 @@ struct Sensor_Tank_Instance {
   double reserve = 0.08;
   Sensor_Rate supply = {};
   Sensor_LevelState level = {};
+  /* Implementer-owned state; the runtime never reads or writes it. */
+  void* user_data = nullptr;
 };
 
 inline void Sensor_Tank_initialize_vr_map(Sensor_Tank_Instance* instance) {

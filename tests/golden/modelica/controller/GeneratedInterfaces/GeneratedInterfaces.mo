@@ -1,18 +1,18 @@
 within GeneratedInterfaces;
 package GeneratedInterfaces
   connector Command
-    input Real manual;
-    input Real auto;
-    input Integer mode;
+    Real manual;
+    Real auto;
+    Integer mode;
   end Command;
 
   connector Status
-    output Integer code;
+    Integer code;
   end Status;
 
   connector Throttle
-    output Real demand;
-    output Boolean enabled;
+    Real demand;
+    Boolean enabled;
   end Throttle;
 
 end GeneratedInterfaces;

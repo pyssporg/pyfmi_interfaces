@@ -533,8 +533,8 @@ def test_member_expression_escapes_keywords() -> None:
     assert member_expression("class[1].new") == "class_[1].new_"
 
 
-def test_base_index_one_renames_array_members(tmp_path: Path) -> None:
-    """``base_index=1`` shifts VR enum labels, vr_map members, and defaults."""
+def test_base_index_one_shifts_names_not_storage(tmp_path: Path) -> None:
+    """``base_index=1`` renames FMI elements; the C array stays zero-based."""
     written = generate_c_headers(
         _source("controller"),
         tmp_path,
@@ -544,8 +544,9 @@ def test_base_index_one_renames_array_members(tmp_path: Path) -> None:
     component_text = _text(written[1])
 
     assert "double gains[2] = {1, 2.5};" in component_text
-    assert "instance->gains[1]" in component_text
-    assert "instance->gains[2]" in component_text
+    assert "_VR_GAINS_1_] = {&instance->gains[0]" in component_text
+    assert "_VR_GAINS_2_] = {&instance->gains[1]" in component_text
     assert "_VR_GAINS_1" in component_text
     assert "_VR_GAINS_2" in component_text
-    assert "gains[0]" not in component_text
+    # An array of two has no third element to point at.
+    assert "&instance->gains[2]" not in component_text

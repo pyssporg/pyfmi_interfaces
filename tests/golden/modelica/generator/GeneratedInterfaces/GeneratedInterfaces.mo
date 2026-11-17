@@ -1,7 +1,7 @@
 within GeneratedInterfaces;
 package GeneratedInterfaces
   connector RealSignal
-    output Real value;
+    Real value;
   end RealSignal;
 
 end GeneratedInterfaces;

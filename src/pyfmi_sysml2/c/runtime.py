@@ -1,10 +1,12 @@
 """C++17 FMI 2.0 CoSimulation runtime for the generated C interfaces.
 
 The runtime implements the FMI plumbing once per component from the same
-variable map the C headers expose. Model behaviour is not generated: three
+variable map the C headers expose. Model behaviour is not generated: five
 hooks in ``<stem>_model.cpp`` are created once and never rewritten, so an
 interface change is absorbed by regenerating the plumbing while the
-implementation stays untouched.
+implementation stays untouched. ``<stem>_Instance.user_data`` is the
+implementer's slot for per-instance state; the runtime never reads or writes
+it.
 
 This module only writes source. It never compiles a translation unit and never
 writes a build script; the build belongs to the consumer.
@@ -157,6 +159,14 @@ def _hooks_header(package: str, component: Component, stem: str, *, direct: bool
             "",
             f"fmi2Status {stem}_model_terminate({stem}_Instance* instance);",
             "",
+            f"/* Called before fmi2Reset clears the instance. The returned status is",
+            "   propagated; the user_data pointer survives the reset. */",
+            f"fmi2Status {stem}_model_reset({stem}_Instance* instance);",
+            "",
+            f"/* Called from fmi2FreeInstance, before the instance is deleted. The",
+            "   status is ignored: the FMI interface cannot report a free failure. */",
+            f"fmi2Status {stem}_model_free({stem}_Instance* instance);",
+            "",
             "#ifdef __cplusplus",
             "}",
             "#endif",
@@ -195,6 +205,19 @@ def _model_source(package: str, component: Component, stem: str, *, direct: bool
             "",
             f"fmi2Status {stem}_model_terminate({stem}_Instance* instance) {{",
             "  (void)instance;",
+            "  return fmi2OK;",
+            "}",
+            "",
+            f"fmi2Status {stem}_model_reset({stem}_Instance* instance) {{",
+            "  (void)instance;",
+            "  /* TODO: release anything that must not survive a reset.",
+            "     user_data itself survives; the runtime restores it. */",
+            "  return fmi2OK;",
+            "}",
+            "",
+            f"fmi2Status {stem}_model_free({stem}_Instance* instance) {{",
+            "  (void)instance;",
+            "  /* TODO: release user_data and any resource it owns. */",
             "  return fmi2OK;",
             "}",
             "",
@@ -544,6 +567,7 @@ def _definitions(package: str, component: Component, stem: str) -> dict[str, str
             "  if (h == nullptr) {",
             "    return;",
             "  }",
+            f"  (void){stem}_model_free(h->model);",
             "  delete h->model;",
             "  delete h;",
             "}",
@@ -624,7 +648,14 @@ def _definitions(package: str, component: Component, stem: str) -> dict[str, str
             "  if (h == nullptr) {",
             "    return fmi2Error;",
             "  }",
+            f"  fmi2Status status = {stem}_model_reset(h->model);",
+            "  if (status != fmi2OK) {",
+            f'    {stem}_log(c, status, "fmi2Reset: model reset failed");',
+            "    return status;",
+            "  }",
+            "  void* user_data = h->model->user_data;",
             f"  *h->model = {stem}_Instance{{}};",
+            "  h->model->user_data = user_data;",
             f"  {stem}_initialize_vr_map(h->model);",
             "  h->initialized = false;",
             "  h->terminated = false;",
@@ -987,6 +1018,7 @@ def generate_c_runtime(
     output_dir: str | PathLike[str],
     *,
     composition: str | None = None,
+    component: str | None = None,
     prefix: str | None = None,
     base_index: int = 0,
     omit: Sequence[str] | str = (),
@@ -1003,6 +1035,8 @@ def generate_c_runtime(
     omission in the generated banner; names may be repeated or comma-separated.
     An unknown name raises ``ValueError`` naming the complete emitted set.
 
+    ``component`` restricts the output to one exported component.
+
     The returned paths are in a stable order: the common header, the component
     headers sorted by file name, then for each component (sorted by name) the
     runtime source, the hooks header, and the model source when it was created;
@@ -1014,6 +1048,14 @@ def generate_c_runtime(
     exported = components(
         parsed, composition=composition, base_index=base_index
     )
+    if component is not None:
+        selected = [item for item in exported if item.name == component]
+        if not selected:
+            available = ", ".join(item.name for item in exported)
+            raise KeyError(
+                f"No exported component named {component!r}; choose from: {available}"
+            )
+        exported = selected
     direct = export_identity(parsed, system).direct
     omitted = _omit_names(omit)
 
@@ -1024,6 +1066,7 @@ def generate_c_runtime(
         parsed,
         directory,
         composition=composition,
+        component=component,
         prefix=prefix,
         base_index=base_index,
     )

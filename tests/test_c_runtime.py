@@ -164,6 +164,16 @@ def _ok_model(stem: str) -> str:
             "  return fmi2OK;",
             "}",
             "",
+            f"fmi2Status {stem}_model_reset({stem}_Instance* instance) {{",
+            "  (void)instance;",
+            "  return fmi2OK;",
+            "}",
+            "",
+            f"fmi2Status {stem}_model_free({stem}_Instance* instance) {{",
+            "  (void)instance;",
+            "  return fmi2OK;",
+            "}",
+            "",
         ]
     )
 

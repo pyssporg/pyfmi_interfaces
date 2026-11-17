@@ -2,7 +2,7 @@
 id: INFO-007
 type: info
 title: Modelica generation
-summary: generate_modelica writes a configurable root package with connectors plus, per component, a generated partial model and an implementer-owned model created once.
+summary: generate_modelica writes a configurable root package with undirected connectors plus, per component, a generated partial model whose port instances carry direction, and an implementer-owned model created once.
 date: 2026-11-17
 status: current
 ---
@@ -26,15 +26,14 @@ default package is `GeneratedInterfaces`. The output contract:
   `equation` section with a TODO. Created once and never rewritten; the
   Modelica counterpart of the C++ model file.
 
-A connector is a type, so its member prefix is `input`/`output` only when every
-usage agrees; otherwise it stays undirected. A port named after a Modelica
-keyword gains a trailing underscore. Fields keep their FMI type and fixed array
-size; the FMI side expands arrays into scalars.
+A connector is a type, so it is always undirected; the `<Name>_Interface.mo` port
+instances carry `input`/`output`, or nothing for `inout` or undirected — the
+instance is what an FMU export reads. Keyword-named ports gain a trailing
+underscore; fields keep type and array size, arrays expanding to scalars.
 
 Configuration, never constants: `package` defaults to `GeneratedInterfaces`;
-`within` nests the root inside an existing scope, so only the root `package.mo`
-carries the bare `within`. Names come from the architecture; no domain-specific
-name is baked in.
+`within` nests the root in an existing scope (only the root `package.mo` carries
+the bare `within`); names come from the architecture, nothing domain-specific.
 
 The package is not an FMU: it carries no FMI export annotation and no
 executable. A Modelica wrapper around a compiled FMU is a non-goal (`INFO-018`).

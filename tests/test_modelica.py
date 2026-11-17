@@ -46,38 +46,60 @@ GOLDEN = GOLDEN_ROOT / "modelica"
 
 OMC = Path("/usr/bin/omc")
 
-#: Member lines each fixture must produce, per connector.
+#: Member lines each fixture must produce, per connector. Connectors are types,
+#: so they carry no direction; direction lives on the partial model's instances.
 CONNECTORS = {
     "bus": {
-        "Actuation": [
-            "input Real channel_a;",
-            "input Real channel_b;",
-            "input Real channel_c;",
-        ],
+        "Actuation": ["Real channel_a;", "Real channel_b;", "Real channel_c;"],
         # ``in``, ``out``, and ``inout`` usages cannot agree on a direction.
         "Orientation": ["Real roll;", "Real pitch;", "Real yaw;"],
         "Position": ["Real x;", "Real y;", "Real z;"],
-        "StatusPacket": ["output Real speed;", "output Integer health;"],
+        "StatusPacket": ["Real speed;", "Integer health;"],
     },
     "controller": {
-        "Command": [
-            "input Real manual;",
-            "input Real auto;",
-            "input Integer mode;",
-        ],
-        "Status": ["output Integer code;"],
-        "Throttle": ["output Real demand;", "output Boolean enabled;"],
+        "Command": ["Real manual;", "Real auto;", "Integer mode;"],
+        "Status": ["Integer code;"],
+        "Throttle": ["Real demand;", "Boolean enabled;"],
     },
-    "generator": {"RealSignal": ["output Real value;"]},
+    "generator": {"RealSignal": ["Real value;"]},
     "minimal": {"Signal": ["Real value;"]},
     "sensor": {
         "LevelState": [
-            "output Real remaining;",
-            "output Real fraction;",
-            "output Boolean empty;",
+            "Real remaining;",
+            "Real fraction;",
+            "Boolean empty;",
         ],
-        "Rate": ["input Real rate;"],
+        "Rate": ["Real rate;"],
     },
+}
+
+#: Connector instance lines each fixture's partial model must produce. Direction
+#: belongs here: one definition can serve an input and an output component.
+INSTANCES = {
+    "bus": [
+        "input GeneratedInterfaces.Actuation actuation;",
+        "input GeneratedInterfaces.Orientation orientation_in;",
+        "input GeneratedInterfaces.Position position_in;",
+        # An ``inout`` usage stays undirected.
+        "GeneratedInterfaces.Orientation shared;",
+        "output GeneratedInterfaces.Orientation orientation_out;",
+        "output GeneratedInterfaces.Position position_out;",
+        "output GeneratedInterfaces.StatusPacket status;",
+    ],
+    "controller": [
+        "input GeneratedInterfaces.Command command;",
+        "output GeneratedInterfaces.Throttle throttle;",
+        "output GeneratedInterfaces.Status status;",
+    ],
+    "generator": ["output GeneratedInterfaces.RealSignal y;"],
+    "minimal": [
+        "input GeneratedInterfaces.Signal u;",
+        "output GeneratedInterfaces.Signal y;",
+    ],
+    "sensor": [
+        "input GeneratedInterfaces.Rate supply;",
+        "output GeneratedInterfaces.LevelState level;",
+    ],
 }
 
 
@@ -236,10 +258,8 @@ def test_interfaces_aliases_all_four_primitives(tmp_path: Path) -> None:
 
 
 @pytest.mark.parametrize("subject", SUBJECTS)
-def test_connector_members_follow_the_port_direction(
-    subject: str, tmp_path: Path
-) -> None:
-    """Integer and Boolean fields carry the direction; inout stays undirected."""
+def test_connectors_are_undirected_types(subject: str, tmp_path: Path) -> None:
+    """A connector is reused by inputs and outputs, so it declares no direction."""
     _generate(subject, tmp_path)
     connectors = _connectors(
         tmp_path / "GeneratedInterfaces" / "GeneratedInterfaces.mo"
@@ -247,17 +267,22 @@ def test_connector_members_follow_the_port_direction(
     assert connectors == CONNECTORS[subject]
 
 
-def test_inout_and_mixed_directions_stay_undirected(tmp_path: Path) -> None:
-    """A connector used both ways declares no direction at all."""
-    _generate("bus", tmp_path)
-    connectors = _connectors(
-        tmp_path / "GeneratedInterfaces" / "GeneratedInterfaces.mo"
-    )
-    # ``Orientation`` is used ``in``, ``out``, and ``inout``; ``Position`` both
-    # ``in`` and ``out``. Neither may claim one direction for all its users.
-    for name in ("Orientation", "Position"):
-        for member in connectors[name]:
-            assert not member.startswith(("input ", "output ")), member
+@pytest.mark.parametrize("subject", SUBJECTS)
+def test_partial_model_instances_carry_the_port_direction(
+    subject: str, tmp_path: Path
+) -> None:
+    """Direction on the instance is what an FMU export reads."""
+    _generate(subject, tmp_path)
+    component = COMPONENTS[subject]
+    text = (
+        tmp_path / "GeneratedInterfaces" / f"{component}_Interface.mo"
+    ).read_text(encoding="utf-8")
+    instances = [
+        line.strip()
+        for line in text.splitlines()
+        if line.startswith("  ") and "GeneratedInterfaces." in line
+    ]
+    assert instances == INSTANCES[subject]
 
 
 def test_a_parameter_keeps_its_authored_value_and_an_unbound_one_stays_open(
@@ -303,7 +328,7 @@ def test_a_parameter_keeps_its_authored_value_and_an_unbound_one_stays_open(
 
     assert "  parameter Real gain = 1.5;" in text
     assert "  parameter Real offset;" in text
-    assert "  GeneratedInterfaces.Signal u;" in text
+    assert "  input GeneratedInterfaces.Signal u;" in text
 
 
 def test_the_model_scaffold_is_created_once_and_never_rewritten(
@@ -357,7 +382,7 @@ def test_string_and_array_fields_reach_the_connector(tmp_path: Path) -> None:
     connectors = _connectors(
         tmp_path / "out" / "GeneratedInterfaces" / "GeneratedInterfaces.mo"
     )
-    assert connectors == {"Text": ["input String label;", "input Real samples[3];"]}
+    assert connectors == {"Text": ["String label;", "Real samples[3];"]}
 
 
 @pytest.mark.skipif(
@@ -432,7 +457,6 @@ def test_openmodelica_builds_hand_written_logic_against_the_partial(
 model Scale
   extends Scale_Interface;
 equation
-  u.value = time;
   y.value = gain*u.value;
 end Scale;
 """,
