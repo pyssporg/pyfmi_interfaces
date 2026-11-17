@@ -21,9 +21,15 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from pycps_sysml2 import Architecture, load
+from pycps_sysml2 import Architecture
 
-from pyfmi_sysml2.interface import Component, Field, components, modelica_type
+from pyfmi_sysml2.core import (
+    Component,
+    Field,
+    architecture,
+    components,
+    modelica_type,
+)
 
 #: Root package default. The generated files never embed a concrete model name.
 DEFAULT_PACKAGE = "GeneratedInterfaces"
@@ -36,13 +42,6 @@ INTERFACES = "Interfaces"
 GENERATED = "GeneratedInterfaces"
 
 INDENT = "  "
-
-
-def _architecture(source: Architecture | str | Path) -> Architecture:
-    """The parsed architecture, loading a path on demand."""
-    if isinstance(source, Architecture):
-        return source
-    return load(Path(source))
 
 
 def _port_definitions(
@@ -151,9 +150,9 @@ def generate_modelica(
     ``GeneratedInterfaces.mo`` (one connector per port definition). The
     subpackages are declared inside the root package, so ``within`` nests them.
     """
-    architecture = _architecture(source)
+    parsed = architecture(source)
     definitions = _port_definitions(
-        components(architecture, composition=composition)
+        components(parsed, composition=composition)
     )
 
     root = Path(output_dir) / package

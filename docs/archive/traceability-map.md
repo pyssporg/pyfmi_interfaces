@@ -18,3 +18,4 @@ the leaf is the source of truth; the record is how the state got there.
 ### Architecture
 
 - **AD-001** — State: `docs/breakdown/02-architecture/determinism.md` (docs/breakdown/02-architecture/determinism.md) · Artifacts: `src/pyfmi_sysml2/model_description.py`
+- **AD-005** — State: `docs/breakdown/02-architecture/module-map.md` (docs/breakdown/02-architecture/module-map.md) · Artifacts: `src/pyfmi_sysml2/core/model.py`, `src/pyfmi_sysml2/core/reduction.py`, `src/pyfmi_sysml2/core/spelling.py`, `src/pyfmi_sysml2/core/identity.py`, `src/pyfmi_sysml2/c/headers.py`, `src/pyfmi_sysml2/c/runtime.py`, `src/pyfmi_sysml2/model_description/document.py`, `src/pyfmi_sysml2/modelica/package.py`, `src/pyfmi_sysml2/fmu/archive.py`, `tests/test_layering.py`

@@ -1,20 +1,20 @@
 """FMI 2.0 CoSimulation ``modelDescription.xml`` generation.
 
 The variable set, the causalities, and the start values come from
-:mod:`pyfmi_sysml2.interface`; this module only maps that reduction onto the
+:mod:`pyfmi_sysml2.core`; this module only maps that reduction onto the
 ``pyssp_standard`` FMI 2 document model and serializes it. The document is
 validated before it reaches disk, so a file this module writes is one the
 library's own XSD and semantic validators accept.
 
-Identity is frozen for cross-library reproducibility: the ``guid`` and the
-``modelName`` of a component must match pyssp_sysml2 v0.3.0, because the two
-generators write into the same model directories during migration.
+The generation clock and the component ``guid`` live in
+:mod:`pyfmi_sysml2.core.identity`: identity is frozen for cross-library
+reproducibility, because the two generators write into the same model
+directories during migration.
 """
 
 from __future__ import annotations
 
-import uuid
-from datetime import datetime, timezone
+from datetime import datetime
 from pathlib import Path
 
 import pycps_sysml2
@@ -32,71 +32,19 @@ from pyssp_standard.standard.fmi2.model import (
 )
 from pyssp_standard.standard.fmi2.validation import Fmi2ModelDescriptionValidator
 
-from pyfmi_sysml2.interface import (
+from pyfmi_sysml2.core import (
     Component,
-    ExportIdentity,
     components,
     export_identity,
     resolve_system,
 )
+from pyfmi_sysml2.core.identity import format_generation_time, guid
 
 #: FMI version emitted for every generated document.
 FMI_VERSION = "2.0"
 
 #: ``generationTool`` stamped into every document.
 GENERATION_TOOL = "pyfmi_sysml2 tooling"
-
-#: FMI ``dateTime`` form: UTC, second precision.
-GENERATION_TIME_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
-
-#: Fixed epoch stamped when no ``generation_time`` is injected, so an
-#: un-injected build is byte-reproducible without a wall-clock read.
-DEFAULT_GENERATION_TIME = datetime(2000, 1, 1, tzinfo=timezone.utc)
-
-#: Namespace the FMI ``guid`` is derived from.
-GUID_NAMESPACE = uuid.NAMESPACE_URL
-
-
-def utc_now() -> datetime:
-    """Current UTC time; pass it as ``generation_time`` for a wall-clock stamp."""
-    return datetime.now(timezone.utc)
-
-
-def format_generation_time(moment: datetime | None) -> str:
-    """Render a timezone-aware time as an FMI ``dateTime``.
-
-    ``None`` means :data:`DEFAULT_GENERATION_TIME`, never the wall clock, so a
-    default build is reproducible. A naive time is rejected rather than guessed
-    at, because the artifact would then depend on the host's locality.
-    """
-    if moment is None:
-        moment = DEFAULT_GENERATION_TIME
-    if moment.tzinfo is None or moment.utcoffset() is None:
-        raise ValueError(
-            "generation_time must be timezone-aware, e.g. "
-            "datetime(2026, 1, 1, tzinfo=timezone.utc)"
-        )
-    return moment.astimezone(timezone.utc).strftime(GENERATION_TIME_FORMAT)
-
-
-def _guid(key: str) -> str:
-    """Format one uuid5 namespace key as an FMI ``guid``."""
-    return "{" + str(uuid.uuid5(GUID_NAMESPACE, key)) + "}"
-
-
-def component_guid(
-    composition: str, component: str, *, direct: bool = False
-) -> str:
-    """Stable FMI ``guid`` for one component of one export unit.
-
-    The namespace string is frozen verbatim from pyssp_sysml2 v0.3.0
-    (``artifacts/fmi.py:183-185``): the ``pyssp_sysml2/`` prefix stays even
-    though this package is named differently, so migrating a build from one
-    generator to the other does not change a single guid. A direct FMU model
-    has no container level; ``direct=True`` drops the composition from the key,
-    exactly as :class:`ExportIdentity` derives the modelDescription guid.
-    """
-    return _guid(ExportIdentity(composition, direct).guid_key(component))
 
 
 def _control_float(system: PartDefinition, name: str) -> float | None:
@@ -158,7 +106,7 @@ def model_description_document(
         root=Fmi2ElementInfo(tag="fmiModelDescription"),
         fmi_version=FMI_VERSION,
         model_name=identity.model_name(component.name),
-        guid=_guid(identity.guid_key(component.name)),
+        guid=guid(identity.guid_key(component.name)),
         description=component.doc or None,
         generation_tool=GENERATION_TOOL,
         generation_date_and_time=format_generation_time(generation_time),

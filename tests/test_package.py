@@ -28,7 +28,7 @@ from pyssp_standard.standard.fmi2.model.model_description import (
     Fmi2Unknown,
 )
 
-from pyfmi_sysml2.package import package_fmu, stage_fmu
+from pyfmi_sysml2.fmu.archive import package_fmu, stage_fmu
 
 pytestmark = pytest.mark.component
 

@@ -11,11 +11,11 @@ What each module does, and the library behaviours it relies on.
 
 <!-- pb:index:start -->
 <!-- GENERATED FILE — do not edit. Regenerate with pb-registers. -->
-- **INFO-005** [modelDescription generation](model-description.md) — model_description.py assembles a pyssp_standard FMI 2 document from the reduction, stamps the clock, serializes, validates, then writes one file per component.
+- **INFO-005** [modelDescription generation](model-description.md) — model_description/document.py assembles a pyssp_standard FMI 2 document from the reduction, stamps the clock, serializes, validates, then writes one file per component.
 - **INFO-006** [C header generation](c-headers.md) — One plain-C common header per architecture plus one header per component with a VR enum, VrCount, a C++ Instance, and initialize_vr_map.
 - **INFO-007** [Modelica generation](modelica.md) — generate_modelica writes a configurable root package with Interfaces and GeneratedInterfaces, one connector per distinct port definition.
 - **INFO-008** [FMU packaging](packaging.md) — stage_fmu lays out the FMU tree and validates identifier and platform; package_fmu writes the epoch-stamped sorted zip through package_archive.
-- **INFO-009** [CLI](cli.md) — The pyfmi entry point has four subcommands, prints one written path per line, exits 1 on handled model or input errors, and 2 on argument errors.
+- **INFO-009** [CLI](cli.md) — The pyfmi entry point collects one COMMANDS registry per artifact family, has five subcommands, prints one written path per line, exits 1 on handled model or input errors, and 2 on argument errors.
 - **INFO-010** [pyssp_standard API facts](pyssp-standard-api.md) — The codec returns str, interface type and capabilities are both required, Boolean starts are text, ModelStructure indexes are 1-based, and package_archive normalizes modes and epoch.
-- **INFO-015** [C++ runtime generation and model hooks](c-runtime-generation-and-model-hooks.md) — c_runtime.py writes a C++17 runtime plus hooks, copies the bundled FMI headers, and creates the model file once; --omit removes chosen function bodies.
+- **INFO-015** [C++ runtime generation and model hooks](c-runtime-generation-and-model-hooks.md) — c/runtime.py writes a C++17 runtime plus hooks, copies the bundled FMI headers, and creates the model file once; --omit removes chosen function bodies.
 <!-- pb:index:end -->

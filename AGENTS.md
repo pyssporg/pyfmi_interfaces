@@ -39,6 +39,9 @@ public surface.
   half of that contract.
 - FMI XML is owned by `pyssp_standard.standard.fmi2`; this package maps the
   reduction onto it.
+- The code is one `core/` package plus one subpackage per artifact family
+  (`c/`, `model_description/`, `modelica/`, `fmu/`). A family imports `core/`
+  only and never another family; only the facade and `cli.py` import families.
 - Current state, contracts, and design rationale live in `docs/breakdown/`; the
   code is the source of truth when the two disagree.
 
@@ -57,8 +60,9 @@ public surface.
 - **The built artifact is the unit under test.** Assertions run against the
   generated file or the packed `.fmu`, not against an intermediate string that
   the writer might not use.
-- **One variable set.** Every generator reads `pyfmi_sysml2.interface`; none
-  re-derives variables, causalities, or value references.
+- **One variable set.** Every generator reads the reduction and the spelling
+  tables in `pyfmi_sysml2.core`; none re-derives variables, causalities, or
+  value references, and none keeps a private type table.
 - **Never build generated code.** The package writes C++ sources; it does not
   invoke a compiler, emit a build system, or package an unbuilt binary. Build
   commands live only in documentation examples and the test harness.
@@ -68,8 +72,8 @@ public surface.
 
 - Keep changes direct and explicit. Minimize duplication, but do not hide the
   document assembly behind abstractions.
-- Prefer small modules with one artifact each; a generator returns the paths it
-  wrote.
+- Prefer one subpackage per artifact family and one module per artifact; a
+  generator returns the paths it wrote.
 - Treat this as experimental software: interfaces need not be stable, and
   clarity outranks compatibility shims.
 - Avoid thin wrappers unless they buy something substantial. A wrapper that only

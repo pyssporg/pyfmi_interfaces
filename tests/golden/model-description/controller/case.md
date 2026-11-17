@@ -25,7 +25,7 @@ to `throttle.demand`, `throttle.enabled`, and `status.code`; and
 `InitialUnknowns`, exactly as v0.3.0 did. The `guid` is pinned in the test
 independent of the generator.
 
-- **Conversion:** SysML v2 text → `pyfmi_sysml2.interface` reduction → FMI 2.0
+- **Conversion:** SysML v2 text → `pyfmi_sysml2.core.reduction` reduction → FMI 2.0
   document dataclasses → `modelDescription.xml`.
 - **Requirement / fault:** list expansion, FMI start text, value-reference
   order, and the output indices must not drift; a `[1]`-suffixed list, a

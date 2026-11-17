@@ -21,7 +21,7 @@ FMI 2.0 has no bidirectional scalar variable, so `shared` appears as an input
 and no variable is silently dropped. A component with no parameter interface
 emits no `parameter`/`fixed` variables at all.
 
-- **Conversion:** SysML v2 text → `pyfmi_sysml2.interface` reduction → FMI 2.0
+- **Conversion:** SysML v2 text → `pyfmi_sysml2.core.reduction` reduction → FMI 2.0
   document dataclasses → `modelDescription.xml`.
 - **Requirement / fault:** every port field must appear exactly once, in
   declaration order, with the direction degraded to an input where FMI cannot

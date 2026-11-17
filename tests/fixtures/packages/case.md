@@ -28,7 +28,7 @@ name is bare: the modelDescription lands in `Leaf/` and the headers are
 `Packages_InterfaceCommon.h` and `Packages_Leaf.h`
 **Independent oracle**: `pycps_sysml2.load` parses both roots and the FMI 2
 validator checks the generated document; the expected names come from the
-naming rule in `pyfmi_sysml2.interface`, not from a stored file
+naming rule in `pyfmi_sysml2.core.reduction`, not from a stored file
 **Comparison**: `tests/test_package_roots.py` asserts the selected root, the
 exported component, the artifact paths, and that no `::` appears in any name or
 path; this subject has no golden, because its point is key selection rather than

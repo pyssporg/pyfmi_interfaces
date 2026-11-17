@@ -21,7 +21,7 @@ input and the output keep their value references in declaration order
 unknown. The `guid` and `modelName="Root.Scale"` pin the identity contract
 shared with pyssp_sysml2 v0.3.0.
 
-- **Conversion:** SysML v2 text → `pyfmi_sysml2.interface` reduction → FMI 2.0
+- **Conversion:** SysML v2 text → `pyfmi_sysml2.core.reduction` reduction → FMI 2.0
   document dataclasses → `modelDescription.xml`.
 - **Requirement / fault:** a rebuild with the same architecture and generation
   time must reproduce the same bytes, and the file must pass XSD and semantic

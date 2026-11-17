@@ -21,7 +21,8 @@ first.
 - **Reproducibility is a feature.** The same architecture and the same injected
   `generation_time` produce byte-identical files, including the archive.
 - **The reduction is the contract.** Every generator reads the variable set
-  through one module, so the artifacts cannot disagree about it.
+  and the primitive spelling through `pyfmi_sysml2.core`, never through a
+  private copy, so the artifacts cannot disagree about either.
 - **Regeneration is the update path.** Generated files are replaced whole,
   never patched; an interface change is absorbed by re-running the generators,
   never by reconciling artifacts by hand.

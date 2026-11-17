@@ -22,14 +22,13 @@ direction out of the signal declaration.
 
 from __future__ import annotations
 
-import re
 from dataclasses import dataclass
+from os import PathLike
 
-from pycps_sysml2 import Architecture, Attribute, PartDefinition
+from pycps_sysml2 import Architecture, Attribute, PartDefinition, load
 from pycps_sysml2.core import (
     CONTROL,
     FLAT_CONNECTOR_ATTR,
-    format_value,
     map_fmi_type,
 )
 from pycps_sysml2.metadata.helpers import short_name
@@ -43,62 +42,15 @@ from pycps_sysml2.parameters import (
     validate_parameter_dialect,
 )
 
-#: FMI primitive name to C type used by the generated headers.
-C_TYPES = {
-    "Real": "double",
-    "Integer": "int",
-    "Boolean": "bool",
-    "String": "const char*",
-}
-
-#: FMI primitive name to the C++ member type used inside ``*_Instance``.
-CPP_TYPES = {
-    "Real": "double",
-    "Integer": "int",
-    "Boolean": "bool",
-    "String": "std::string",
-}
-
-#: FMI primitive name to the generated ``*_DataType`` enumerator suffix.
-DATA_TYPE_TAGS = {
-    "Real": "REAL",
-    "Integer": "INTEGER",
-    "Boolean": "BOOLEAN",
-    "String": "STRING",
-}
-
-#: FMI 2.0 allows ``continuous`` variability only for Real variables.
-DISCRETE_TYPES = ("Integer", "Boolean", "String")
-
-#: FMI 2.0 requires a start value on inputs; the dialect authors none, so the
-#: neutral zero value of each primitive stands in.
-INPUT_START = {"Real": 0.0, "Integer": 0, "Boolean": False, "String": ""}
-
-#: FMI primitive name to the Modelica type used in connectors.
-MODELICA_TYPES = {
-    "Real": "Real",
-    "Integer": "Integer",
-    "Boolean": "Boolean",
-    "String": "String",
-}
-
-_INDEXED = re.compile(r"^(?P<base>.+)\[(?P<index>\d+)\]$")
+from pyfmi_sysml2.core.model import Component, Field, PortGroup, Variable
+from pyfmi_sysml2.core.spelling import DISCRETE_TYPES, INPUT_START
 
 
-def c_type(type_name: str, *, cpp: bool = False) -> str:
-    """C or C++ storage type for an FMI primitive."""
-    table = CPP_TYPES if cpp else C_TYPES
-    return table.get(type_name, table["Real"])
-
-
-def modelica_type(type_name: str) -> str:
-    """Modelica type for an FMI primitive (unknown types keep their name)."""
-    return MODELICA_TYPES.get(type_name, type_name)
-
-
-def sanitize_identifier(text: str) -> str:
-    """Upper-case a dotted or bracketed name into a C identifier fragment."""
-    return re.sub(r"[^0-9A-Za-z]", "_", text).upper()
+def architecture(source: Architecture | str | PathLike[str]) -> Architecture:
+    """An already loaded architecture, or the one at ``source``."""
+    if isinstance(source, Architecture):
+        return source
+    return load(source)
 
 
 def direction_causality(direction: str | None) -> str:
@@ -108,97 +60,6 @@ def direction_causality(direction: str | None) -> str:
     an undirected port are exposed as inputs.
     """
     return "output" if direction == "out" else "input"
-
-
-@dataclass(frozen=True)
-class Field:
-    """One declared member: a scalar, or a fixed-length array.
-
-    ``base_index`` shifts the emitted ``[i]`` suffixes; the default 0 keeps the
-    FMI 0-based convention, 1 targets OMC-built Modelica FMUs.
-    """
-
-    name: str
-    type_name: str
-    array: int | None = None
-    base_index: int = 0
-
-    def members(self) -> list[tuple[str, str]]:
-        """``(fmi_suffix, member_expression)`` for every element."""
-        if self.array is None:
-            return [("", self.name)]
-        start = self.base_index
-        return [
-            (f"[{i}]", f"{self.name}[{i}]")
-            for i in range(start, start + self.array)
-        ]
-
-
-@dataclass(frozen=True)
-class Variable:
-    """One FMI ScalarVariable, with its C member expression."""
-
-    name: str
-    type_name: str
-    causality: str
-    variability: str | None
-    value_reference: int
-    index: int
-    description: str | None
-    start: object | None
-    member: str
-
-    @property
-    def start_text(self) -> str | None:
-        """XML text for ``start``, or ``None`` when no default was authored."""
-        if self.start is None:
-            return None
-        return format_value(self.type_name, self.start)
-
-    @property
-    def writable(self) -> bool:
-        """Whether the C mapping may write through this value reference."""
-        return self.causality != "output"
-
-
-@dataclass(frozen=True)
-class PortGroup:
-    """A port usage: its payload fields and their FMI variables."""
-
-    name: str
-    definition: str
-    direction: str | None
-    causality: str
-    fields: tuple[Field, ...]
-    doc: str | None
-
-    @property
-    def modelica_qualifier(self) -> str:
-        """Modelica declaration prefix for the connector field."""
-        if self.direction == "in":
-            return "input "
-        if self.direction == "out":
-            return "output "
-        return ""
-
-
-@dataclass(frozen=True)
-class Component:
-    """A leaf part definition and its complete FMI interface."""
-
-    name: str
-    doc: str | None
-    parameters: tuple[Field, ...]
-    ports: tuple[PortGroup, ...]
-    variables: tuple[Variable, ...]
-
-    @property
-    def outputs(self) -> tuple[Variable, ...]:
-        return tuple(v for v in self.variables if v.causality == "output")
-
-    @property
-    def vr_count(self) -> int:
-        return len(self.variables)
 
 
 def _fixed_count(multiplicity: str | None, value: object) -> int | None:

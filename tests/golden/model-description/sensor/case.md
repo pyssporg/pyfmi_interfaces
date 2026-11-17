@@ -22,7 +22,7 @@ declaration order, and the Boolean field carries its `Boolean` type with no
 invented start value. `guid` and `modelName="SensorComposition.Tank"` extend
 the identity contract to a second composition name.
 
-- **Conversion:** SysML v2 text → `pyfmi_sysml2.interface` reduction → FMI 2.0
+- **Conversion:** SysML v2 text → `pyfmi_sysml2.core.reduction` reduction → FMI 2.0
   document dataclasses → `modelDescription.xml`.
 - **Requirement / fault:** a parameter default must reach the artifact as the
   interface declares it, and one output port must expand to one scalar variable

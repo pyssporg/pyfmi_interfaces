@@ -28,9 +28,9 @@ import pycps_sysml2
 from pyssp_standard.standard.fmi2.codec import Fmi2ModelDescriptionXmlCodec
 
 from conftest import GENERATION_TIME, fixture_path
-from pyfmi_sysml2.c_interface import generate_c_headers
-from pyfmi_sysml2.model_description import generate_model_description
-from pyfmi_sysml2.package import package_fmu
+from pyfmi_sysml2.c.headers import generate_c_headers
+from pyfmi_sysml2.model_description.document import generate_model_description
+from pyfmi_sysml2.fmu.archive import package_fmu
 
 pytestmark = pytest.mark.contract
 

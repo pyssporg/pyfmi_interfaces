@@ -17,26 +17,26 @@ from pycps_sysml2 import load
 
 from conftest import GOLDEN_ROOT, fixture_path, update_goldens
 from golden_utils import assert_golden_text
-from pyfmi_sysml2.c_interface import (
+from pyfmi_sysml2.c.headers import (
     common_header_name,
     component_header_name,
     generate_c_headers,
     header_stem,
 )
-from pyfmi_sysml2.c_runtime import (
+from pyfmi_sysml2.c.runtime import (
     generate_c_runtime,
     hooks_header_name,
     model_source_name,
     runtime_source_name,
 )
 from pyfmi_sysml2.cli import main
-from pyfmi_sysml2.headers import fmi2_headers
-from pyfmi_sysml2.interface import (
+from pyfmi_sysml2.core import (
     components,
     export_identity,
+    fmi2_headers,
     resolve_system,
 )
-from pyfmi_sysml2.model_description import component_guid
+from pyfmi_sysml2.core.identity import component_guid
 
 pytestmark = pytest.mark.component
 

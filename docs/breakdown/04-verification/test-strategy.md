@@ -3,7 +3,7 @@ id: TEST-001
 type: test
 title: Test strategy
 summary: Six pytest markers, five levels plus a slow qualifier; each owns a distinct fault class, and component goldens are the default gate.
-date: 2026-11-05
+date: 2026-11-17
 status: current
 ---
 
@@ -13,11 +13,11 @@ The suite is organized by the question a test answers, not by module. The six
 markers are declared in `pyproject.toml`:
 
 - **static** — a rule that holds without running the package: layering,
+  family isolation, CLI registration matching the family directories,
   dependency shape, fixture records, provenance (`test_layering.py`,
   `test_fixture_policy.py`).
 - **unit** — one object's behaviour, no artifact written. The reduction is
-  asserted through `pyfmi_sysml2.interface` inside the artifact tests until a
-  dedicated `test_interface.py` exists.
+  asserted through `pyfmi_sysml2.core` inside the artifact tests.
 - **component** — a generated artifact is the unit under test: the bytes of
   modelDescription, a header, a runtime source, a Modelica package, or a packed
   `.fmu`, compared against its golden; the runtime also compiles, links, and

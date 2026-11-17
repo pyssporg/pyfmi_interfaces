@@ -16,20 +16,21 @@ from collections.abc import Sequence
 from os import PathLike
 from pathlib import Path
 
-from pycps_sysml2 import Architecture, load
+from pycps_sysml2 import Architecture
 
-from pyfmi_sysml2.interface import (
+from pyfmi_sysml2.core import (
     DATA_TYPE_TAGS,
     Component,
     Field,
     Variable,
+    architecture,
     c_type,
     components,
     export_identity,
     resolve_system,
     sanitize_identifier,
 )
-from pyfmi_sysml2.model_description import component_guid
+from pyfmi_sysml2.core.identity import component_guid
 
 #: Default for a member whose declaration carries no authored start value.
 IMPLICIT_DEFAULT = "{}"
@@ -286,13 +287,6 @@ def component_header(
     return "\n".join(lines)
 
 
-def _architecture(source: Architecture | str | PathLike[str]) -> Architecture:
-    """An already loaded architecture, or the one at ``source``."""
-    if isinstance(source, Architecture):
-        return source
-    return load(source)
-
-
 def generate_c_headers(
     source: Architecture | str | PathLike[str],
     output_dir: str | PathLike[str],
@@ -312,13 +306,13 @@ def generate_c_headers(
     ``base_index`` shifts the ``[i]`` suffixes of array members in the
     generated C (default 0; 1 targets OMC-built Modelica FMUs).
     """
-    architecture = _architecture(source)
-    package = prefix or architecture.package_name
-    system = resolve_system(architecture, composition)
+    parsed = architecture(source)
+    package = prefix or parsed.package_name
+    system = resolve_system(parsed, composition)
     exported = components(
-        architecture, composition=composition, base_index=base_index
+        parsed, composition=composition, base_index=base_index
     )
-    direct = export_identity(architecture, system).direct
+    direct = export_identity(parsed, system).direct
 
     directory = Path(output_dir)
     directory.mkdir(parents=True, exist_ok=True)

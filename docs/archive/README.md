@@ -25,3 +25,5 @@ Records live in the cold-storage archive; extract one with `pb archive read <ID>
 
 - **AD-001** — The guid namespace string stays literally pyssp_sysml2 · accepted · 2026-11-05 · `AD-001`
   The FMI guid is uuid5(NAMESPACE_URL, "pyssp_sysml2/<composition>/<component>") even though the package is named pyfmi_sysml2.
+- **AD-005** — Split the package into artifact families under one core · accepted · 2026-11-17 · `AD-005`
+  Generators move into c, model_description, modelica, and fmu subpackages that depend only on core, which keeps one reduction and one spelling table; the CLI is a thin dispatcher over family registries.

@@ -10,7 +10,7 @@ import pytest
 
 from conftest import GOLDEN_ROOT, fixture_path
 from golden_utils import assert_golden_text
-from pyfmi_sysml2.modelica import generate_modelica
+from pyfmi_sysml2.modelica.package import generate_modelica
 
 pytestmark = pytest.mark.component
 

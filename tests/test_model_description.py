@@ -19,10 +19,9 @@ from pyssp_standard.standard.fmi2.validation import Fmi2ModelDescriptionValidato
 
 from conftest import GENERATION_TIME, GOLDEN_ROOT, fixture_path
 from golden_utils import assert_golden_text
-from pyfmi_sysml2.interface import components
-from pyfmi_sysml2.model_description import (
-    component_guid,
-    format_generation_time,
+from pyfmi_sysml2.core import components
+from pyfmi_sysml2.core.identity import component_guid, format_generation_time
+from pyfmi_sysml2.model_description.document import (
     generate_model_description,
     model_description_document,
     render_model_description,

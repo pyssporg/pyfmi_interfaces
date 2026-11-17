@@ -16,17 +16,17 @@ from collections.abc import Sequence
 from os import PathLike
 from pathlib import Path
 
-from pyfmi_sysml2.c_interface import (
-    _architecture,
+from pyfmi_sysml2.c.headers import (
     component_header_name,
     generate_c_headers,
     header_stem,
 )
-from pyfmi_sysml2.headers import fmi2_headers
-from pyfmi_sysml2.interface import (
+from pyfmi_sysml2.core import (
     Component,
+    architecture,
     components,
     export_identity,
+    fmi2_headers,
     resolve_system,
     sanitize_identifier,
 )
@@ -1008,20 +1008,20 @@ def generate_c_runtime(
     runtime source, the hooks header, and the model source when it was created;
     the three ``fmi2/`` copies come last, sorted by file name.
     """
-    architecture = _architecture(source)
-    package = prefix or architecture.package_name
-    system = resolve_system(architecture, composition)
+    parsed = architecture(source)
+    package = prefix or parsed.package_name
+    system = resolve_system(parsed, composition)
     exported = components(
-        architecture, composition=composition, base_index=base_index
+        parsed, composition=composition, base_index=base_index
     )
-    direct = export_identity(architecture, system).direct
+    direct = export_identity(parsed, system).direct
     omitted = _omit_names(omit)
 
     directory = Path(output_dir)
     directory.mkdir(parents=True, exist_ok=True)
 
     written = generate_c_headers(
-        architecture,
+        parsed,
         directory,
         composition=composition,
         prefix=prefix,

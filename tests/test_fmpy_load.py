@@ -18,9 +18,9 @@ from pathlib import Path
 import pytest
 
 from conftest import GENERATION_TIME, fixture_path
-from pyfmi_sysml2.c_runtime import generate_c_runtime
-from pyfmi_sysml2.model_description import generate_model_description
-from pyfmi_sysml2.package import package_fmu
+from pyfmi_sysml2.c.runtime import generate_c_runtime
+from pyfmi_sysml2.model_description.document import generate_model_description
+from pyfmi_sysml2.fmu.archive import package_fmu
 
 pytestmark = pytest.mark.system
 

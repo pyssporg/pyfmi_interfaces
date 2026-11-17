@@ -2,15 +2,15 @@
 id: INFO-005
 type: info
 title: modelDescription generation
-summary: model_description.py assembles a pyssp_standard FMI 2 document from the reduction, stamps the clock, serializes, validates, then writes one file per component.
-date: 2026-11-05
+summary: model_description/document.py assembles a pyssp_standard FMI 2 document from the reduction, stamps the clock, serializes, validates, then writes one file per component.
+date: 2026-11-17
 status: current
 ---
 
 # modelDescription generation
 
 `model_description_document()` builds an `Fmi2ModelDescriptionDocument`; nothing
-in this module writes XML by hand.
+in `model_description/document.py` writes XML by hand.
 
 Document fields:
 

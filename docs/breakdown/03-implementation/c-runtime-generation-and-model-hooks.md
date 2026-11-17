@@ -2,14 +2,15 @@
 id: INFO-015
 type: info
 title: C++ runtime generation and model hooks
-summary: c_runtime.py writes a C++17 runtime plus hooks, copies the bundled FMI headers, and creates the model file once; --omit removes chosen function bodies.
+summary: c/runtime.py writes a C++17 runtime plus hooks, copies the bundled FMI headers, and creates the model file once; --omit removes chosen function bodies.
 date: 2026-11-17
 status: current
 ---
 
 # C++ runtime generation and model hooks
 
-`c_runtime.py` writes the C++17 runtime that the interface headers describe.
+`c/runtime.py` writes the C++17 runtime that the C headers in `c/headers.py`
+describe.
 
 - **Inputs:** the same reduction as the other generators; parameters and ports
   come from the one variable set (`CP-002`).
