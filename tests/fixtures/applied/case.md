@@ -19,7 +19,7 @@ and experiment shapes the dialect's typed containers exist for, with neutral
 names only
 **Expected**: package `Applied`, exported component `Scale`, four scalar
 variables in value-reference order `0..3` — parameters `gains[0]` (`1.0`) and
-`gains[1]` (`2.5`), then input `u.value` and output `y.value`;
+`gains[1]` (`2.5`), then input `u` and output `y`;
 `DefaultExperiment startTime="0.0" stopTime="10.0" stepSize="0.1"`; the
 `tuned` and `defaults` attributes are authoring data and are not variables
 **Independent oracle**: `pycps_sysml2.load` parses the file, and the FMI2 XSD

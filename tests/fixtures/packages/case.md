@@ -25,7 +25,7 @@ modelDescription and C headers are the unit under test
 **Expected**: stored part keys `Leaf`, `PackagesComposition`, `Support::Leaf`,
 `Support::Unit`; `resolve_system` returns `PackagesComposition`; one exported
 component, `Leaf` — the included one, with parameter `bias` (default `0.5`) and
-variables `bias`, `u.value`, `y.value`; `modelName` is
+variables `bias`, `u`, `y`; `modelName` is
 `PackagesComposition.Leaf`, `modelIdentifier` is `Leaf`, and every path and file
 name is bare: the modelDescription lands in `Leaf/` and the headers are
 `Packages_InterfaceCommon.h` and `Packages_Leaf.h`

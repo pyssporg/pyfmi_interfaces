@@ -23,9 +23,12 @@ and fields in declaration order, one VR per scalar restarting at 0 per
 component; `direction_causality()` maps `out` to output and everything else to
 input; `_fixed_count()` refuses a multiplicity FMI cannot express as scalars; a
 port attribute classified as a typed container (metadata, parameter set,
-experiment) is skipped rather than emitted. C, C++, `*_DataType`, and
-Modelica tables live in `core/spelling.py`, so no two artifacts spell a
-primitive differently.
+experiment) is skipped rather than emitted. `_is_scalar_port()` mirrors the
+SSP scalar-port rule, so a port whose only member is a non-array `value`
+exports the port name alone (`y`); its `Variable.member` stays `y.value`,
+which is why the C value-reference enum is unchanged. C, C++,
+`*_DataType`, and Modelica tables live in `core/spelling.py`, so no two
+artifacts spell a primitive differently.
 
 `resolve_system()` picks the `:> FmuModel` definition as the export unit, or
 else the part definition that has parts and is not used as a part elsewhere;

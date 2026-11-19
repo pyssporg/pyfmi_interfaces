@@ -196,7 +196,7 @@ def test_vr_enum_matches_component_variables(subject: str, tmp_path: Path) -> No
             variable.value_reference for variable in item.variables
         ]
         assert [label for label, _ in entries] == [
-            f"{stem}_VR_{sanitize_identifier(variable.name)}"
+            f"{stem}_VR_{sanitize_identifier(variable.c_name)}"
             for variable in item.variables
         ]
         assert len({label for label, _ in entries}) == item.vr_count
@@ -228,7 +228,7 @@ def test_writability_follows_causality(subject: str, tmp_path: Path) -> None:
         )
         for variable in item.variables:
             member, tag, writable = assignments[
-                f"{stem}_VR_{sanitize_identifier(variable.name)}"
+                f"{stem}_VR_{sanitize_identifier(variable.c_name)}"
             ]
             assert member == member_expression(variable.member)
             assert tag == (

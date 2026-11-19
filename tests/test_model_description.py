@@ -567,8 +567,8 @@ def test_document_round_trips_through_the_codec() -> None:
     ] == [
         ("gains[0]", 0, "Real", "parameter", "fixed"),
         ("gains[1]", 1, "Real", "parameter", "fixed"),
-        ("u.value", 2, "Real", "input", None),
-        ("y.value", 3, "Real", "output", None),
+        ("u", 2, "Real", "input", None),
+        ("y", 3, "Real", "output", None),
     ]
     assert [variable.start for variable in parsed.parameters] == [1.0, 2.5]
     assert [

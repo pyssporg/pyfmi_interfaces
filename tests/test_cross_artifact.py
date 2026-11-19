@@ -81,6 +81,17 @@ def _sanitize(text: str) -> str:
     return re.sub(r"[^0-9A-Za-z]", "_", text).upper()
 
 
+def _c_name(variable) -> str:
+    """The C member path the header names a value-reference enumerator after.
+
+    A flattened scalar port has a bare FMI name but still stores into
+    ``<port>.value``; every other variable's FMI name already is its C path.
+    """
+    if variable.causality == "parameter" or "." in variable.name:
+        return variable.name
+    return f"{variable.name}.value"
+
+
 def _parse_header(
     text: str,
 ) -> tuple[str, str, list[tuple[str, int]], list[tuple[str, str, str, bool]]]:
@@ -186,7 +197,10 @@ def check_artifacts(
             f"header {sorted(values)}"
         )
 
-    expected = [f"{_sanitize(stem)}_VR_{_sanitize(name)}" for name, _ in elements]
+    expected = [
+        f"{_sanitize(stem)}_VR_{_sanitize(_c_name(variable))}"
+        for variable in document.variables
+    ]
     if values != references or labels != expected:
         raise ArtifactMismatch(
             f"VR order mismatch: header {labels} vs modelDescription {expected}"

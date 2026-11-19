@@ -22,7 +22,7 @@ is a fault
 shape the `FmuModel` role marker exists for, with neutral names only
 **Expected**: package `Generator`, one exported component `Generator`, three
 scalar variables in value-reference order `0..2` — parameters `parameters.gain`
-(`2.0`) and `parameters.offset` (`0.5`), then output `y.value`; modelDescription
+(`2.0`) and `parameters.offset` (`0.5`), then output `y`; modelDescription
 `modelName` and `modelIdentifier` both `Generator`; guid
 `uuid5(NAMESPACE_URL, "pyssp_sysml2/Generator")`; C header files
 `Generator_InterfaceCommon.h` and `Generator.h`

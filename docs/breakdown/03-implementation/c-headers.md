@@ -26,6 +26,8 @@ Component header: `<PREFIX>_<COMPONENT>_GUID` matching the modelDescription
 guid, `<PREFIX>_<COMPONENT>_VR_<VARIABLE> = <vr>` per variable, `VrCount`, and
 inside `#ifdef __cplusplus` a `<prefix>_<Component>_Instance` with `vr_map[]`,
 parameter defaults, one payload per port, and `<stem>_initialize_vr_map()`.
+The VR label follows `Variable.c_name`, the C member path: a flattened scalar
+port keeps `VR_Y_VALUE` even though its FMI name is `y`.
 
 Deliberate details:
 

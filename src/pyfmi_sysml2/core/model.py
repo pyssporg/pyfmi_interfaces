@@ -67,6 +67,20 @@ class Variable:
         """Whether the C mapping may write through this value reference."""
         return self.causality != "output"
 
+    @property
+    def c_name(self) -> str:
+        """Name stem of the generated value-reference enumerator.
+
+        A port variable follows its C member path: a flattened scalar port
+        keeps ``<port>.value`` even though its FMI name is the bare port, and
+        an array port keeps its ``base_index`` suffix because its FMI name
+        already carries it. A parameter uses its FMI name, because the C array
+        stays zero-based while ``base_index`` may lift the FMI suffix.
+        """
+        if self.causality == "parameter" or "." in self.name:
+            return self.name
+        return self.member
+
 
 @dataclass(frozen=True)
 class PortGroup:

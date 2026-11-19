@@ -18,7 +18,7 @@ legal input at all if this case fails
 **Input**: authored here, no external source
 **Expected**: package `Minimal`, part `Scale`, composition `Root`; three scalar
 variables in value-reference order `0..2` — parameter `parameters.gain` (default
-`2.0`), input `u.value`, output `y.value`; one payload definition (`Signal`) used
+`2.0`), input `u`, output `y`; one payload definition (`Signal`) used
 by both directions, so the Modelica connector must stay undirected
 **Independent oracle**: `pycps_sysml2.load` parses the file, and every golden
 derived from it is compared byte-for-byte by `tests/golden_utils.py`

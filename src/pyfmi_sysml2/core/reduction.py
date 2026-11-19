@@ -11,7 +11,9 @@ disagree about *which* variables exist. The reduction follows the
   ``<name>[<index>]``; the index base is configurable through ``base_index``
   (0 by default, 1 targets OMC-built Modelica FMUs, which declare arrays
   one-based);
-- port fields are named ``<port>.<field>`` and expanded the same way;
+- a port whose only member is a non-array ``value`` is named after the port
+  alone (``y``), matching the SSP connector; every other port field is named
+  ``<port>.<field>`` and expanded the same way;
 - value references restart at 0 for every component, parameters first, then
   ports in declaration order and fields in declaration order.
 
@@ -25,7 +27,13 @@ from __future__ import annotations
 from dataclasses import dataclass
 from os import PathLike
 
-from pycps_sysml2 import Architecture, Attribute, PartDefinition, load
+from pycps_sysml2 import (
+    Architecture,
+    Attribute,
+    PartDefinition,
+    PortDefinition,
+    load,
+)
 from pycps_sysml2.core import map_fmi_type
 from pycps_sysml2.metadata.helpers import short_name
 from pycps_sysml2.metadata.roles import FMU_MODEL_MARKER, is_fmu_model
@@ -104,6 +112,22 @@ def _is_signal_port(architecture: Architecture, part_def: PartDefinition) -> boo
     return not is_parameter_interface(part_def)
 
 
+def _is_scalar_port(definition: PortDefinition) -> bool:
+    """True for a port that names one FMI variable rather than a group.
+
+    Same predicate as ``pyssp_sysml2``: the loader normalizes a connector
+    without a dot to a port with one member named ``value``, and the SSP
+    exporter names that connector after the port. An array-valued ``value`` is
+    deliberately not scalar: FMI expands it into ``<port>.value[<index>]``
+    scalars, which one bare connector cannot carry (the SSP exporter refuses
+    that shape instead of flattening it).
+    """
+    if tuple(definition.attributes) != ("value",):
+        return False
+    attribute = definition.attributes["value"]
+    return _fixed_count(attribute.multiplicity, attribute.value) is None
+
+
 def component_interface(
     architecture: Architecture,
     part_def: PartDefinition,
@@ -156,6 +180,7 @@ def component_interface(
             )
         if not _is_signal_port(architecture, definition):
             continue
+        scalar = _is_scalar_port(definition)
         member_directions: list[str | None] = []
         fields: list[Field] = []
         for attribute in definition.attributes.values():
@@ -174,7 +199,11 @@ def component_interface(
                 counter += 1
                 variables.append(
                     Variable(
-                        name=f"{name}.{attribute.name}{suffix}",
+                        name=(
+                            name
+                            if scalar
+                            else f"{name}.{attribute.name}{suffix}"
+                        ),
                         type_name=type_name,
                         causality=causality,
                         variability=(

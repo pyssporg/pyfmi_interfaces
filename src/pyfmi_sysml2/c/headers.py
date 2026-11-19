@@ -246,7 +246,7 @@ def component_header(
         f"typedef enum {stem}_ValueReference {{",
     ]
     for variable in component.variables:
-        entry = f"{upper_stem}_VR_{sanitize_identifier(variable.name)}"
+        entry = f"{upper_stem}_VR_{sanitize_identifier(variable.c_name)}"
         lines.append(f"  {entry} = {variable.value_reference},")
     lines.extend(
         [
@@ -282,7 +282,7 @@ def component_header(
     lines.append(f"    instance->vr_map[i] = {{nullptr, {upper}_DATA_NONE, false}};")
     lines.append("  }")
     for variable in component.variables:
-        entry = f"{upper_stem}_VR_{sanitize_identifier(variable.name)}"
+        entry = f"{upper_stem}_VR_{sanitize_identifier(variable.c_name)}"
         writable = "true" if variable.writable else "false"
         lines.append(
             f"  instance->vr_map[{entry}] = "
