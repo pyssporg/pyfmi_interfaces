@@ -53,8 +53,11 @@ def default_experiment(
     """The composition's ``DefaultExperiment``, or ``None`` when unset.
 
     The experiment is the typed container the dialect recognizes, never an
-    attribute name. ``stepSize`` and ``tolerance`` are emitted only when the
-    container declares them: FMI 2.0 allows both attributes to be absent.
+    attribute name. A plain ``DefaultExperiment`` supplies ``startTime`` and
+    ``stopTime``; the packaged ``Experiment`` specialization adds ``stepSize``
+    and ``tolerance``. FMI 2.0.5 defines all four as optional doubles, so every
+    field the container's effective members provide is emitted and an absent
+    one is omitted.
     """
     experiment = read_experiment(architecture, system, required=False)
     if experiment is None:

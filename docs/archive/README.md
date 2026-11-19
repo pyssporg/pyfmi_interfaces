@@ -33,3 +33,5 @@ Records live in the cold-storage archive; extract one with `pb archive read <ID>
   The component reduction resolves inherited parameters, ports, and parts through pycps_sysml2 before any generator runs.
 - **AD-008** — DefaultExperiment tolerance is emitted only when authored · accepted · 2026-11-19 · `AD-008`
   The modelDescription maps startTime and stopTime always, stepSize and tolerance only when the container declares them; absence stays absent and no numeric default is invented.
+- **AD-009** — Experiment projects the FMI disposition · accepted · 2026-11-19 · `AD-009`
+  DefaultExperiment supplies startTime and stopTime, Experiment adds stepSize and tolerance, and each authored field is emitted while absence stays absent.

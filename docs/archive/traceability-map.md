@@ -22,3 +22,4 @@ the leaf is the source of truth; the record is how the state got there.
 - **AD-006** — State: `docs/breakdown/03-implementation/model-description.md` (docs/breakdown/03-implementation/model-description.md) · Artifacts: `src/pyfmi_sysml2/model_description/document.py`, `src/pyfmi_sysml2/core/reduction.py`, `src/pyfmi_sysml2/__init__.py`, `tests/test_model_description.py`, `tests/test_fixture_policy.py`, `tests/fixtures/README.md`, `tests/fixtures/applied/applied.sysml`, `tests/fixtures/applied/case.md`
 - **AD-007** — State: `02-architecture/interface-reduction.md` (Interface reduction) · Artifacts: `src/pyfmi_sysml2/core/reduction.py`
 - **AD-008** — State: `03-implementation/model-description.md` (modelDescription generation) · Artifacts: `src/pyfmi_sysml2/model_description/document.py`
+- **AD-009** — State: `03-implementation/model-description.md` (modelDescription generation) · Artifacts: `src/pyfmi_sysml2/model_description/document.py`

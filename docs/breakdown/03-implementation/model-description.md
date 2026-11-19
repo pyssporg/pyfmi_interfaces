@@ -29,12 +29,15 @@ Document fields:
   discrete and inputs carry their neutral start (`CP-002`);
 - `ModelStructure` outputs and initial unknowns from `component.outputs`, using
   the 1-based `Variable.index`;
-- `DefaultExperiment` from the export unit's experiment container
-  (`read_experiment(..., required=False)`): `startTime` and `stopTime` always,
-  `stepSize` and `tolerance` only when the container declares them, because
-  FMI 2.0 allows both attributes to be absent; no container means no element.
-  An authored tolerance is rendered by the codec with `str(value)` (for example
-  `tolerance="1e-06"`).
+- `DefaultExperiment` from the export unit's typed experiment container
+  (`read_experiment(..., required=False)`): `startTime` and `stopTime` are the
+  base fields, and `stepSize` and `tolerance` are the FMI fields that the
+  packaged `Experiment` specialization adds. FMI 2.0.5 defines all four as
+  optional doubles with no default, so every field the container's effective
+  members provide is emitted and an absent one is omitted; a plain
+  `DefaultExperiment` contributes start and stop only, and no container means
+  no element. An authored tolerance is rendered by the codec with `str(value)`
+  (for example `tolerance="1e-06"`).
 
 `render_model_description()` serializes with
 `Fmi2ModelDescriptionXmlCodec` and validates the object and text with
