@@ -31,8 +31,10 @@ Document fields:
   the 1-based `Variable.index`;
 - `DefaultExperiment` from the export unit's experiment container
   (`read_experiment(..., required=False)`): `startTime` and `stopTime` always,
-  `stepSize` only when the container declares one, because FMI 2.0 allows the
-  attribute to be absent; no container means no element.
+  `stepSize` and `tolerance` only when the container declares them, because
+  FMI 2.0 allows both attributes to be absent; no container means no element.
+  An authored tolerance is rendered by the codec with `str(value)` (for example
+  `tolerance="1e-06"`).
 
 `render_model_description()` serializes with
 `Fmi2ModelDescriptionXmlCodec` and validates the object and text with

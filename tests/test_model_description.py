@@ -126,6 +126,25 @@ STEPLESS_MODEL = """package Stepless {
 """
 
 
+#: An experiment container declaring the optional ``tolerance``; the FMI
+#: attribute must carry it.
+TOLERANT_MODEL = """package Tolerant {
+  attribute def Defaults :> DefaultExperiment {
+    attribute startTime : Real = 0.0;
+    attribute stopTime : Real = 2.0;
+    attribute stepSize : Real = 0.1;
+    attribute tolerance = 1e-6;
+  }
+  port def Signal { attribute value : Real; }
+  part def Plate { in port u : Signal; }
+  part def TolerantComposition {
+    part plate : Plate;
+    attribute defaults : Defaults;
+  }
+}
+"""
+
+
 #: A document still writing the retired ``pyssp_*`` vocabulary; it must fail
 #: with the dialect's migration error, never be read as a plain attribute.
 RETIRED_MODEL = """package Retired {
@@ -474,6 +493,45 @@ def test_step_size_is_omitted_when_the_container_declares_none(
     assert experiment.stop_time == 2.0
     assert experiment.step_size is None
     assert "stepSize" not in text
+
+
+def test_tolerance_comes_from_the_experiment_container(
+    tmp_path: Path,
+) -> None:
+    """An authored ``tolerance`` is emitted and the file still validates."""
+    [path] = generate_model_description(
+        _write_model(tmp_path, TOLERANT_MODEL),
+        tmp_path / "out",
+        generation_time=GENERATION_TIME,
+    )
+
+    text = _read(path)
+    experiment = CODEC.parse(text).default_experiment
+    Fmi2ModelDescriptionValidator().validate(CODEC.parse(text), text)
+
+    assert experiment is not None
+    assert experiment.tolerance == 1e-6
+    assert experiment.step_size == 0.1
+    assert 'tolerance="1e-06"' in text
+
+
+def test_tolerance_is_omitted_when_the_container_declares_none(
+    tmp_path: Path,
+) -> None:
+    """No authored ``tolerance`` means no attribute, not a default."""
+    [path] = generate_model_description(
+        fixture_path("applied", "applied.sysml"),
+        tmp_path / "out",
+        generation_time=GENERATION_TIME,
+    )
+
+    text = _read(path)
+    experiment = CODEC.parse(text).default_experiment
+
+    assert experiment is not None
+    assert experiment.step_size == 0.1
+    assert experiment.tolerance is None
+    assert "tolerance" not in text
 
 
 def test_no_default_experiment_without_an_experiment_container(

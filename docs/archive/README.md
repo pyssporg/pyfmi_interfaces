@@ -29,3 +29,7 @@ Records live in the cold-storage archive; extract one with `pb archive read <ID>
   Generators move into c, model_description, modelica, and fmu subpackages that depend only on core, which keeps one reduction and one spelling table; the CLI is a thin dispatcher over family registries.
 - **AD-006** — Read the default experiment from a typed container, not control tags · accepted · 2026-11-19 · `AD-006`
   The dialect's 0.3.0 release removed every pyssp_* control tag, so the modelDescription reads its DefaultExperiment through read_experiment, the reduction skips typed containers by classify_attribute, and the flat-connector refusal and control filters are deleted.
+- **AD-007** — FMI reduction reads effective members · accepted · 2026-11-19 · `AD-007`
+  The component reduction resolves inherited parameters, ports, and parts through pycps_sysml2 before any generator runs.
+- **AD-008** — DefaultExperiment tolerance is emitted only when authored · accepted · 2026-11-19 · `AD-008`
+  The modelDescription maps startTime and stopTime always, stepSize and tolerance only when the container declares them; absence stays absent and no numeric default is invented.

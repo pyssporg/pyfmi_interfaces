@@ -20,8 +20,8 @@ ports.
   `<name>[<index>]`, offset by `--base-index`; a non-fixed multiplicity is
   refused.
 - **Ports** contribute one variable per payload field, named `<port>.<field>`;
-  a list field expands to `<port>.<field>[<index>]`. A port whose only member
-  is a non-array `value` is the exception: like the SSP connector, its
+  a list field expands to `<port>.<field>[<index>]`. A port whose only effective
+  member is a non-array `value` is the exception: like the SSP connector, its
   variable is named after the port alone (`y`, never `y.value`). An
   array-valued `value` stays `<port>.value[<index>]`, because
   one scalar variable per element cannot carry a bare connector name.

@@ -32,6 +32,7 @@ from pycps_sysml2 import (
     Attribute,
     PartDefinition,
     PortDefinition,
+    effective_members,
     load,
 )
 from pycps_sysml2.core import map_fmi_type
@@ -41,7 +42,6 @@ from pycps_sysml2.parameters import (
     SSP_POLICY,
     AttributeKind,
     classify_attribute,
-    component_definitions,
     is_parameter_interface,
     parameter_declarations,
     parameter_items,
@@ -105,14 +105,18 @@ def _field_dtype(attribute: Attribute) -> str:
     return map_fmi_type(attribute.primitive_type_str())
 
 
-def _is_signal_port(architecture: Architecture, part_def: PartDefinition) -> bool:
+def _is_signal_port(
+    architecture: Architecture, definition: PortDefinition | None
+) -> bool:
     """True for a port that carries FMI signal fields, not parameters."""
-    if part_def is None:
+    if definition is None:
         return False
-    return not is_parameter_interface(part_def)
+    return not is_parameter_interface(architecture, definition)
 
 
-def _is_scalar_port(definition: PortDefinition) -> bool:
+def _is_scalar_port(
+    architecture: Architecture, definition: PortDefinition
+) -> bool:
     """True for a port that names one FMI variable rather than a group.
 
     Same predicate as ``pyssp_sysml2``: the loader normalizes a connector
@@ -120,11 +124,13 @@ def _is_scalar_port(definition: PortDefinition) -> bool:
     exporter names that connector after the port. An array-valued ``value`` is
     deliberately not scalar: FMI expands it into ``<port>.value[<index>]``
     scalars, which one bare connector cannot carry (the SSP exporter refuses
-    that shape instead of flattening it).
+    that shape instead of flattening it). Inherited members count, so a derived
+    port definition that only adds fields is still not scalar.
     """
-    if tuple(definition.attributes) != ("value",):
+    members = effective_members(architecture, definition).attributes
+    if tuple(members) != ("value",):
         return False
-    attribute = definition.attributes["value"]
+    attribute = members["value"]
     return _fixed_count(attribute.multiplicity, attribute.value) is None
 
 
@@ -172,7 +178,7 @@ def component_interface(
             )
 
     ports: list[PortGroup] = []
-    for name, usage in part_def.ports.items():
+    for name, usage in effective_members(architecture, part_def).ports.items():
         definition = architecture.resolve_port(usage)
         if definition is None:
             raise ValueError(
@@ -180,10 +186,12 @@ def component_interface(
             )
         if not _is_signal_port(architecture, definition):
             continue
-        scalar = _is_scalar_port(definition)
+        scalar = _is_scalar_port(architecture, definition)
         member_directions: list[str | None] = []
         fields: list[Field] = []
-        for attribute in definition.attributes.values():
+        for attribute in effective_members(
+            architecture, definition
+        ).attributes.values():
             if (
                 classify_attribute(architecture, attribute, policy=SSP_POLICY)
                 in _CONTAINER_KINDS
@@ -310,14 +318,14 @@ def resolve_system(
 
     used: set[str] = set()
     for definition in architecture.part_definitions.values():
-        for usage in definition.parts.values():
+        for usage in effective_members(architecture, definition).parts.values():
             resolved = architecture.resolve_part(usage)
             if resolved is not None:
                 used.add(architecture.stored_key(resolved))
     roots = [
         definition
         for definition in architecture.part_definitions.values()
-        if definition.parts
+        if effective_members(architecture, definition).parts
         and architecture.stored_key(definition) not in used
     ]
     if len(roots) != 1:
@@ -327,6 +335,46 @@ def resolve_system(
             f"{len(roots)} candidates ({names or 'none'}). Pass composition=."
         )
     return roots[0]
+
+
+def _component_definitions(
+    architecture: Architecture, system: PartDefinition
+) -> list[PartDefinition]:
+    """Unique part definitions reachable from ``system``, in path order.
+
+    The walk reads the effective member view, so a derived composition exports
+    the parts it inherits, not only the ones it declares. Stored keys, not bare
+    names, keep two packages that declare the same name apart.
+    """
+    definitions: list[PartDefinition] = []
+    seen: set[str] = set()
+
+    def walk(
+        part_def: PartDefinition,
+        prefix: tuple[str, ...],
+        ancestors: frozenset[str],
+    ) -> None:
+        for usage in effective_members(architecture, part_def).parts.values():
+            path = prefix + (usage.name,)
+            child = architecture.resolve_part(usage)
+            if child is None:
+                raise ValueError(
+                    f"Unresolved part definition for {'.'.join(path)}"
+                )
+            key = architecture.stored_key(child)
+            if key not in seen:
+                seen.add(key)
+                definitions.append(child)
+            if effective_members(architecture, child).parts:
+                if key in ancestors:
+                    raise ValueError(
+                        "Recursive part hierarchy at "
+                        f"'{'.'.join(path)}' ({key})"
+                    )
+                walk(child, path, ancestors | {key})
+
+    walk(system, (), frozenset({architecture.stored_key(system)}))
+    return definitions
 
 
 def components(
@@ -351,10 +399,10 @@ def components(
         definitions = [
             definition
             for definition in sorted(
-                component_definitions(architecture, system),
+                _component_definitions(architecture, system),
                 key=lambda candidate: candidate.name,
             )
-            if not definition.parts
+            if not effective_members(architecture, definition).parts
         ]
     return [
         component_interface(architecture, definition, base_index=base_index)
