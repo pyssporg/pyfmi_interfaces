@@ -2,8 +2,8 @@
 id: TEST-003
 type: test
 title: Oracles, fixtures, and goldens
-summary: gcc and g++ syntax-check the headers, g++ compiles, links, and executes the runtime harness, fmpy validates and loads the packaged FMU, omc checkModel proves the Modelica package and buildModel the model seam, and six shared fixtures carry case records and byte-compared goldens.
-date: 2026-11-17
+summary: gcc and g++ syntax-check the headers, g++ compiles, links, and executes the runtime harness, fmpy validates and loads the packaged FMU, omc checkModel proves the Modelica package and buildModel the model seam, and seven shared fixtures carry case records and byte-compared goldens.
+date: 2026-11-19
 status: current
 ---
 
@@ -28,8 +28,10 @@ Oracles are external, independent of the writers, and skip with a stated reason:
 Fixtures in `tests/fixtures/<subject>/<subject>.sysml` are the shared inputs:
 `minimal` (scalar parameters and ports), `sensor` (String/Boolean, list
 expansion), `controller` (parameters, `inout`, arrays), `bus` (second
-composition shape, shared ports), `generator` (direct `:> FmuModel`), and
-`packages` (two-root load, included parts; `test_package_roots.py`).
+composition shape, shared ports), `applied` (a parameter set applied with
+`bind` and a typed default experiment container), `generator` (direct
+`:> FmuModel`), and `packages` (two-root load, included parts;
+`test_package_roots.py`).
 
 Each `case.md` records conversion, fault, level, input, expected, oracle, comparison, normalization, volatile fields, and update policy. Goldens live under
 `tests/golden/<artifact>/<subject>/` for `c-headers`, `c-runtime`, `model-description`, `modelica`, `package`, `cross-artifact`.

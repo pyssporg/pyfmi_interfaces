@@ -29,8 +29,10 @@ Document fields:
   discrete and inputs carry their neutral start (`CP-002`);
 - `ModelStructure` outputs and initial unknowns from `component.outputs`, using
   the 1-based `Variable.index`;
-- `DefaultExperiment` only when the composition carries the start/stop control
-  attributes.
+- `DefaultExperiment` from the export unit's experiment container
+  (`read_experiment(..., required=False)`): `startTime` and `stopTime` always,
+  `stepSize` only when the container declares one, because FMI 2.0 allows the
+  attribute to be absent; no container means no element.
 
 `render_model_description()` serializes with
 `Fmi2ModelDescriptionXmlCodec` and validates the object and text with

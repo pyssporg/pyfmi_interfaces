@@ -22,7 +22,8 @@ Rules encoded here, not repeated in the generators: parameters first, then ports
 and fields in declaration order, one VR per scalar restarting at 0 per
 component; `direction_causality()` maps `out` to output and everything else to
 input; `_fixed_count()` refuses a multiplicity FMI cannot express as scalars; a
-flat connector control is an explicit refusal. C, C++, `*_DataType`, and
+port attribute classified as a typed container (metadata, parameter set,
+experiment) is skipped rather than emitted. C, C++, `*_DataType`, and
 Modelica tables live in `core/spelling.py`, so no two artifacts spell a
 primitive differently.
 

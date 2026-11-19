@@ -2,8 +2,8 @@
 id: INFO-011
 type: info
 title: Release process
-summary: Tag the single-sourced 0.2.0 version after a green matrix, let wheels.yml publish the wheel and sdist, and smoke-test the wheel in a clean venv.
-date: 2026-11-17
+summary: Tag the single-sourced 0.3.0 version after a green matrix, let wheels.yml publish the wheel and sdist, and smoke-test the wheel in a clean venv.
+date: 2026-11-19
 status: current
 ---
 
@@ -11,7 +11,7 @@ status: current
 
 The version is single-sourced: `pyfmi_sysml2.__version__` in
 `src/pyfmi_sysml2/__init__.py`, read by `setuptools` through
-`dynamic = ["version"]`. The current version is 0.2.0.
+`dynamic = ["version"]`. The current version is 0.3.0.
 
 Steps:
 
@@ -29,3 +29,9 @@ The dependencies are direct-URL wheels pinned to sibling releases
 (`pycps-sysml2` v0.2.0 and `experimental-pyssp-standard` v0.9.3.dev0). A wheel
 is installable only when both release assets exist; a tag that points at a
 missing asset is not a release.
+
+The `pycps-sysml2` pin is behind the dialect: 0.3.0 removed the `pyssp_*`
+control vocabulary this package no longer reads, so the code needs the v0.3.0
+wheel. Re-pinning is a release chore that waits for that release asset (`IMP-002`);
+until then a wheel built from this tree is importable only against a 0.3.0
+`pycps_sysml2` in the environment.

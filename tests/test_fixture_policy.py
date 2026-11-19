@@ -19,7 +19,16 @@ from conftest import FIXTURE_ROOT, GOLDEN_ROOT
 
 pytestmark = pytest.mark.static
 
-SUBJECTS = ("bus", "controller", "generator", "minimal", "packages", "sensor")
+SUBJECTS = (
+    "applied",
+    "bus",
+    "controller",
+    "generator",
+    "minimal",
+    "packages",
+    "sensor",
+)
+
 
 CASE_HEADINGS = (
     "# Case:",

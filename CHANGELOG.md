@@ -34,6 +34,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Read the FMI `DefaultExperiment` from the composition's typed experiment
+  container (`Experiment` / `DefaultExperiment`) instead of the retired
+  `pyssp_default_start_time` / `pyssp_default_stop_time` tags; `stepSize` is
+  emitted when the container declares one. Bumps to 0.3.0 with the dialect
+  release it follows.
+- Port fields are filtered by the dialect's `classify_attribute`: an attribute
+  typed as FMU metadata, SSP metadata, a parameter set, or an experiment is
+  authoring data, not a signal field.
 - Split the package into artifact families (`c/`, `model_description/`,
   `modelica/`, `fmu/`) over the shared `core/` model, reduction, spelling, and
   identity code.
@@ -43,6 +51,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+- Drop the flat-connector refusal: flattening is export-time data, never model
+  data, so this library has nothing to refuse.
+- Remove the `pyssp_*` control-tag plumbing: the `core.CONTROL` and
+  `FLAT_CONNECTOR_ATTR` imports, the control-name filters on ports and port
+  fields, and the inline applied-set model literal (now the `applied` fixture).
 - Drop the in-package FMU archive writer; packaging is owned by
   `pyssp_standard`.
 

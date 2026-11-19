@@ -26,15 +26,13 @@ from dataclasses import dataclass
 from os import PathLike
 
 from pycps_sysml2 import Architecture, Attribute, PartDefinition, load
-from pycps_sysml2.core import (
-    CONTROL,
-    FLAT_CONNECTOR_ATTR,
-    map_fmi_type,
-)
+from pycps_sysml2.core import map_fmi_type
 from pycps_sysml2.metadata.helpers import short_name
 from pycps_sysml2.metadata.roles import FMU_MODEL_MARKER, is_fmu_model
 from pycps_sysml2.parameters import (
     SSP_POLICY,
+    AttributeKind,
+    classify_attribute,
     component_definitions,
     is_parameter_interface,
     parameter_declarations,
@@ -44,6 +42,16 @@ from pycps_sysml2.parameters import (
 
 from pyfmi_sysml2.core.model import Component, Field, PortGroup, Variable
 from pyfmi_sysml2.core.spelling import DISCRETE_TYPES, INPUT_START
+
+#: Attribute kinds that are typed containers, never FMI signal fields.
+_CONTAINER_KINDS = frozenset(
+    {
+        AttributeKind.FMU_METADATA,
+        AttributeKind.SSP_METADATA,
+        AttributeKind.PARAMETER_SET,
+        AttributeKind.EXPERIMENT,
+    }
+)
 
 
 def architecture(source: Architecture | str | PathLike[str]) -> Architecture:
@@ -141,8 +149,6 @@ def component_interface(
 
     ports: list[PortGroup] = []
     for name, usage in part_def.ports.items():
-        if CONTROL.is_control(name):
-            continue
         definition = architecture.resolve_port(usage)
         if definition is None:
             raise ValueError(
@@ -150,18 +156,13 @@ def component_interface(
             )
         if not _is_signal_port(architecture, definition):
             continue
-        flat = definition.attributes.get(FLAT_CONNECTOR_ATTR)
-        if flat is not None and bool(flat.value):
-            # Connector payloads are not flattened into the component;
-            # refuse rather than silently change the variable set.
-            raise ValueError(
-                f"{part_def.name}.{name} sets {FLAT_CONNECTOR_ATTR}; flattened "
-                "ports are not supported by pyfmi_sysml2"
-            )
         causality = direction_causality(usage.direction)
         fields: list[Field] = []
         for attribute in definition.attributes.values():
-            if CONTROL.is_control(attribute.name):
+            if (
+                classify_attribute(architecture, attribute, policy=SSP_POLICY)
+                in _CONTAINER_KINDS
+            ):
                 continue
             type_name = _field_dtype(attribute)
             array = _fixed_count(attribute.multiplicity, attribute.value)

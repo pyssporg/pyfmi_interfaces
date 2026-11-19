@@ -22,6 +22,7 @@ included root is one more directory passed to `pycps_sysml2.load`.
 
 | Subject | Purpose | Variables |
 | --- | --- | --- |
+| `applied` | a parameter set applied with `bind`, plus a typed default experiment container | 4 |
 | `minimal` | the floor: 1 parameter, 1 input, 1 output, one shared payload | 3 |
 | `sensor` | a `Boolean` in an output payload and two authored defaults | 6 |
 | `controller` | a `Real[2]` list parameter and a `String` parameter | 9 |

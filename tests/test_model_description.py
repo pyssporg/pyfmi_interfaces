@@ -109,36 +109,31 @@ TYPED_MODEL = """package Typed {
 }
 """
 
-#: The interface default must win over the parameter set applied by ``bind``;
-#: the composition also carries its default experiment as control attributes.
-APPLIED_SET_MODEL = """package Applied {
-  port def ParameterInterface;
-  attribute def ParameterSet;
-
-  port def Signal {
-    attribute value : Real;
+#: An experiment container that is a plain ``DefaultExperiment`` without
+#: ``stepSize``; the FMI attribute must then be absent.
+STEPLESS_MODEL = """package Stepless {
+  attribute def Defaults :> DefaultExperiment {
+    attribute startTime : Real = 0.0;
+    attribute stopTime : Real = 2.0;
   }
-
-  port def GainParameters :> ParameterInterface {
-    attribute gains : Real[2] = (1.0, 2.5);
+  port def Signal { attribute value : Real; }
+  part def Plate { in port u : Signal; }
+  part def SteplessComposition {
+    part plate : Plate;
+    attribute defaults : Defaults;
   }
+}
+"""
 
-  attribute def TunedSet :> ParameterSet {
-    attribute gains : Real[2] = (9.0, 9.5);
-  }
 
-  part def Scale {
-    in port parameters : GainParameters;
-    in port u : Signal;
-    out port y : Signal;
-  }
-
-  part def AppliedComposition {
+#: A document still writing the retired ``pyssp_*`` vocabulary; it must fail
+#: with the dialect's migration error, never be read as a plain attribute.
+RETIRED_MODEL = """package Retired {
+  port def Signal { attribute value : Real; }
+  part def Scale { in port u : Signal; }
+  part def RetiredComposition {
     part scale : Scale;
-    attribute tuned : TunedSet;
     attribute pyssp_default_start_time : Real = 0.0;
-    attribute pyssp_default_stop_time : Real = 10.0;
-    bind scale.parameters = tuned;
   }
 }
 """
@@ -345,7 +340,7 @@ def test_interface_default_wins_over_an_applied_parameter_set(
 ) -> None:
     """The reduction reads parameter defaults from the interface only."""
     [path] = generate_model_description(
-        _write_model(tmp_path, APPLIED_SET_MODEL),
+        fixture_path("applied", "applied.sysml"),
         tmp_path / "out",
         generation_time=GENERATION_TIME,
     )
@@ -391,11 +386,12 @@ def test_base_index_threads_through_port_array_members(tmp_path: Path) -> None:
     ]
 
 
-def test_default_experiment_comes_from_composition_control_attributes(
+def test_default_experiment_comes_from_the_experiment_container(
     tmp_path: Path,
 ) -> None:
+    """The typed container maps its three fields onto the FMI element."""
     [path] = generate_model_description(
-        _write_model(tmp_path, APPLIED_SET_MODEL),
+        fixture_path("applied", "applied.sysml"),
         tmp_path / "out",
         generation_time=GENERATION_TIME,
     )
@@ -405,12 +401,49 @@ def test_default_experiment_comes_from_composition_control_attributes(
     assert experiment is not None
     assert experiment.start_time == 0.0
     assert experiment.stop_time == 10.0
+    assert experiment.step_size == 0.1
+    assert (
+        '<DefaultExperiment startTime="0.0" stopTime="10.0" stepSize="0.1" />'
+        in _read(path)
+    )
 
 
-def test_no_default_experiment_without_control_attributes(tmp_path: Path) -> None:
+def test_step_size_is_omitted_when_the_container_declares_none(
+    tmp_path: Path,
+) -> None:
+    """A plain ``DefaultExperiment`` may omit ``stepSize``; so does the XML."""
+    [path] = generate_model_description(
+        _write_model(tmp_path, STEPLESS_MODEL),
+        tmp_path / "out",
+        generation_time=GENERATION_TIME,
+    )
+
+    text = _read(path)
+    experiment = CODEC.parse(text).default_experiment
+
+    assert experiment is not None
+    assert experiment.start_time == 0.0
+    assert experiment.stop_time == 2.0
+    assert experiment.step_size is None
+    assert "stepSize" not in text
+
+
+def test_no_default_experiment_without_an_experiment_container(
+    tmp_path: Path,
+) -> None:
     [path] = _generate("minimal", tmp_path)
 
     assert CODEC.parse(_read(path)).default_experiment is None
+
+
+def test_retired_control_tags_are_refused(tmp_path: Path) -> None:
+    """The removed ``pyssp_*`` vocabulary fails with the migration hint."""
+    with pytest.raises(ValueError, match="no longer supported"):
+        generate_model_description(
+            _write_model(tmp_path, RETIRED_MODEL),
+            tmp_path / "out",
+            generation_time=GENERATION_TIME,
+        )
 
 
 def test_naive_generation_time_is_refused(tmp_path: Path) -> None:
@@ -445,8 +478,10 @@ def test_component_filter_selects_one_and_refuses_an_unknown(tmp_path: Path) -> 
         _generate("controller", tmp_path / "missing", component="Missing")
 
 
-def test_document_round_trips_through_the_codec(tmp_path: Path) -> None:
-    architecture = pycps_sysml2.load(_write_model(tmp_path, APPLIED_SET_MODEL))
+def test_document_round_trips_through_the_codec() -> None:
+    architecture = pycps_sysml2.load(
+        fixture_path("applied", "applied.sysml")
+    )
     component = components(architecture)[0]
 
     document = model_description_document(

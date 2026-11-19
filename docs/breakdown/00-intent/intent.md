@@ -25,8 +25,8 @@ implementer starts from plumbing. Model behaviour crosses one seam, created
 once and never rewritten: `<stem>_model.cpp` (C++), `<Name>.mo` (Modelica).
 
 The SysML dialect is not owned here. `pycps_sysml2` parses the model and exposes
-parameters, ports, controls, and metadata; this package implements the FMI half
-of that contract and nothing else.
+parameters, ports, metadata, and experiment containers; this package implements
+the FMI half of that contract and nothing else.
 
 **Scope.** Here: the reduction onto one FMI variable set; modelDescription, C
 header, C++ runtime, and Modelica generation; deterministic bytes from an

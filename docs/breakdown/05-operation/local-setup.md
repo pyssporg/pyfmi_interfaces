@@ -3,7 +3,7 @@ id: INFO-012
 type: info
 title: Local setup
 summary: Create a venv with Python 3.11 or newer, install the editable package with the dev extra, and use that interpreter for every command.
-date: 2026-11-17
+date: 2026-11-19
 status: current
 ---
 
@@ -18,7 +18,8 @@ python3 -m venv venv
 
 The two runtime dependencies are direct-URL wheels, not index lookups:
 
-- `pycps-sysml2` v0.2.0, the SysML dialect;
+- `pycps-sysml2`, the SysML dialect — the pin names the v0.2.0 wheel while
+  the code needs the v0.3.0 API (`IMP-002`);
 - `experimental-pyssp-standard` v0.9.3.dev0, the FMI XML and archive API.
 
 They come from `github.com/pyssporg/<repo>/releases/download/v<version>/` assets,

@@ -2,8 +2,8 @@
 id: CP-003
 type: capability
 title: Errors and refusals
-summary: Ambiguous roots, flat parameters, non-fixed lists, flattened connectors, naive clocks, and platform or identifier mismatches are refused with an actionable message.
-date: 2026-11-17
+summary: Ambiguous roots, flat parameters, non-fixed lists, retired tags, naive clocks, and platform or identifier mismatches are refused with an actionable message.
+date: 2026-11-19
 status: current
 ---
 
@@ -18,7 +18,8 @@ Model errors:
   `composition=`;
 - an unresolved port definition on a leaf part;
 - a flat parameter attribute where the parameter dialect is required;
-- a port definition that sets the flat-connector control;
+- a retired `pyssp_*` attribute: the dialect reports the container to declare
+  instead;
 - a multiplicity that is not a fixed length, or is not an integer;
 - a requested `component` that is not exported.
 

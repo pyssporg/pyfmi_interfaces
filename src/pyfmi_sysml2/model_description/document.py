@@ -19,7 +19,7 @@ from pathlib import Path
 
 import pycps_sysml2
 from pycps_sysml2 import Architecture, PartDefinition
-from pycps_sysml2.core import CONTROL
+from pycps_sysml2.metadata.roles import read_experiment
 from pyssp_standard.standard.fmi2.codec import Fmi2ModelDescriptionXmlCodec
 from pyssp_standard.standard.fmi2.model import (
     Fmi2DefaultExperiment,
@@ -47,23 +47,23 @@ FMI_VERSION = "2.0"
 GENERATION_TOOL = "pyfmi_sysml2 tooling"
 
 
-def _control_float(system: PartDefinition, name: str) -> float | None:
-    """The literal ``Real`` value of one control attribute, when present."""
-    attribute = system.attributes.get(name)
-    if attribute is None:
-        return None
-    if attribute.value is None:
-        raise ValueError(f"{system.name}.{name} needs a Real literal value")
-    return float(attribute.value)
+def default_experiment(
+    architecture: Architecture, system: PartDefinition
+) -> Fmi2DefaultExperiment | None:
+    """The composition's ``DefaultExperiment``, or ``None`` when unset.
 
-
-def default_experiment(system: PartDefinition) -> Fmi2DefaultExperiment | None:
-    """The composition's ``DefaultExperiment``, or ``None`` when unset."""
-    start = _control_float(system, CONTROL.default_start)
-    stop = _control_float(system, CONTROL.default_stop)
-    if start is None and stop is None:
+    The experiment is the typed container the dialect recognizes, never an
+    attribute name. ``stepSize`` is emitted only when the container declares
+    it: FMI 2.0 allows the attribute to be absent.
+    """
+    experiment = read_experiment(architecture, system, required=False)
+    if experiment is None:
         return None
-    return Fmi2DefaultExperiment(start_time=start, stop_time=stop)
+    return Fmi2DefaultExperiment(
+        start_time=experiment.start_time,
+        stop_time=experiment.stop_time,
+        step_size=experiment.step_size,
+    )
 
 
 def _select_component(
@@ -133,7 +133,7 @@ def model_description_document(
                 Fmi2Unknown(index=variable.index) for variable in component.outputs
             ],
         ),
-        default_experiment=default_experiment(system),
+        default_experiment=default_experiment(architecture, system),
     )
 
 

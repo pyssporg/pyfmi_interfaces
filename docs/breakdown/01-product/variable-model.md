@@ -27,8 +27,9 @@ ports.
   `Real` may stay continuous.
 - Every input carries a neutral `start` (`0`, `false`, `""`) because FMI 2.0
   requires one and the dialect authors none; outputs carry none.
-- Parameter ports and control attributes are not signal fields; a port
-  definition that sets the flat-connector control is refused, not flattened.
+- Parameter ports and typed containers are not signal fields; an attribute
+  whose type is FMU metadata, SSP metadata, a parameter set, or an experiment
+  is skipped by `classify_attribute`, never emitted as a field.
 - **Ordering:** value references restart at 0 per component, parameters first,
   then ports and fields in declaration order; components are exported sorted by
   name and each carries the same numbered set to every artifact.
