@@ -157,6 +157,30 @@ ARRAY_PORT_MODEL = """package ArrayPort {
 """
 
 
+#: A port whose members disagree on direction, plus an unmarked member on an
+#: ``inout`` usage. Direction belongs to the member; the usage is only a fallback.
+MIXED_MEMBER_MODEL = """package MemberDirections {
+  port def MixedSignal {
+    in attribute p[3] : Real;
+    out attribute m : Real;
+  }
+
+  port def UnmarkedSignal {
+    attribute n : Real;
+  }
+
+  part def Widget {
+    inout port sig : MixedSignal;
+    inout port fallback : UnmarkedSignal;
+  }
+
+  part def MemberDirectionsComposition {
+    part widget : Widget;
+  }
+}
+"""
+
+
 def _write_model(directory: Path, text: str) -> Path:
     path = directory / "model.sysml"
     path.write_text(text, encoding="utf-8")
@@ -386,6 +410,30 @@ def test_base_index_threads_through_port_array_members(tmp_path: Path) -> None:
     ]
 
 
+def test_mixed_port_members_carry_their_own_causality(tmp_path: Path) -> None:
+    """Member direction wins over the ``inout`` usage; an unmarked member is input."""
+    architecture = pycps_sysml2.load(_write_model(tmp_path, MIXED_MEMBER_MODEL))
+
+    [component] = components(architecture, base_index=1)
+
+    assert [
+        (variable.name, variable.causality, variable.start)
+        for variable in component.variables
+    ] == [
+        ("sig.p[1]", "input", 0.0),
+        ("sig.p[2]", "input", 0.0),
+        ("sig.p[3]", "input", 0.0),
+        ("sig.m", "output", None),
+        ("fallback.n", "input", 0.0),
+    ]
+    assert [
+        (port.name, port.direction, port.causality) for port in component.ports
+    ] == [
+        ("sig", None, "input"),
+        ("fallback", "inout", "input"),
+    ]
+
+
 def test_default_experiment_comes_from_the_experiment_container(
     tmp_path: Path,
 ) -> None:
@@ -558,3 +606,54 @@ def test_case_record_is_complete(subject: str) -> None:
 
     for marker in CASE_HEADINGS + CASE_FIELDS:
         assert marker in text, f"{subject}/case.md lacks {marker!r}"
+
+
+#: One definition used as ``P`` and ``~P``: conjugation flips each directed
+#: member's causality, so both ends resolve to the same definition.
+CONJUGATED_MODEL = """package ConjugatedPorts {
+  port def Feed {
+    out attribute p : Real;
+    in attribute m : Real;
+  }
+
+  part def Source {
+    out port feed : Feed;
+  }
+
+  part def Sink {
+    in port feed : ~Feed;
+  }
+
+  part def ConjugatedComposition {
+    part source : Source;
+    part sink : Sink;
+  }
+}
+"""
+
+
+def test_conjugated_port_flips_member_causality(tmp_path: Path) -> None:
+    """``~P`` flips input/output per member; both ends share one definition."""
+    architecture = pycps_sysml2.load(_write_model(tmp_path, CONJUGATED_MODEL))
+
+    by_name = {
+        component.name: component
+        for component in components(architecture, base_index=1)
+    }
+
+    assert [port.definition for port in by_name["Source"].ports] == ["Feed"]
+    assert [port.definition for port in by_name["Sink"].ports] == ["Feed"]
+    assert [
+        (variable.name, variable.causality, variable.start)
+        for variable in by_name["Source"].variables
+    ] == [
+        ("feed.p", "output", None),
+        ("feed.m", "input", 0.0),
+    ]
+    assert [
+        (variable.name, variable.causality, variable.start)
+        for variable in by_name["Sink"].variables
+    ] == [
+        ("feed.p", "input", 0.0),
+        ("feed.m", "output", None),
+    ]

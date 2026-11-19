@@ -156,7 +156,7 @@ def component_interface(
             )
         if not _is_signal_port(architecture, definition):
             continue
-        causality = direction_causality(usage.direction)
+        member_directions: list[str | None] = []
         fields: list[Field] = []
         for attribute in definition.attributes.values():
             if (
@@ -164,6 +164,9 @@ def component_interface(
                 in _CONTAINER_KINDS
             ):
                 continue
+            member_direction = usage.effective_member_direction(attribute)
+            member_directions.append(member_direction)
+            causality = direction_causality(member_direction)
             type_name = _field_dtype(attribute)
             array = _fixed_count(attribute.multiplicity, attribute.value)
             fields.append(Field(attribute.name, type_name, array, base_index))
@@ -190,12 +193,18 @@ def component_interface(
                         member=f"{name}.{member}",
                     )
                 )
+        if member_directions and all(
+            direction == member_directions[0] for direction in member_directions
+        ):
+            port_direction = member_directions[0]
+        else:
+            port_direction = usage.direction if not member_directions else None
         ports.append(
             PortGroup(
                 name=name,
                 definition=definition.name,
-                direction=usage.direction,
-                causality=causality,
+                direction=port_direction,
+                causality=direction_causality(port_direction),
                 fields=tuple(fields),
                 doc=usage.doc or definition.doc,
             )
