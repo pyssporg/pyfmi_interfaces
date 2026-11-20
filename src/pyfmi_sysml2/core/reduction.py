@@ -286,26 +286,93 @@ def export_identity(
     return ExportIdentity(system.name, is_fmu_model(architecture, system))
 
 
-def resolve_system(
-    architecture: Architecture, composition: str | None = None
-) -> PartDefinition:
-    """The part definition whose components are exported.
+def _fmu_leaves(
+    architecture: Architecture, candidates: list[PartDefinition]
+) -> list[PartDefinition]:
+    """Drop every candidate that another candidate specializes.
 
-    ``composition`` names it explicitly. Without a name, a part definition
-    marked ``:> FmuModel`` is the export unit itself, and several such
-    candidates must name one. When none is marked, the single part definition
-    that has parts and is not used as a part elsewhere is taken; an
-    architecture with several such roots must name one.
+    A shared base such as ``FmuInterop :> FmuModel`` makes every model that
+    imports it a candidate transitively. Selection belongs to the FMI export
+    unit, not to the dialect, so such a base is a role rather than an export
+    unit: only candidates no other candidate specializes remain. Ancestry
+    follows ``specializes`` through ``resolve_part``; the visited set holds
+    package-qualified stored keys, which keeps the walk cycle-safe and two
+    packages that reuse a bare name apart.
+
+    A definition an included package owns is still a candidate: a library may
+    define the FMU another model packages, and the candidate is selected by
+    the same rule.
     """
-    if composition is not None:
-        return architecture.get_part_def(composition)
+    keys = {architecture.stored_key(definition) for definition in candidates}
+    ancestors: set[str] = set()
+    for definition in candidates:
+        owned = architecture.stored_key(definition)
+        seen: set[str] = set()
+        pending = list(definition.specializes)
+        while pending:
+            base = architecture.resolve_part(pending.pop())
+            if base is None:
+                continue
+            key = architecture.stored_key(base)
+            if key in seen:
+                continue
+            seen.add(key)
+            if key in keys and key != owned:
+                ancestors.add(key)
+            pending.extend(base.specializes)
+    return [
+        definition
+        for definition in candidates
+        if architecture.stored_key(definition) not in ancestors
+    ]
 
-    fmu_models = [
+
+def _fmu_candidates(architecture: Architecture) -> list[PartDefinition]:
+    """Every part definition marked ``:> FmuModel``, the marker excluded."""
+    return [
         definition
         for definition in architecture.part_definitions.values()
         if is_fmu_model(architecture, definition)
         and short_name(definition.name) != FMU_MODEL_MARKER
     ]
+
+
+def fmu_units(architecture: Architecture) -> list[PartDefinition]:
+    """Every exportable ``:> FmuModel`` leaf definition, sorted deterministically.
+
+    This is the line-up ``resolve_system`` chooses from when ``composition=``
+    is omitted, exposed for a caller that exports each unit in turn: shared role
+    bases are dropped, the ``FmuModel`` marker is never included, and several
+    siblings are returned instead of refused. Sorting on the bare name first
+    and the stored key second keeps equal names in different packages stable.
+    Pass each name back as ``components(architecture, composition=...)``.
+    """
+    return sorted(
+        _fmu_leaves(architecture, _fmu_candidates(architecture)),
+        key=lambda definition: (
+            definition.name,
+            architecture.stored_key(definition),
+        ),
+    )
+
+
+def resolve_system(
+    architecture: Architecture, composition: str | None = None
+) -> PartDefinition:
+    """The part definition whose components are exported.
+
+    ``composition`` names it explicitly, which may be a base definition.
+    Without a name, a part definition marked ``:> FmuModel`` is the export unit
+    itself; a candidate that another candidate specializes is a shared role
+    base and does not count, and several remaining leaves must name one. When
+    none is marked, the single part definition that has parts and is not used
+    as a part elsewhere is taken; an architecture with several such roots must
+    name one.
+    """
+    if composition is not None:
+        return architecture.get_part_def(composition)
+
+    fmu_models = _fmu_leaves(architecture, _fmu_candidates(architecture))
     if fmu_models:
         if len(fmu_models) == 1:
             return fmu_models[0]

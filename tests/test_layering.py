@@ -63,6 +63,7 @@ EXPECTED_PUBLIC = frozenset(
         "__version__",
         "components",
         "fmi2_headers",
+        "fmu_units",
         "generate_c_headers",
         "generate_c_runtime",
         "generate_model_description",

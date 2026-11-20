@@ -24,6 +24,7 @@ from pyfmi_sysml2.core.reduction import (
     components,
     direction_causality,
     export_identity,
+    fmu_units,
     resolve_system,
 )
 from pyfmi_sysml2.core.resources import fmi2_headers
@@ -62,6 +63,7 @@ __all__ = [
     "direction_causality",
     "export_identity",
     "fmi2_headers",
+    "fmu_units",
     "format_generation_time",
     "guid",
     "modelica_type",

@@ -32,6 +32,7 @@ from pyfmi_sysml2.core import (
     DATA_TYPE_TAGS,
     components,
     export_identity,
+    fmu_units,
     resolve_system,
     sanitize_identifier,
 )
@@ -482,6 +483,194 @@ def test_marker_definition_is_not_an_export_candidate(tmp_path: Path) -> None:
 
     assert resolve_system(loaded).name == "PlainComposition"
     assert [item.name for item in components(loaded)] == ["Leaf"]
+
+
+def test_shared_fmu_base_is_not_an_export_candidate(tmp_path: Path) -> None:
+    """A base both a model and its leaf specialize loses to the leaf."""
+    architecture = tmp_path / "shared_base.sysml"
+    architecture.write_text(
+        """package Shared {
+  part def FmuModel;
+
+  part def FmuInterop :> FmuModel;
+
+  port def Signal {
+    attribute value : Real;
+  }
+
+  part def Leaf :> FmuInterop {
+    out port y : Signal;
+  }
+}
+""",
+        encoding="utf-8",
+    )
+
+    loaded = load(architecture)
+    system = resolve_system(loaded)
+
+    assert system.name == "Leaf"
+    assert [item.name for item in components(loaded)] == ["Leaf"]
+    # The direct leaf names itself; the base never reached selection.
+    assert export_identity(loaded, system).model_name("Leaf") == "Leaf"
+    # An explicit composition may still name the shared base.
+    assert resolve_system(loaded, composition="FmuInterop").name == "FmuInterop"
+
+
+def test_included_fmu_definition_is_an_export_candidate(tmp_path: Path) -> None:
+    """A library may define the FMU another model packages."""
+    library = tmp_path / "library.sysml"
+    library.write_text(
+        """package Library {
+  part def FmuModel;
+
+  part def FmuInterop :> FmuModel;
+
+  port def Signal {
+    attribute value : Real;
+  }
+
+  part def Leaf :> FmuInterop {
+    out port y : Signal;
+  }
+}
+""",
+        encoding="utf-8",
+    )
+    architecture = tmp_path / "model.sysml"
+    architecture.write_text(
+        """package Model {
+  private import Library::*;
+}
+""",
+        encoding="utf-8",
+    )
+
+    loaded = load(architecture, library)
+    system = resolve_system(loaded)
+
+    assert system.name == "Leaf"
+    assert [item.name for item in components(loaded)] == ["Leaf"]
+    assert export_identity(loaded, system).model_name("Leaf") == "Leaf"
+
+
+def test_sibling_leaves_of_a_shared_base_still_need_a_name(
+    tmp_path: Path,
+) -> None:
+    """Two leaves under one base are ambiguous; only the leaves are named."""
+    architecture = tmp_path / "shared_pair.sysml"
+    architecture.write_text(
+        """package SharedPair {
+  part def FmuModel;
+
+  part def FmuInterop :> FmuModel;
+
+  port def Signal {
+    attribute value : Real;
+  }
+
+  part def Alpha :> FmuInterop {
+    out port y : Signal;
+  }
+
+  part def Zulu :> FmuInterop {
+    out port y : Signal;
+  }
+}
+""",
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ValueError, match="Cannot pick a composition root") as found:
+        components(load(architecture))
+
+    message = str(found.value)
+    assert "2 FmuModel candidates" in message
+    assert "Alpha" in message
+    assert "Zulu" in message
+    assert "FmuInterop" not in message
+
+
+def test_fmu_units_lists_sibling_leaves_and_skips_shared_base(
+    tmp_path: Path,
+) -> None:
+    """One shared base and two leaves enumerate as the two leaves, sorted."""
+    architecture = tmp_path / "units.sysml"
+    architecture.write_text(
+        """package Units {
+  part def FmuModel;
+
+  part def FmuInterop :> FmuModel;
+
+  port def Signal {
+    attribute value : Real;
+  }
+
+  part def Zulu :> FmuInterop {
+    out port y : Signal;
+  }
+
+  part def Alpha :> FmuInterop {
+    out port y : Signal;
+  }
+}
+""",
+        encoding="utf-8",
+    )
+
+    loaded = load(architecture)
+    units = fmu_units(loaded)
+
+    assert [unit.name for unit in units] == ["Alpha", "Zulu"]
+    assert "FmuInterop" not in [unit.name for unit in units]
+    with pytest.raises(ValueError, match="2 FmuModel candidates"):
+        resolve_system(loaded)
+
+
+def test_fmu_units_returns_a_direct_fmu_definition(tmp_path: Path) -> None:
+    """A single marked definition is its own export unit."""
+    architecture = tmp_path / "direct.sysml"
+    architecture.write_text(
+        """package Direct {
+  part def FmuModel;
+
+  port def Signal {
+    attribute value : Real;
+  }
+
+  part def Only :> FmuModel {
+    out port y : Signal;
+  }
+}
+""",
+        encoding="utf-8",
+    )
+
+    units = fmu_units(load(architecture))
+
+    assert [unit.name for unit in units] == ["Only"]
+
+
+def test_fmu_units_is_empty_without_a_marked_definition(
+    tmp_path: Path,
+) -> None:
+    """No ``:> FmuModel`` definition enumerates nothing."""
+    architecture = tmp_path / "plain.sysml"
+    architecture.write_text(
+        """package Plain {
+  port def Signal {
+    attribute value : Real;
+  }
+
+  part def Leaf {
+    out port y : Signal;
+  }
+}
+""",
+        encoding="utf-8",
+    )
+
+    assert fmu_units(load(architecture)) == []
 
 
 def test_several_fmu_models_require_a_name(tmp_path: Path) -> None:

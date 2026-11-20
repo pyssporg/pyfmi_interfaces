@@ -34,7 +34,17 @@ artifacts spell a primitive differently.
 
 `resolve_system()` picks the `:> FmuModel` definition as the export unit, or
 else the part definition that has parts and is not used as a part elsewhere;
-several candidates require `composition=` and are refused by name.
+several candidates require `composition=` and are refused by name. A marked
+candidate that another candidate specializes is a shared role base (a library's
+`FmuInterop :> FmuModel`), not an export unit, so only the leaves count;
+`composition=` may still name the base explicitly. An included root can supply
+the export unit: a library may define the FMU another package packages, and the
+leaf rule selects it the same way.
+
+`fmu_units()` exposes that same leaf set without requiring `composition=`: it
+drops shared bases and the marker, keeps every sibling leaf, and sorts by bare
+name then stored key, so a caller can export each unit in turn. `resolve_system()`
+still refuses several siblings.
 
 The namespace is package-scoped: own-package definitions store under their bare
 name and others under `<package>::<name>`, while `Definition.name` stays bare.
