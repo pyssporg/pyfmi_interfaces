@@ -29,16 +29,18 @@ the root package, nested under ``within`` when one is given; only the root
 from __future__ import annotations
 
 from pathlib import Path
-
-from pycps_sysml2 import Architecture
+from typing import TYPE_CHECKING
 
 from pyfmi_sysml2.core import (
     Component,
     Field,
-    architecture,
-    components,
+    Reduction,
     modelica_type,
+    to_reduction,
 )
+
+if TYPE_CHECKING:
+    from pycps_sysml2 import Architecture
 
 #: Root package default. The generated files never embed a concrete model name.
 DEFAULT_PACKAGE = "GeneratedInterfaces"
@@ -230,7 +232,7 @@ def _generated_text(
 
 
 def generate_modelica(
-    source: Architecture | str | Path,
+    source: Reduction | Architecture | str | Path,
     output_dir: str | Path,
     *,
     package: str = DEFAULT_PACKAGE,
@@ -239,6 +241,8 @@ def generate_modelica(
 ) -> list[Path]:
     """Write the Modelica interface package and return every file it wrote.
 
+    ``source`` is a :class:`Reduction`, an already parsed architecture, or an
+    architecture path; only the first runs without the SysML dialect.
     ``output_dir/<package>/`` holds ``package.mo``, ``package.order``,
     ``Interfaces.mo`` (the four primitive input/output aliases),
     ``GeneratedInterfaces.mo`` (one connector per port definition), and per
@@ -246,8 +250,8 @@ def generate_modelica(
     instances) plus ``<Name>.mo`` (created once, never rewritten). The
     subpackages are declared inside the root package, so ``within`` nests them.
     """
-    parsed = architecture(source)
-    exported = components(parsed, composition=composition)
+    reduction = to_reduction(source, composition=composition)
+    exported = list(reduction.components)
     definitions = _port_definitions(exported)
 
     root = Path(output_dir) / package

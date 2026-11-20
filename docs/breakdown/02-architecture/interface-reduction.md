@@ -2,7 +2,7 @@
 id: INFO-003
 type: info
 title: Interface reduction
-summary: core/reduction.py turns an architecture into Component, PortGroup, Field, and Variable objects, assigns value references once, and is the only place that decides which variables exist.
+summary: core/reduction.py turns an architecture into Component, PortGroup, Field, and Variable objects, assigns value references once, is the only place that decides which variables exist, and packages the result as the parser-free Reduction every generator consumes.
 date: 2026-11-17
 status: current
 ---
@@ -12,11 +12,15 @@ status: current
 `core/reduction.py` is the single source of the variable set: every generator
 reads it and none re-derives variables, causalities, or value references.
 
-`components()` resolves the export unit, validates the parameter dialect, and
-returns the exported components: a container root's leaf descendants sorted by
-name, or a single part definition marked `:> FmuModel`. Each `Component` carries
-parameter fields, port groups, and the flat `variables` tuple every generator
-iterates.
+`to_reduction()` is the seam: it resolves the export unit, validates the
+parameter dialect, and returns a `Reduction` — the components, the
+`ExportIdentity`, the package name, and the `Experiment`. Only it imports
+`pycps_sysml2`; a generator given a `Reduction` never does. `components()` stays
+the parser-side API and returns the same list: the container root's leaf
+descendants sorted by name, or the single definition marked `:> FmuModel`. Each
+`Component` carries parameter fields, port groups, and the flat `variables`
+tuple every generator iterates. `Variable.start_text` is formatted here too, so
+the model carries FMI text and no generator calls the dialect formatter.
 
 Rules encoded here, not repeated in the generators: parameters first, then ports
 and fields in declaration order, one VR per scalar restarting at 0 per
@@ -32,14 +36,12 @@ which is why the C value-reference enum is unchanged. C, C++,
 `*_DataType`, and Modelica tables live in `core/spelling.py`, so no two
 artifacts spell a primitive differently.
 
-`resolve_system()` picks the `:> FmuModel` definition as the export unit, or
-else the part definition that has parts and is not used as a part elsewhere;
-several candidates require `composition=` and are refused by name. A marked
-candidate that another candidate specializes is a shared role base (a library's
-`FmuInterop :> FmuModel`), not an export unit, so only the leaves count;
-`composition=` may still name the base explicitly. An included root can supply
-the export unit: a library may define the FMU another package packages, and the
-leaf rule selects it the same way.
+`resolve_system()` picks the `:> FmuModel` definition as the export unit, or the
+part definition that has parts and is not used elsewhere; several candidates
+require `composition=` and are refused by name. A marked candidate another
+candidate specializes is a shared role base (`FmuInterop :> FmuModel`), so only
+leaves count; `composition=` may name the base. An included root can supply the
+export unit.
 
 `fmu_units()` exposes that same leaf set without requiring `composition=`: it
 drops shared bases and the marker, keeps every sibling leaf, and sorts by bare

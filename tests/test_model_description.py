@@ -436,14 +436,14 @@ def test_mixed_port_members_carry_their_own_causality(tmp_path: Path) -> None:
     [component] = components(architecture, base_index=1)
 
     assert [
-        (variable.name, variable.causality, variable.start)
+        (variable.name, variable.causality, variable.start_text)
         for variable in component.variables
     ] == [
-        ("sig.p[1]", "input", 0.0),
-        ("sig.p[2]", "input", 0.0),
-        ("sig.p[3]", "input", 0.0),
+        ("sig.p[1]", "input", "0"),
+        ("sig.p[2]", "input", "0"),
+        ("sig.p[3]", "input", "0"),
         ("sig.m", "output", None),
-        ("fallback.n", "input", 0.0),
+        ("fallback.n", "input", "0"),
     ]
     assert [
         (port.name, port.direction, port.causality) for port in component.ports
@@ -702,16 +702,16 @@ def test_conjugated_port_flips_member_causality(tmp_path: Path) -> None:
     assert [port.definition for port in by_name["Source"].ports] == ["Feed"]
     assert [port.definition for port in by_name["Sink"].ports] == ["Feed"]
     assert [
-        (variable.name, variable.causality, variable.start)
+        (variable.name, variable.causality, variable.start_text)
         for variable in by_name["Source"].variables
     ] == [
         ("feed.p", "output", None),
-        ("feed.m", "input", 0.0),
+        ("feed.m", "input", "0"),
     ]
     assert [
-        (variable.name, variable.causality, variable.start)
+        (variable.name, variable.causality, variable.start_text)
         for variable in by_name["Sink"].variables
     ] == [
-        ("feed.p", "input", 0.0),
+        ("feed.p", "input", "0"),
         ("feed.m", "output", None),
     ]

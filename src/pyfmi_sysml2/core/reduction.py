@@ -24,49 +24,66 @@ direction out of the signal declaration.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from functools import cache
 from os import PathLike
+from typing import TYPE_CHECKING
 
-from pycps_sysml2 import (
-    Architecture,
-    Attribute,
-    PartDefinition,
-    PortDefinition,
-    effective_members,
-    load,
+from pyfmi_sysml2.core.model import (
+    Component,
+    Experiment,
+    ExportIdentity,
+    Field,
+    PortGroup,
+    Reduction,
+    Variable,
 )
-from pycps_sysml2.core import map_fmi_type
-from pycps_sysml2.metadata.helpers import short_name
-from pycps_sysml2.metadata.roles import FMU_MODEL_MARKER, is_fmu_model
-from pycps_sysml2.parameters import (
-    SSP_POLICY,
-    AttributeKind,
-    classify_attribute,
-    is_parameter_interface,
-    parameter_declarations,
-    parameter_items,
-    validate_parameter_dialect,
-)
-
-from pyfmi_sysml2.core.model import Component, Field, PortGroup, Variable
 from pyfmi_sysml2.core.spelling import DISCRETE_TYPES, INPUT_START
 
-#: Attribute kinds that are typed containers, never FMI signal fields.
-_CONTAINER_KINDS = frozenset(
-    {
-        AttributeKind.FMU_METADATA,
-        AttributeKind.SSP_METADATA,
-        AttributeKind.PARAMETER_SET,
-        AttributeKind.EXPERIMENT,
-    }
-)
+if TYPE_CHECKING:
+    from pycps_sysml2 import (
+        Architecture,
+        Attribute,
+        PartDefinition,
+        PortDefinition,
+    )
+
+
+@cache
+def _container_kinds() -> frozenset[object]:
+    """Attribute kinds that are typed containers, never FMI signal fields.
+
+    The enum lives in the dialect, so it is read on first use rather than at
+    import time: a generator that only consumes a :class:`Reduction` never
+    imports ``pycps_sysml2``.
+    """
+    from pycps_sysml2.parameters import AttributeKind
+
+    return frozenset(
+        {
+            AttributeKind.FMU_METADATA,
+            AttributeKind.SSP_METADATA,
+            AttributeKind.PARAMETER_SET,
+            AttributeKind.EXPERIMENT,
+        }
+    )
 
 
 def architecture(source: Architecture | str | PathLike[str]) -> Architecture:
     """An already loaded architecture, or the one at ``source``."""
+    from pycps_sysml2 import Architecture, load
+
     if isinstance(source, Architecture):
         return source
     return load(source)
+
+
+def _start_text(type_name: str, value: object | None) -> str | None:
+    """The formatted ``start`` text, or ``None`` when no default was authored."""
+    if value is None:
+        return None
+    from pycps_sysml2.core import format_value
+
+    return format_value(type_name, value)
 
 
 def direction_causality(direction: str | None) -> str:
@@ -102,6 +119,8 @@ def _fixed_count(multiplicity: str | None, value: object) -> int | None:
 
 
 def _field_dtype(attribute: Attribute) -> str:
+    from pycps_sysml2.core import map_fmi_type
+
     return map_fmi_type(attribute.primitive_type_str())
 
 
@@ -111,6 +130,8 @@ def _is_signal_port(
     """True for a port that carries FMI signal fields, not parameters."""
     if definition is None:
         return False
+    from pycps_sysml2.parameters import is_parameter_interface
+
     return not is_parameter_interface(architecture, definition)
 
 
@@ -127,6 +148,8 @@ def _is_scalar_port(
     that shape instead of flattening it). Inherited members count, so a derived
     port definition that only adds fields is still not scalar.
     """
+    from pycps_sysml2 import effective_members
+
     members = effective_members(architecture, definition).attributes
     if tuple(members) != ("value",):
         return False
@@ -145,6 +168,14 @@ def component_interface(
     ``base_index`` shifts the ``[i]`` suffixes of every array member; the
     default 0 keeps the FMI convention, 1 targets OMC-built Modelica FMUs.
     """
+    from pycps_sysml2 import effective_members
+    from pycps_sysml2.parameters import (
+        SSP_POLICY,
+        classify_attribute,
+        parameter_declarations,
+        parameter_items,
+    )
+
     parameters: list[Field] = []
     variables: list[Variable] = []
     counter = 0
@@ -172,7 +203,7 @@ def component_interface(
                     value_reference=counter - 1,
                     index=counter,
                     description=attribute.doc,
-                    start=item.value,
+                    start_text=_start_text(type_name, item.value),
                     member=member,
                 )
             )
@@ -194,7 +225,7 @@ def component_interface(
         ).attributes.values():
             if (
                 classify_attribute(architecture, attribute, policy=SSP_POLICY)
-                in _CONTAINER_KINDS
+                in _container_kinds()
             ):
                 continue
             member_direction = usage.effective_member_direction(attribute)
@@ -222,8 +253,8 @@ def component_interface(
                         description=(
                             attribute.doc or usage.doc or definition.doc
                         ),
-                        start=(
-                            INPUT_START[type_name]
+                        start_text=(
+                            _start_text(type_name, INPUT_START[type_name])
                             if causality == "input"
                             else None
                         ),
@@ -256,33 +287,12 @@ def component_interface(
     )
 
 
-@dataclass(frozen=True)
-class ExportIdentity:
-    """How the export unit names the components it exports.
-
-    A container root exports leaf components as ``<system>.<component>``. A
-    part definition that is itself the FMU model (``:> FmuModel``) exports
-    itself under its bare name, so the FMI identity of a direct FMU is the
-    definition name rather than ``<name>.<name>``.
-    """
-
-    system: str
-    direct: bool
-
-    def model_name(self, component: str) -> str:
-        """FMI ``modelName`` of one exported component."""
-        return component if self.direct else f"{self.system}.{component}"
-
-    def guid_key(self, component: str) -> str:
-        """Frozen uuid5 name of one exported component's guid."""
-        scope = "pyssp_sysml2" if self.direct else f"pyssp_sysml2/{self.system}"
-        return f"{scope}/{component}"
-
-
 def export_identity(
     architecture: Architecture, system: PartDefinition
 ) -> ExportIdentity:
     """The naming rule for the export unit ``resolve_system`` selected."""
+    from pycps_sysml2.metadata.roles import is_fmu_model
+
     return ExportIdentity(system.name, is_fmu_model(architecture, system))
 
 
@@ -329,6 +339,9 @@ def _fmu_leaves(
 
 def _fmu_candidates(architecture: Architecture) -> list[PartDefinition]:
     """Every part definition marked ``:> FmuModel``, the marker excluded."""
+    from pycps_sysml2.metadata.helpers import short_name
+    from pycps_sysml2.metadata.roles import FMU_MODEL_MARKER, is_fmu_model
+
     return [
         definition
         for definition in architecture.part_definitions.values()
@@ -369,6 +382,9 @@ def resolve_system(
     as a part elsewhere is taken; an architecture with several such roots must
     name one.
     """
+    from pycps_sysml2 import effective_members
+    from pycps_sysml2.metadata.roles import FMU_MODEL_MARKER
+
     if composition is not None:
         return architecture.get_part_def(composition)
 
@@ -415,6 +431,7 @@ def _component_definitions(
     """
     definitions: list[PartDefinition] = []
     seen: set[str] = set()
+    from pycps_sysml2 import effective_members
 
     def walk(
         part_def: PartDefinition,
@@ -444,6 +461,77 @@ def _component_definitions(
     return definitions
 
 
+def _experiment(
+    architecture: Architecture, system: PartDefinition
+) -> Experiment | None:
+    """The composition's experiment container in FMI terms, or ``None``."""
+    from pycps_sysml2.metadata.roles import read_experiment
+
+    experiment = read_experiment(architecture, system, required=False)
+    if experiment is None:
+        return None
+    return Experiment(
+        start_time=experiment.start_time,
+        stop_time=experiment.stop_time,
+        tolerance=experiment.tolerance,
+        step_size=experiment.step_size,
+    )
+
+
+def to_reduction(
+    source: Reduction | Architecture | str | PathLike[str],
+    *,
+    composition: str | None = None,
+    base_index: int = 0,
+) -> Reduction:
+    """Reduce an architecture, or return the ``Reduction`` already given.
+
+    This is the only place that reads the SysML dialect. Every artifact
+    generator calls it once and then works on the parser-free result, so a
+    caller that already holds a :class:`Reduction` runs the generators without
+    ``pycps_sysml2`` being imported.
+
+    A ``Reduction`` has already fixed ``composition`` and ``base_index``;
+    passing a non-default value for either is refused rather than silently
+    ignored.
+    """
+    if isinstance(source, Reduction):
+        if composition is not None or base_index != 0:
+            raise ValueError(
+                "A Reduction already fixes composition and base_index; "
+                "reduce the architecture with those arguments instead"
+            )
+        return source
+
+    from pycps_sysml2 import effective_members
+    from pycps_sysml2.parameters import SSP_POLICY, validate_parameter_dialect
+
+    parsed = architecture(source)
+    system = resolve_system(parsed, composition)
+    identity = export_identity(parsed, system)
+    validate_parameter_dialect(parsed, system, policy=SSP_POLICY)
+    if identity.direct:
+        definitions = [system]
+    else:
+        definitions = [
+            definition
+            for definition in sorted(
+                _component_definitions(parsed, system),
+                key=lambda candidate: candidate.name,
+            )
+            if not effective_members(parsed, definition).parts
+        ]
+    return Reduction(
+        components=tuple(
+            component_interface(parsed, definition, base_index=base_index)
+            for definition in definitions
+        ),
+        identity=identity,
+        package=parsed.package_name,
+        experiment=_experiment(parsed, system),
+    )
+
+
 def components(
     architecture: Architecture,
     *,
@@ -458,23 +546,11 @@ def components(
     reported instead of silently dropped. ``base_index`` is forwarded to each
     component's interface.
     """
-    system = resolve_system(architecture, composition)
-    validate_parameter_dialect(architecture, system, policy=SSP_POLICY)
-    if export_identity(architecture, system).direct:
-        definitions = [system]
-    else:
-        definitions = [
-            definition
-            for definition in sorted(
-                _component_definitions(architecture, system),
-                key=lambda candidate: candidate.name,
-            )
-            if not effective_members(architecture, definition).parts
-        ]
-    return [
-        component_interface(architecture, definition, base_index=base_index)
-        for definition in definitions
-    ]
+    return list(
+        to_reduction(
+            architecture, composition=composition, base_index=base_index
+        ).components
+    )
 
 
 def component(

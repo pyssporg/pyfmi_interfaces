@@ -15,23 +15,22 @@ from __future__ import annotations
 from collections.abc import Sequence
 from os import PathLike
 from pathlib import Path
-
-from pycps_sysml2 import Architecture
+from typing import TYPE_CHECKING
 
 from pyfmi_sysml2.core import (
     DATA_TYPE_TAGS,
     Component,
     Field,
+    Reduction,
     Variable,
-    architecture,
     c_type,
-    component as select_component,
-    components,
-    export_identity,
-    resolve_system,
     sanitize_identifier,
+    to_reduction,
 )
 from pyfmi_sysml2.core.identity import component_guid
+
+if TYPE_CHECKING:
+    from pycps_sysml2 import Architecture
 
 #: Default for a member whose declaration carries no authored start value.
 IMPLICIT_DEFAULT = "{}"
@@ -294,7 +293,7 @@ def component_header(
 
 
 def generate_c_headers(
-    source: Architecture | str | PathLike[str],
+    source: Reduction | Architecture | str | PathLike[str],
     output_dir: str | PathLike[str],
     *,
     composition: str | None = None,
@@ -304,6 +303,8 @@ def generate_c_headers(
 ) -> list[Path]:
     """Write the C interface headers of ``source`` into ``output_dir``.
 
+    ``source`` is a :class:`Reduction`, an already parsed architecture, or an
+    architecture path; only the first runs without the SysML dialect.
     ``prefix`` defaults to the architecture package name and decides the file
     names and the C type names. The returned list starts with the common
     header, followed by one component header per exported component. Each
@@ -315,22 +316,22 @@ def generate_c_headers(
     restricts the output to one exported component while the common header
     still carries the payload types that component uses.
     """
-    parsed = architecture(source)
-    package = prefix or parsed.package_name
-    system = resolve_system(parsed, composition)
-    exported = (
-        [
-            select_component(
-                parsed,
-                component,
-                composition=composition,
-                base_index=base_index,
-            )
-        ]
-        if component is not None
-        else components(parsed, composition=composition, base_index=base_index)
+    reduction = to_reduction(
+        source, composition=composition, base_index=base_index
     )
-    direct = export_identity(parsed, system).direct
+    package = prefix or reduction.package
+    exported = list(reduction.components)
+    if component is not None:
+        selected = [item for item in exported if item.name == component]
+        if not selected:
+            available = ", ".join(item.name for item in exported)
+            raise KeyError(
+                f"No exported component named {component!r}; "
+                f"choose from: {available}"
+            )
+        exported = selected
+    direct = reduction.identity.direct
+    system = reduction.identity.system
 
     directory = Path(output_dir)
     directory.mkdir(parents=True, exist_ok=True)
@@ -349,7 +350,7 @@ def generate_c_headers(
         )
         path.write_text(
             component_header(
-                package, item, direct=direct, system=system.name
+                package, item, direct=direct, system=system
             ),
             encoding="utf-8",
         )

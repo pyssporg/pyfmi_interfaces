@@ -236,11 +236,11 @@ pyfmi package build/Plant.fmu \
 ## Python API
 
 The package exports four generator functions, `fmi2_headers`, and the
-reduction types (`Component`, `Variable`, `components`).
+reduction types (`Component`, `Variable`, `Reduction`, and `to_reduction`).
 
 ```python
 def generate_model_description(
-    source: Path | str | Architecture,
+    source: Reduction | Architecture | Path | str,
     output_dir: Path | str,
     *,
     composition: str | None = None,
@@ -250,16 +250,17 @@ def generate_model_description(
 ) -> list[Path]: ...
 
 def generate_c_headers(
-    source: Architecture | str | PathLike[str],
+    source: Reduction | Architecture | str | PathLike[str],
     output_dir: str | PathLike[str],
     *,
     composition: str | None = None,
+    component: str | None = None,
     prefix: str | None = None,
     base_index: int = 0,
 ) -> list[Path]: ...
 
 def generate_c_runtime(
-    source: Architecture | str | PathLike[str],
+    source: Reduction | Architecture | str | PathLike[str],
     output_dir: str | PathLike[str],
     *,
     composition: str | None = None,
@@ -269,7 +270,7 @@ def generate_c_runtime(
 ) -> list[Path]: ...
 
 def generate_modelica(
-    source: Architecture | str | Path,
+    source: Reduction | Architecture | str | Path,
     output_dir: str | Path,
     *,
     package: str = "GeneratedInterfaces",
@@ -277,17 +278,45 @@ def generate_modelica(
     composition: str | None = None,
 ) -> list[Path]: ...
 
+def to_reduction(
+    source: Reduction | Architecture | str | PathLike[str],
+    *,
+    composition: str | None = None,
+    base_index: int = 0,
+) -> Reduction: ...
+
 def fmi2_headers() -> tuple[Path, ...]: ...
 ```
 
-`source` is a `.sysml` file, a directory of them, or an already loaded
-`pycps_sysml2.Architecture`. `generation_time=None` uses the fixed epoch
-`2000-01-01T00:00:00Z`; pass a timezone-aware datetime for any other stamp. A
-naive datetime is refused. `fmi2_headers()` returns the bundled FMI 2.0 standard
-headers as real file paths, so an FMU build can pass them to the
+`source` is a `.sysml` file, a directory of them, an already loaded
+`pycps_sysml2.Architecture`, or a `Reduction`. `generation_time=None` uses the
+fixed epoch `2000-01-01T00:00:00Z`; pass a timezone-aware datetime for any other
+stamp. A naive datetime is refused. `fmi2_headers()` returns the bundled FMI 2.0
+standard headers as real file paths, so an FMU build can pass them to the
 `pyssp_standard` `FMU` facade without copying them into the fixture. The `.fmu`
 archive is written by that facade; `pyfmi` emits only `linux64`/FMI 2.0 through
 its CLI.
+
+Parsing and generation are separable. `to_reduction()` is the only function that
+reads `pycps_sysml2`; a `Reduction` carries the components, identity, package
+name, and default experiment every generator needs. Pass a `Reduction` to run
+the generators without the dialect being imported:
+
+```python
+from pathlib import Path
+
+import pycps_sysml2
+import pyfmi_sysml2
+
+architecture = pycps_sysml2.load(Path("architecture/plant.sysml"))
+reduction = pyfmi_sysml2.to_reduction(architecture)
+
+pyfmi_sysml2.generate_c_headers(reduction, Path("build"))
+pyfmi_sysml2.generate_modelica(reduction, Path("build"))
+```
+
+A `Reduction` has already fixed `composition=` and `base_index=`; passing either
+again is refused rather than silently ignored.
 
 ```python
 from datetime import datetime, timezone

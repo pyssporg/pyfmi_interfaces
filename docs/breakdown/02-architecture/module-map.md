@@ -12,8 +12,8 @@ status: current
 `src/pyfmi_sysml2/` is one `core/` package and one subpackage per artifact family; a new artifact type is a directory with one explicit registration line.
 
 - `__init__.py` the facade, `cli.py` the dispatcher collecting family `COMMANDS`;
-- `core/reduction.py` decides which variables exist and assigns value references once;
-- `core/model.py` holds `Component`, `Field`, `PortGroup`, and `Variable`;
+- `core/reduction.py` decides which variables exist, assigns value references once, and builds the parser-free `Reduction`; it is the only module that loads `pycps_sysml2`;
+- `core/model.py` holds `Component`, `Field`, `PortGroup`, `Variable`, `Experiment`, `ExportIdentity`, and `Reduction`;
 - `core/identity.py` the injected clock and uuid5 guid, `core/resources.py` the bundled-header lookup;
 - `core/cli.py` the `Command` registry, shared options, and error policy;
 - `core/spelling.py` every C, C++, `*_DataType`, and Modelica table, so no two artifacts spell a primitive differently;
@@ -33,6 +33,13 @@ concatenates them, with a static test requiring registration to match the family
 directories. The package depends one way only, `pycps_sysml2` -> `pyfmi_sysml2`
 -> `pyssp_standard`; `pyssp_sysml2` is never imported, and every generator reads
 the variable set through `core/`.
+
+**Parser seam.** `core/reduction.py` is the only module that imports
+`pycps_sysml2` at runtime; it turns an architecture into a `Reduction` (the
+components, export identity, package name, and experiment). Every generator
+accepts that `Reduction` and then works without the dialect, so a caller can
+parse once and generate elsewhere. The generators still accept an architecture
+or a path for convenience; that path goes through `to_reduction()`.
 
 **Adding a family.** Add `<family>/__init__.py` and one emitter per artifact; read
 variables through `core.reduction` and spell primitives through `core.spelling`;

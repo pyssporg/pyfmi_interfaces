@@ -17,6 +17,7 @@ from __future__ import annotations
 from collections.abc import Sequence
 from os import PathLike
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from pyfmi_sysml2.c.headers import (
     component_header_name,
@@ -25,13 +26,14 @@ from pyfmi_sysml2.c.headers import (
 )
 from pyfmi_sysml2.core import (
     Component,
-    architecture,
-    components,
-    export_identity,
+    Reduction,
     fmi2_headers,
-    resolve_system,
     sanitize_identifier,
+    to_reduction,
 )
+
+if TYPE_CHECKING:
+    from pycps_sysml2 import Architecture
 
 #: Every FMI 2.0 CoSimulation function the runtime emits. ``--omit`` is
 #: validated against this set; a Model Exchange function is not part of it.
@@ -1014,7 +1016,7 @@ def _fmi_source(
 
 
 def generate_c_runtime(
-    source,
+    source: Reduction | Architecture | str | PathLike[str],
     output_dir: str | PathLike[str],
     *,
     composition: str | None = None,
@@ -1024,6 +1026,9 @@ def generate_c_runtime(
     omit: Sequence[str] | str = (),
 ) -> list[Path]:
     """Write the C interface headers and the C++17 FMI runtime into ``output_dir``.
+
+    ``source`` is a :class:`Reduction`, an already parsed architecture, or an
+    architecture path; only the first runs without the SysML dialect.
 
     Each exported component gets ``<stem>_fmi.cpp`` (regenerated),
     ``<stem>_hooks.h`` (regenerated), and ``<stem>_model.cpp`` (created only
@@ -1042,12 +1047,11 @@ def generate_c_runtime(
     runtime source, the hooks header, and the model source when it was created;
     the three ``fmi2/`` copies come last, sorted by file name.
     """
-    parsed = architecture(source)
-    package = prefix or parsed.package_name
-    system = resolve_system(parsed, composition)
-    exported = components(
-        parsed, composition=composition, base_index=base_index
+    reduction = to_reduction(
+        source, composition=composition, base_index=base_index
     )
+    package = prefix or reduction.package
+    exported = list(reduction.components)
     if component is not None:
         selected = [item for item in exported if item.name == component]
         if not selected:
@@ -1056,19 +1060,17 @@ def generate_c_runtime(
                 f"No exported component named {component!r}; choose from: {available}"
             )
         exported = selected
-    direct = export_identity(parsed, system).direct
+    direct = reduction.identity.direct
     omitted = _omit_names(omit)
 
     directory = Path(output_dir)
     directory.mkdir(parents=True, exist_ok=True)
 
     written = generate_c_headers(
-        parsed,
+        reduction,
         directory,
-        composition=composition,
         component=component,
         prefix=prefix,
-        base_index=base_index,
     )
 
     for item in exported:

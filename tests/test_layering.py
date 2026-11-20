@@ -59,6 +59,9 @@ EXPECTED_PYTHON = ">=3.11"
 EXPECTED_PUBLIC = frozenset(
     {
         "Component",
+        "Experiment",
+        "ExportIdentity",
+        "Reduction",
         "Variable",
         "__version__",
         "components",
@@ -68,6 +71,7 @@ EXPECTED_PUBLIC = frozenset(
         "generate_c_runtime",
         "generate_model_description",
         "generate_modelica",
+        "to_reduction",
     }
 )
 
@@ -235,6 +239,62 @@ def test_sources_do_not_import_the_dialect_package():
     assert not offenders, (
         f"{FORBIDDEN_IMPORT} is a dependency, not a package this one imports: "
         f"{offenders}"
+    )
+
+
+def _runtime_imports(
+    module: str, path: Path, tree: ast.Module
+) -> list[tuple[str, int]]:
+    """Absolute import targets outside an ``if TYPE_CHECKING:`` block."""
+    package = _package_of(module, path)
+    targets: list[tuple[str, int]] = []
+
+    def visit(node: ast.AST) -> None:
+        if isinstance(node, ast.If) and _is_type_checking(node.test):
+            return
+        if isinstance(node, ast.Import):
+            targets.extend((alias.name, node.lineno) for alias in node.names)
+        elif isinstance(node, ast.ImportFrom):
+            name = _from_target(package, node)
+            if name:
+                targets.append((name, node.lineno))
+        for child in ast.iter_child_nodes(node):
+            visit(child)
+
+    visit(tree)
+    return targets
+
+
+def _is_type_checking(test: ast.expr) -> bool:
+    if isinstance(test, ast.Name):
+        return test.id == "TYPE_CHECKING"
+    return isinstance(test, ast.Attribute) and test.attr == "TYPE_CHECKING"
+
+
+def test_only_the_reduction_bridge_imports_the_dialect_at_runtime():
+    """One module reads the dialect; a generator's import chain never does.
+
+    Annotations may still name ``Architecture`` under ``TYPE_CHECKING``, which
+    is why only runtime imports count here.
+    """
+    bridge = f"{PACKAGE}.core.reduction"
+    dialect = "pycps_sysml2"
+    offenders = []
+    bridge_imports = []
+    for path, module, tree in _modules():
+        for name, lineno in _runtime_imports(module, path, tree):
+            if name.split(".")[0] != dialect:
+                continue
+            if module == bridge:
+                bridge_imports.append(_location(path, lineno))
+            else:
+                offenders.append(_location(path, lineno))
+    assert bridge_imports, (
+        f"{bridge} must still be the module that loads {dialect}"
+    )
+    assert not offenders, (
+        "every generator consumes a Reduction; only the reduction bridge may "
+        f"import {dialect} at runtime: {offenders}"
     )
 
 

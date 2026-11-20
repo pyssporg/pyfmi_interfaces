@@ -7,6 +7,7 @@ stream.
 
 | Date | ID | Decision | Layers | Status | Record |
 |---|---|---|---|---|---|
+| 2026-11-20 | AD-010 | Generators consume a parser-free Reduction | architecture, implementation | accepted | `AD-010` |
 | 2026-11-19 | AD-009 | Experiment projects the FMI disposition | architecture, implementation | accepted | `AD-009` |
 | 2026-11-19 | AD-008 | DefaultExperiment tolerance is emitted only when authored | architecture, implementation | accepted | `AD-008` |
 | 2026-11-19 | AD-007 | FMI reduction reads effective members | architecture, implementation | accepted | `AD-007` |

@@ -16,9 +16,16 @@ from pyfmi_sysml2.core.identity import (
     guid,
     utc_now,
 )
-from pyfmi_sysml2.core.model import Component, Field, PortGroup, Variable
-from pyfmi_sysml2.core.reduction import (
+from pyfmi_sysml2.core.model import (
+    Component,
+    Experiment,
     ExportIdentity,
+    Field,
+    PortGroup,
+    Reduction,
+    Variable,
+)
+from pyfmi_sysml2.core.reduction import (
     architecture,
     component,
     components,
@@ -26,6 +33,7 @@ from pyfmi_sysml2.core.reduction import (
     export_identity,
     fmu_units,
     resolve_system,
+    to_reduction,
 )
 from pyfmi_sysml2.core.resources import fmi2_headers
 from pyfmi_sysml2.core.spelling import (
@@ -49,11 +57,13 @@ __all__ = [
     "INPUT_START",
     "MODELICA_TYPES",
     "Component",
+    "Experiment",
     "ExportIdentity",
     "Field",
     "GENERATION_TIME_FORMAT",
     "GUID_NAMESPACE",
     "PortGroup",
+    "Reduction",
     "Variable",
     "architecture",
     "c_type",
@@ -69,5 +79,6 @@ __all__ = [
     "modelica_type",
     "resolve_system",
     "sanitize_identifier",
+    "to_reduction",
     "utc_now",
 ]

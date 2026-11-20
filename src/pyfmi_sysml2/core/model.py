@@ -3,13 +3,16 @@
 A :class:`Component` carries the fields, the port groups and the scalar
 variables of one exported part definition; the generators map these objects
 onto their own output format and never re-derive the variable set.
+
+Nothing here imports the SysML dialect. A :class:`Reduction` is the complete,
+parser-free input of every generator: the exported components, the export
+identity, the package name, and the composition's experiment. The dialect is
+read only by :mod:`pyfmi_sysml2.core.reduction`, which builds a ``Reduction``.
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass
-
-from pycps_sysml2.core import format_value
 
 
 @dataclass(frozen=True)
@@ -43,7 +46,11 @@ class Field:
 
 @dataclass(frozen=True)
 class Variable:
-    """One FMI ScalarVariable, with its C member expression."""
+    """One FMI ScalarVariable, with its C member expression.
+
+    ``start_text`` is the already formatted ``start`` value, so the model never
+    needs the dialect's value formatter.
+    """
 
     name: str
     type_name: str
@@ -52,15 +59,8 @@ class Variable:
     value_reference: int
     index: int
     description: str | None
-    start: object | None
+    start_text: str | None
     member: str
-
-    @property
-    def start_text(self) -> str | None:
-        """XML text for ``start``, or ``None`` when no default was authored."""
-        if self.start is None:
-            return None
-        return format_value(self.type_name, self.start)
 
     @property
     def writable(self) -> bool:
@@ -120,3 +120,56 @@ class Component:
     @property
     def vr_count(self) -> int:
         return len(self.variables)
+
+
+@dataclass(frozen=True)
+class ExportIdentity:
+    """How the export unit names the components it exports.
+
+    A container root exports leaf components as ``<system>.<component>``. A
+    part definition that is itself the FMU model (``:> FmuModel``) exports
+    itself under its bare name, so the FMI identity of a direct FMU is the
+    definition name rather than ``<name>.<name>``.
+    """
+
+    system: str
+    direct: bool
+
+    def model_name(self, component: str) -> str:
+        """FMI ``modelName`` of one exported component."""
+        return component if self.direct else f"{self.system}.{component}"
+
+    def guid_key(self, component: str) -> str:
+        """Frozen uuid5 name of one exported component's guid."""
+        scope = "pyssp_sysml2" if self.direct else f"pyssp_sysml2/{self.system}"
+        return f"{scope}/{component}"
+
+
+@dataclass(frozen=True)
+class Experiment:
+    """The composition's ``DefaultExperiment``, in FMI 2.0 terms.
+
+    All four are optional doubles, exactly as FMI 2.0.5 defines them; an absent
+    field is omitted from the document.
+    """
+
+    start_time: float | None = None
+    stop_time: float | None = None
+    tolerance: float | None = None
+    step_size: float | None = None
+
+
+@dataclass(frozen=True)
+class Reduction:
+    """One export unit reduced to the input every artifact generator needs.
+
+    ``components`` carries the complete variable set, ``identity`` the naming
+    rule, ``package`` the default header/type prefix, and ``experiment`` the
+    composition's optional default experiment. A caller that already holds a
+    ``Reduction`` can run any generator without the SysML dialect installed.
+    """
+
+    components: tuple[Component, ...]
+    identity: ExportIdentity
+    package: str
+    experiment: Experiment | None = None

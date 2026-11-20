@@ -29,7 +29,8 @@ Document fields:
   discrete and inputs carry their neutral start (`CP-002`);
 - `ModelStructure` outputs and initial unknowns from `component.outputs`, using
   the 1-based `Variable.index`;
-- `DefaultExperiment` from the export unit's typed experiment container
+- `DefaultExperiment` from the export unit's `Reduction.experiment`, captured
+  once by `to_reduction()` from the typed container
   (`read_experiment(..., required=False)`): `startTime` and `stopTime` are the
   base fields, and `stepSize` and `tolerance` are the FMI fields that the
   packaged `Experiment` specialization adds. FMI 2.0.5 defines all four as
@@ -42,11 +43,13 @@ Document fields:
 `render_model_description()` serializes with
 `Fmi2ModelDescriptionXmlCodec` and validates the object and text with
 `Fmi2ModelDescriptionValidator` before returning. `generate_model_description()`
-writes `<output>/<Component>/modelDescription.xml` per selected component and
-returns the paths; a named component that is not exported is a `ValueError`.
+accepts a `Reduction`, an architecture, or its path; it writes
+`<output>/<Component>/modelDescription.xml` per selected component and returns
+the paths; a named component that is not exported is a `ValueError`.
 
-The `start` text is produced by `pycps_sysml2.core.format_value`, so a Boolean
-is `true`/`false`, never `str(True)`.
+The `start` text is produced by `pycps_sysml2.core.format_value` inside the
+reduction and stored as `Variable.start_text`, so a Boolean is `true`/`false`,
+never `str(True)`, and this module never calls the dialect formatter.
 
 FMI authoring attributes are not chosen here: guid policy, modelName override,
 units, and declared variability or initial are a standing non-goal (`INFO-018`).

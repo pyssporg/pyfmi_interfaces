@@ -35,3 +35,5 @@ Records live in the cold-storage archive; extract one with `pb archive read <ID>
   The modelDescription maps startTime and stopTime always, stepSize and tolerance only when the container declares them; absence stays absent and no numeric default is invented.
 - **AD-009** — Experiment projects the FMI disposition · accepted · 2026-11-19 · `AD-009`
   DefaultExperiment supplies startTime and stopTime, Experiment adds stepSize and tolerance, and each authored field is emitted while absence stays absent.
+- **AD-010** — Generators consume a parser-free Reduction · accepted · 2026-11-20 · `AD-010`
+  The dialect is read only by the reduction bridge; every generator accepts a Reduction and runs without importing pycps_sysml2, while paths and architectures still parse at the edge.

@@ -9,7 +9,7 @@ status: current
 
 # FMI 2.0 CoSimulation artifact contract
 
-All outputs read the one `core/` reduction:
+All outputs read the one `Reduction` from `core/`:
 
 - `modelDescription.xml`, validated through `pyssp_standard.standard.fmi2`;
 - C interface headers `<prefix>_InterfaceCommon.h` and one `<prefix>_<Component>.h` per exported component;

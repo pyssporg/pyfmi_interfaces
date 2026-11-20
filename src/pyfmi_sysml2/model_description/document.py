@@ -16,10 +16,8 @@ from __future__ import annotations
 
 from datetime import datetime
 from pathlib import Path
+from typing import TYPE_CHECKING
 
-import pycps_sysml2
-from pycps_sysml2 import Architecture, PartDefinition
-from pycps_sysml2.metadata.roles import read_experiment
 from pyssp_standard.standard.fmi2.codec import Fmi2ModelDescriptionXmlCodec
 from pyssp_standard.standard.fmi2.model import (
     Fmi2DefaultExperiment,
@@ -34,11 +32,14 @@ from pyssp_standard.standard.fmi2.validation import Fmi2ModelDescriptionValidato
 
 from pyfmi_sysml2.core import (
     Component,
-    components,
-    export_identity,
-    resolve_system,
+    Experiment,
+    Reduction,
+    to_reduction,
 )
 from pyfmi_sysml2.core.identity import format_generation_time, guid
+
+if TYPE_CHECKING:
+    from pycps_sysml2 import Architecture
 
 #: FMI version emitted for every generated document.
 FMI_VERSION = "2.0"
@@ -48,7 +49,7 @@ GENERATION_TOOL = "pyfmi_sysml2 tooling"
 
 
 def default_experiment(
-    architecture: Architecture, system: PartDefinition
+    experiment: Experiment | None,
 ) -> Fmi2DefaultExperiment | None:
     """The composition's ``DefaultExperiment``, or ``None`` when unset.
 
@@ -56,10 +57,8 @@ def default_experiment(
     attribute name. A plain ``DefaultExperiment`` supplies ``startTime`` and
     ``stopTime``; the packaged ``Experiment`` specialization adds ``stepSize``
     and ``tolerance``. FMI 2.0.5 defines all four as optional doubles, so every
-    field the container's effective members provide is emitted and an absent
-    one is omitted.
+    field the reduction provides is emitted and an absent one is omitted.
     """
-    experiment = read_experiment(architecture, system, required=False)
     if experiment is None:
         return None
     return Fmi2DefaultExperiment(
@@ -70,23 +69,15 @@ def default_experiment(
     )
 
 
-def _select_component(
-    architecture: Architecture,
-    name: str,
-    *,
-    composition: str | None,
-    base_index: int = 0,
-) -> Component:
-    for candidate in components(
-        architecture, composition=composition, base_index=base_index
-    ):
+def _select_component(reduction: Reduction, name: str) -> Component:
+    for candidate in reduction.components:
         if candidate.name == name:
             return candidate
     raise ValueError(f"No exported component named {name!r}")
 
 
 def model_description_document(
-    architecture: Architecture,
+    source: Reduction | Architecture,
     component: Component | str,
     *,
     composition: str | None = None,
@@ -95,15 +86,17 @@ def model_description_document(
 ) -> Fmi2ModelDescriptionDocument:
     """The FMI 2.0 document for one component, before serialization.
 
+    ``source`` is a :class:`Reduction`, an already parsed architecture, or an
+    architecture path; only the first runs without the SysML dialect.
     ``base_index`` selects the ``[i]`` suffix base of array variable names
     (default 0; 1 targets OMC-built Modelica FMUs).
     """
+    reduction = to_reduction(
+        source, composition=composition, base_index=base_index
+    )
     if isinstance(component, str):
-        component = _select_component(
-            architecture, component, composition=composition, base_index=base_index
-        )
-    system = resolve_system(architecture, composition)
-    identity = export_identity(architecture, system)
+        component = _select_component(reduction, component)
+    identity = reduction.identity
 
     outputs = [Fmi2Unknown(index=variable.index) for variable in component.outputs]
     return Fmi2ModelDescriptionDocument(
@@ -137,12 +130,12 @@ def model_description_document(
                 Fmi2Unknown(index=variable.index) for variable in component.outputs
             ],
         ),
-        default_experiment=default_experiment(architecture, system),
+        default_experiment=default_experiment(reduction.experiment),
     )
 
 
 def render_model_description(
-    architecture: Architecture,
+    source: Reduction | Architecture,
     component: Component | str,
     *,
     composition: str | None = None,
@@ -151,7 +144,7 @@ def render_model_description(
 ) -> str:
     """Serialize and validate one component's model description."""
     document = model_description_document(
-        architecture,
+        source,
         component,
         composition=composition,
         generation_time=generation_time,
@@ -163,7 +156,7 @@ def render_model_description(
 
 
 def generate_model_description(
-    source: Path | str | Architecture,
+    source: Reduction | Architecture | Path | str,
     output_dir: Path | str,
     *,
     composition: str | None = None,
@@ -173,25 +166,21 @@ def generate_model_description(
 ) -> list[Path]:
     """Write ``<output_dir>/<Component>/modelDescription.xml`` per leaf.
 
-    ``source`` is an architecture or the path of one (file or directory).
-    ``component`` narrows the run to one component and fails when it is not
-    exported. ``generation_time`` fixes ``generationDateAndTime``; ``None``
-    stamps the fixed default epoch (2000-01-01T00:00:00Z), so an un-injected
-    build is byte-reproducible, a naive time is refused. ``base_index``
-    selects the ``[i]`` suffix base of array variable names (default 0; 1
-    targets OMC-built Modelica FMUs).
+    ``source`` is a :class:`Reduction`, an architecture, or the path of one
+    (file or directory). ``component`` narrows the run to one component and
+    fails when it is not exported. ``generation_time`` fixes
+    ``generationDateAndTime``; ``None`` stamps the fixed default epoch
+    (2000-01-01T00:00:00Z), so an un-injected build is byte-reproducible, a
+    naive time is refused. ``base_index`` selects the ``[i]`` suffix base of
+    array variable names (default 0; 1 targets OMC-built Modelica FMUs).
     """
-    architecture = (
-        source
-        if isinstance(source, Architecture)
-        else pycps_sysml2.load(source)
+    reduction = to_reduction(
+        source, composition=composition, base_index=base_index
     )
     if generation_time is not None:
         format_generation_time(generation_time)
 
-    selected = components(
-        architecture, composition=composition, base_index=base_index
-    )
+    selected = list(reduction.components)
     if component is not None:
         selected = [
             candidate for candidate in selected if candidate.name == component
@@ -203,9 +192,8 @@ def generate_model_description(
     written: list[Path] = []
     for candidate in selected:
         document = model_description_document(
-            architecture,
+            reduction,
             candidate,
-            composition=composition,
             generation_time=generation_time,
         )
         xml = Fmi2ModelDescriptionXmlCodec().serialize(document)
