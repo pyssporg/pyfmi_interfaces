@@ -26,12 +26,11 @@ Steps:
    end to end from the installed package, not the source tree.
 
 The dependencies are direct-URL wheels pinned to sibling releases
-(`pycps-sysml2` v0.2.0 and `experimental-pyssp-standard` v0.9.3.dev0). A wheel
+(`pycps-sysml2` v0.3.0 and `experimental-pyssp-standard` v0.9.3.dev0). A wheel
 is installable only when both release assets exist; a tag that points at a
 missing asset is not a release.
 
-The `pycps-sysml2` pin is behind the dialect: 0.3.0 removed the `pyssp_*`
-control vocabulary this package no longer reads, so the code needs the v0.3.0
-wheel. Re-pinning is a release chore that waits for that release asset (`IMP-002`);
-until then a wheel built from this tree is importable only against a 0.3.0
-`pycps_sysml2` in the environment.
+The `pycps-sysml2` pin follows the dialect release the code reads: 0.3.0
+removed the `pyssp_*` control vocabulary this package no longer reads, and the
+code reads its experiment container and attribute classification. A later
+dialect change lands here in the same change as the code that depends on it.

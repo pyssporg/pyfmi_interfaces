@@ -18,8 +18,8 @@ python3 -m venv venv
 
 The two runtime dependencies are direct-URL wheels, not index lookups:
 
-- `pycps-sysml2`, the SysML dialect — the pin names the v0.2.0 wheel while
-  the code needs the v0.3.0 API (`IMP-002`);
+- `pycps-sysml2` v0.3.0, the SysML dialect whose experiment and attribute
+  classification API the code reads;
 - `experimental-pyssp-standard` v0.9.3.dev0, the FMI XML and archive API.
 
 They come from `github.com/pyssporg/<repo>/releases/download/v<version>/` assets,

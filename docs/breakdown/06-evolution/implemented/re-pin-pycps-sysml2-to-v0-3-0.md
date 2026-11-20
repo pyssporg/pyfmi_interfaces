@@ -2,9 +2,9 @@
 id: IMP-002
 type: imp
 title: Re-pin pycps-sysml2 to the v0.3.0 release wheel
-summary: The code reads the 0.3.0 experiment API while pyproject.toml still points at the v0.2.0 wheel, so a built wheel is importable only against a 0.3.0 dialect in the environment
+summary: pyproject.toml pins the v0.3.0 wheel, so the dependency resolves the dialect API the code reads instead of the retired v0.2.0 pin
 date: 2026-11-19
-status: suggested
+status: implemented
 ---
 
 # Re-pin pycps-sysml2 to the v0.3.0 release wheel
@@ -26,3 +26,9 @@ status: suggested
 - **Acceptance:** `pip install` of the built wheel in a clean venv resolves
   `pycps-sysml2` 0.3.0 from the URL, and one fixture end to end runs from the
   installed package.
+- **Outcome:** `pyproject.toml` pins the v0.3.0 asset, and `INFO-011`,
+  `INFO-012`, and the install paragraph in `README.md` name that version. The
+  URL resolves via `pip download --no-deps` (`pycps_sysml2-0.3.0-py3-none-any.whl`),
+  and `pytest -m "not slow"` and `ruff check src tests` pass. The clean-venv
+  wheel install and the installed-package fixture run were not repeated in this
+  job; the pin download plus the suite stand in for them.

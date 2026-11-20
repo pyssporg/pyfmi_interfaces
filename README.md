@@ -20,7 +20,7 @@ linking, and producing the `.so` are the implementer's steps.
 ## Install
 
 The two runtime dependencies are direct-URL wheels pinned to sibling GitHub
-releases (`pycps-sysml2` v0.2.0 and `experimental-pyssp-standard`
+releases (`pycps-sysml2` v0.3.0 and `experimental-pyssp-standard`
 v0.9.3.dev0), so the tags must exist before any install resolves.
 `pyfmi_sysml2` is version 0.2.0 and requires Python 3.11 or newer.
 
