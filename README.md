@@ -35,6 +35,13 @@ From a built wheel, `pip install pyfmi_sysml2-<version>-py3-none-any.whl`
 resolves the same two URLs. Both dependencies are immutable release assets, not
 index lookups.
 
+## Examples
+
+`examples/` holds runnable, standalone walkthroughs, each with its own SysML
+input: FMI XML from the CLI, a Modelica package with the implementer seam, and
+a C++ runtime compiled, packed, and loaded as an `.fmu`. Generated output stays
+under `build/` (gitignored). Start at [`examples/README.md`](examples/README.md).
+
 ## CLI
 
 `pyfmi` has five subcommands: four generators (`model-description`,
