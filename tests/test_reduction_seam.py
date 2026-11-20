@@ -102,3 +102,119 @@ def test_a_reduction_refuses_to_be_re_resolved() -> None:
         to_reduction(reduction, composition="ControllerComposition")
     with pytest.raises(ValueError, match="already fixes composition"):
         to_reduction(reduction, base_index=1)
+
+
+ATTR_MODEL = """package Reduced {
+  private import ScalarValues::*;
+  private import PysspCore::*;
+
+  port def ParameterInterface;
+  attribute def ParameterSet;
+  attribute def Tag;
+
+  port def Parameters :> ParameterInterface {
+    attribute gain : Real = 2.5;
+    attribute label : String = "nominal";
+  }
+
+  port def Command {
+    attribute manual : Real = 1.25;
+    attribute mode : Integer = 2;
+    attribute enabled : Boolean = true;
+  }
+
+  part def Controller {
+    attribute tags : Tag[2] = ("a", "b");
+    attribute tag : Tag;
+    in port parameters : Parameters;
+    in port command : Command;
+  }
+
+  part def Root {
+    part controller : Controller;
+  }
+}
+"""
+
+
+def test_reduction_keeps_typed_starts(tmp_path: Path) -> None:
+    """Drift caught: a generator must format ``start``, losing the typed value."""
+    source = tmp_path / "reduced.sysml"
+    source.write_text(ATTR_MODEL, encoding="utf-8")
+
+    reduction = to_reduction(source)
+
+    [component] = reduction.components
+    starts = {
+        variable.name: (variable.start, variable.start_text)
+        for variable in component.variables
+    }
+    assert starts["gain"] == (2.5, "2.5")
+    assert starts["label"] == ("nominal", "nominal")
+    assert starts["command.manual"] == (0.0, "0")
+    assert starts["command.mode"] == (0, "0")
+    assert starts["command.enabled"] == (False, "false")
+
+
+def test_reduction_keeps_authored_attributes(tmp_path: Path) -> None:
+    """Drift caught: a consumer re-resolves the architecture for attributes."""
+    source = tmp_path / "reduced.sysml"
+    source.write_text(ATTR_MODEL, encoding="utf-8")
+
+    reduction = to_reduction(source)
+
+    [component] = reduction.components
+    assert component.attributes == (("tags", ("a", "b")), ("tag", None))
+    [command] = component.ports
+    assert command.attributes == (
+        ("manual", 1.25),
+        ("mode", 2),
+        ("enabled", True),
+    )
+
+
+def test_reduction_names_the_composition_root_and_package(tmp_path: Path) -> None:
+    """Drift caught: the consumer re-selects the system to name the artifact."""
+    source = tmp_path / "reduced.sysml"
+    source.write_text(ATTR_MODEL, encoding="utf-8")
+
+    reduction = to_reduction(source)
+
+    assert reduction.root == "Root"
+    assert reduction.package == "Reduced"
+    assert reduction.identity.system == "Root"
+
+
+ROOT_ATTR_MODEL = """package RootAttrs {
+  private import ScalarValues::*;
+  private import PysspCore::*;
+
+  attribute def Timing;
+
+  port def Command {
+    attribute manual : Real = 1.25;
+  }
+
+  part def Controller {
+    in port command : Command;
+  }
+
+  part def Root {
+    attribute rate_hz : Timing = 50.0;
+    attribute period_s : Timing = 0.02;
+    part controller : Controller;
+  }
+}
+"""
+
+
+def test_reduction_keeps_composition_root_attributes(tmp_path: Path) -> None:
+    """Drift caught: the consumer reads root attributes from the architecture."""
+    source = tmp_path / "root.sysml"
+    source.write_text(ROOT_ATTR_MODEL, encoding="utf-8")
+
+    reduction = to_reduction(source)
+
+    assert reduction.root == "Root"
+    assert reduction.attributes == (("rate_hz", 50.0), ("period_s", 0.02))
+

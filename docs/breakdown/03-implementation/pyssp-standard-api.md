@@ -19,8 +19,9 @@ first.
   setting one is a silent omission.
 - Scalar `start` values are strings in FMI text form. A Boolean must be
   `"true"`/`"false"`; Python's `str(True)` (`"True"`) is invalid. The reduction
-  formats the text once through `pycps_sysml2.core.format_value` and stores it
-  as `Variable.start_text`, so the generators never call the dialect formatter.
+  keeps the typed value as `Variable.start`, formats the text once through
+  `pycps_sysml2.core.format_value`, and stores it as `Variable.start_text`, so
+  the generators never call the dialect formatter.
 - `Fmi2ModelStructure` unknown `index` is the 1-based ScalarVariable position,
   not the 0-based `valueReference`. `Variable` carries both for this reason.
 - `Fmi2ModelDescriptionValidator.validate(document, xml)` performs semantic and

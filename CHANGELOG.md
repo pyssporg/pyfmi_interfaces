@@ -66,6 +66,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   labels shift, so `base_index=1` indexes `gains[0]..[n-1]` instead of one past
   the end.
 
+## [0.4.0] - 2026-11-20
+
+### Added
+
+- Restore the typed `Variable.start`: parameters keep their authored value and
+  inputs their neutral `INPUT_START` value, while `Variable.start_text` remains
+  the formatted FMI text. A `Reduction` therefore loses no start information.
+- Add `Component.attributes` and `PortGroup.attributes`, carrying the authored
+  part-definition and port-definition attributes as `(name, value)` pairs in
+  declaration order, so a consumer never re-resolves the architecture.
+- Add `Reduction.root`, the selected composition or system name, or `None` when
+  no root was resolved.
+
+### Changed
+
+- A `Reduction` is now the complete parser-free generator input: package, root,
+  typed starts, variables, and authored attributes cross the seam together.
+
+### Fixed
+
+- Typed start values and authored attributes are no longer discarded when a
+  reduction crosses the library boundary.
+
 ## [0.2.0] - 2026-11-09
 
 ### Added

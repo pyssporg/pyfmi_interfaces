@@ -48,8 +48,9 @@ class Field:
 class Variable:
     """One FMI ScalarVariable, with its C member expression.
 
-    ``start_text`` is the already formatted ``start`` value, so the model never
-    needs the dialect's value formatter.
+    ``start`` is the authored typed value (the neutral ``INPUT_START`` value
+    for an input); ``start_text`` is that value already formatted for FMI, so
+    the model never needs the dialect's value formatter.
     """
 
     name: str
@@ -59,8 +60,9 @@ class Variable:
     value_reference: int
     index: int
     description: str | None
-    start_text: str | None
     member: str
+    start: object | None = None
+    start_text: str | None = None
 
     @property
     def writable(self) -> bool:
@@ -84,7 +86,7 @@ class Variable:
 
 @dataclass(frozen=True)
 class PortGroup:
-    """A port usage: its payload fields and their FMI variables."""
+    """A port usage: its payload fields, attributes, and their FMI variables."""
 
     name: str
     definition: str
@@ -92,6 +94,7 @@ class PortGroup:
     causality: str
     fields: tuple[Field, ...]
     doc: str | None
+    attributes: tuple[tuple[str, object], ...] = ()
 
     @property
     def modelica_qualifier(self) -> str:
@@ -105,13 +108,18 @@ class PortGroup:
 
 @dataclass(frozen=True)
 class Component:
-    """A leaf part definition and its complete FMI interface."""
+    """A leaf part definition and its complete FMI interface.
+
+    ``attributes`` keeps the authored part-definition attributes as
+    ``(name, value)`` pairs in declaration order.
+    """
 
     name: str
     doc: str | None
     parameters: tuple[Field, ...]
     ports: tuple[PortGroup, ...]
     variables: tuple[Variable, ...]
+    attributes: tuple[tuple[str, object], ...] = ()
 
     @property
     def outputs(self) -> tuple[Variable, ...]:
@@ -164,12 +172,16 @@ class Reduction:
     """One export unit reduced to the input every artifact generator needs.
 
     ``components`` carries the complete variable set, ``identity`` the naming
-    rule, ``package`` the default header/type prefix, and ``experiment`` the
-    composition's optional default experiment. A caller that already holds a
-    ``Reduction`` can run any generator without the SysML dialect installed.
+    rule, ``package`` the default header/type prefix, ``root`` the selected
+    composition name, ``attributes`` the root part definition's authored
+    attributes, and ``experiment`` the composition's optional default
+    experiment. A caller that already holds a ``Reduction`` can run any
+    generator without the SysML dialect installed.
     """
 
     components: tuple[Component, ...]
     identity: ExportIdentity
     package: str
     experiment: Experiment | None = None
+    root: str | None = None
+    attributes: tuple[tuple[str, object], ...] = ()

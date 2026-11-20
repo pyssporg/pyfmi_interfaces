@@ -34,7 +34,7 @@ from pyfmi_sysml2.core import (
 from pyfmi_sysml2.model_description import generate_model_description
 from pyfmi_sysml2.modelica import generate_modelica
 
-__version__ = "0.3.0"
+__version__ = "0.4.0"
 
 __all__ = [
     "Component",

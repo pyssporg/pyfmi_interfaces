@@ -194,6 +194,7 @@ def component_interface(
                 if array is None
                 else f"{attribute.name}[{position}]"
             )
+            start = item.value
             variables.append(
                 Variable(
                     name=item.name,
@@ -203,8 +204,9 @@ def component_interface(
                     value_reference=counter - 1,
                     index=counter,
                     description=attribute.doc,
-                    start_text=_start_text(type_name, item.value),
                     member=member,
+                    start=start,
+                    start_text=_start_text(type_name, start),
                 )
             )
 
@@ -220,9 +222,8 @@ def component_interface(
         scalar = _is_scalar_port(architecture, definition)
         member_directions: list[str | None] = []
         fields: list[Field] = []
-        for attribute in effective_members(
-            architecture, definition
-        ).attributes.values():
+        port_attributes = effective_members(architecture, definition).attributes
+        for attribute in port_attributes.values():
             if (
                 classify_attribute(architecture, attribute, policy=SSP_POLICY)
                 in _container_kinds()
@@ -236,6 +237,9 @@ def component_interface(
             fields.append(Field(attribute.name, type_name, array, base_index))
             for suffix, member in fields[-1].members():
                 counter += 1
+                start = (
+                    INPUT_START[type_name] if causality == "input" else None
+                )
                 variables.append(
                     Variable(
                         name=(
@@ -253,12 +257,9 @@ def component_interface(
                         description=(
                             attribute.doc or usage.doc or definition.doc
                         ),
-                        start_text=(
-                            _start_text(type_name, INPUT_START[type_name])
-                            if causality == "input"
-                            else None
-                        ),
                         member=f"{name}.{member}",
+                        start=start,
+                        start_text=_start_text(type_name, start),
                     )
                 )
         if member_directions and all(
@@ -275,6 +276,10 @@ def component_interface(
                 causality=direction_causality(port_direction),
                 fields=tuple(fields),
                 doc=usage.doc or definition.doc,
+                attributes=tuple(
+                    (attribute.name, attribute.value)
+                    for attribute in port_attributes.values()
+                ),
             )
         )
 
@@ -284,6 +289,10 @@ def component_interface(
         parameters=tuple(parameters),
         ports=tuple(ports),
         variables=tuple(variables),
+        attributes=tuple(
+            (attribute.name, attribute.value)
+            for attribute in part_def.attributes.values()
+        ),
     )
 
 
@@ -529,6 +538,11 @@ def to_reduction(
         identity=identity,
         package=parsed.package_name,
         experiment=_experiment(parsed, system),
+        root=system.name,
+        attributes=tuple(
+            (attribute.name, attribute.value)
+            for attribute in system.attributes.values()
+        ),
     )
 
 

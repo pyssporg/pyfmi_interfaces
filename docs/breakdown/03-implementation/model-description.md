@@ -25,8 +25,8 @@ Document fields:
   `model_identifier=<component>` — both are required for the codec to emit the
   interface element;
 - one `Fmi2ScalarVariable` per reduction variable, with the reduction's
-  `variability` and `start` already rendered as FMI text; non-`Real` ports are
-  discrete and inputs carry their neutral start (`CP-002`);
+  `variability` and `Variable.start_text` (rendered from the typed `start`);
+  non-`Real` ports are discrete and inputs carry their neutral start (`CP-002`);
 - `ModelStructure` outputs and initial unknowns from `component.outputs`, using
   the 1-based `Variable.index`;
 - `DefaultExperiment` from the export unit's `Reduction.experiment`, captured
@@ -47,9 +47,10 @@ accepts a `Reduction`, an architecture, or its path; it writes
 `<output>/<Component>/modelDescription.xml` per selected component and returns
 the paths; a named component that is not exported is a `ValueError`.
 
-The `start` text is produced by `pycps_sysml2.core.format_value` inside the
-reduction and stored as `Variable.start_text`, so a Boolean is `true`/`false`,
-never `str(True)`, and this module never calls the dialect formatter.
+The typed `start` is stored as `Variable.start`; its FMI text is produced by
+`pycps_sysml2.core.format_value` inside the reduction and stored as
+`Variable.start_text`, so a Boolean is `true`/`false`, never `str(True)`, and
+this module never calls the dialect formatter.
 
 FMI authoring attributes are not chosen here: guid policy, modelName override,
 units, and declared variability or initial are a standing non-goal (`INFO-018`).

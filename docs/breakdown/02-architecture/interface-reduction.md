@@ -13,14 +13,16 @@ status: current
 reads it and none re-derives variables, causalities, or value references.
 
 `to_reduction()` is the seam: it resolves the export unit, validates the
-parameter dialect, and returns a `Reduction` — the components, the
-`ExportIdentity`, the package name, and the `Experiment`. Only it imports
+parameter dialect, and returns a `Reduction`: components, `ExportIdentity`,
+package and selected `root` names, and `Experiment`. Only it imports
 `pycps_sysml2`; a generator given a `Reduction` never does. `components()` stays
 the parser-side API and returns the same list: the container root's leaf
 descendants sorted by name, or the single definition marked `:> FmuModel`. Each
-`Component` carries parameter fields, port groups, and the flat `variables`
-tuple every generator iterates. `Variable.start_text` is formatted here too, so
-the model carries FMI text and no generator calls the dialect formatter.
+`Component` carries parameter fields, port groups, the flat `variables` tuple
+every generator iterates, and its authored `attributes`; each `PortGroup`
+carries its resolved port definition's attributes. `Variable.start` is the
+authored typed value (neutral for an input) and `Variable.start_text` its FMI
+text, both produced here, so the model needs no dialect formatter.
 
 Rules encoded here, not repeated in the generators: parameters first, then ports
 and fields in declaration order, one VR per scalar restarting at 0 per
