@@ -26,7 +26,7 @@ Steps:
    end to end from the installed package, not the source tree.
 
 The dependencies are direct-URL wheels pinned to sibling releases
-(`pycps-sysml2` v0.3.0 and `experimental-pyssp-standard` v0.9.3.dev0). A wheel
+(`pycps-sysml2` v0.3.0 and `experimental-pyssp-standard` v0.9.4.dev0). A wheel
 is installable only when both release assets exist; a tag that points at a
 missing asset is not a release.
 

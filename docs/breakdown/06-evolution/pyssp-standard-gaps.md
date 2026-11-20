@@ -30,4 +30,4 @@ status: current
   them here.
 - Adding either element by hand-written XML is not an acceptable workaround.
 - **Verification:** re-check both gaps after any `pyssp_standard` version bump;
-  the pinned URL is v0.9.3.dev0.
+  the pinned URL is v0.9.4.dev0.

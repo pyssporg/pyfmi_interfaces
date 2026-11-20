@@ -46,6 +46,6 @@ first.
   checks `fmiVersion == "2.0"`, the presence of an interface, and that the
   `modelIdentifier` equals the binary stem.
 
-The pinned `experimental-pyssp-standard` v0.9.3.dev0 wheel carries `FMU.stage`
+The pinned `experimental-pyssp-standard` v0.9.4.dev0 wheel carries `FMU.stage`
 and `FMU.package`; `pyfmi_sysml2` needs no editable sibling checkout and adds
 no wrapper around either.
