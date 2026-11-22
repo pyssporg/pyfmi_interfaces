@@ -1,0 +1,44 @@
+"""Generate FMI 2.0 CoSimulation artifacts from a reduced interface model.
+
+The SysML dialect and the reduction that reads it live in ``pyfmi_sysml``; this
+package is parser-free. The public surface is one function per artifact plus the
+``pyfmi`` command line:
+
+- :func:`generate_model_description` — ``modelDescription.xml``
+- :func:`generate_c_headers` — C interface headers
+- :func:`generate_c_runtime` — C++17 FMI 2.0 CoSimulation runtime
+- :func:`generate_modelica` — Modelica connectors and package files
+- :func:`fmi2_headers` — the bundled FMI 2.0 standard C headers
+
+Every generator accepts a :class:`Reduction` and runs without importing a SysML
+parser. The ``.fmu`` archive is written by ``pyssp_standard``'s ``FMU`` facade;
+import ``FMU`` from ``pyssp_standard`` and call ``FMU.package``.
+"""
+
+from pyfmi_interfaces.c import generate_c_headers, generate_c_runtime
+from pyfmi_interfaces.core import (
+    Component,
+    Experiment,
+    ExportIdentity,
+    Reduction,
+    Variable,
+    fmi2_headers,
+)
+from pyfmi_interfaces.model_description import generate_model_description
+from pyfmi_interfaces.modelica import generate_modelica
+
+__version__ = "0.5.1"
+
+__all__ = [
+    "Component",
+    "Experiment",
+    "ExportIdentity",
+    "Reduction",
+    "Variable",
+    "__version__",
+    "fmi2_headers",
+    "generate_c_headers",
+    "generate_c_runtime",
+    "generate_model_description",
+    "generate_modelica",
+]

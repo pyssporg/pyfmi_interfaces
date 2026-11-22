@@ -1,11 +1,11 @@
 ---
-title: Product Breakdown — pyfmi_sysml2
+title: Product Breakdown — pyfmi_interfaces
 summary: Current-state record of why the FMI generator exists, its artifact contract, architecture, implementation, verification, operation, and evolution.
 ---
 
-# Product Breakdown — pyfmi_sysml2
+# Product Breakdown — pyfmi_interfaces
 
-Current-state record of `pyfmi_sysml2`: the artifact it promises, the workflow
+Current-state record of `pyfmi_interfaces`: the artifact it promises, the workflow
 it serves, and how generation is organized, verified, and released.
 
 ## The Seven Layers
@@ -37,4 +37,4 @@ state only.
 
 - Runnable fixtures and goldens: `tests/fixtures/`, `tests/golden/`.
 - Generated builds: `build/` and `/tmp`.
-- Sibling libraries: `pycps_sysml2`, `pyssp_standard`, `pyssp_sysml2`.
+- Sibling libraries: `pyfmi_sysml`, `pyssp_standard`, `pyssp_sysml2`.

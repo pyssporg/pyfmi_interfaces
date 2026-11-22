@@ -37,4 +37,4 @@ Commands:
 `UPDATE_GOLDENS=1 ./venv/bin/python -m pytest` rewrites goldens locally; it has
 no effect when `CI` is set. Review the diff before committing a golden.
 
-The editable install provides the `pyfmi` console script; otherwise run `PYTHONPATH=src ./venv/bin/python -m pyfmi_sysml2.cli`.
+The editable install provides the `pyfmi` console script; otherwise run `PYTHONPATH=src ./venv/bin/python -m pyfmi_interfaces.cli`.

@@ -46,7 +46,7 @@ def model_description(identifier: str) -> str:
         fmi_version="2.0",
         model_name=identifier,
         guid="{6ba7b810-9dad-11d1-80b4-00c04fd430c8}",
-        generation_tool="pyfmi_sysml2 tests",
+        generation_tool="pyfmi_interfaces tests",
         variable_naming_convention="structured",
         default_experiment=Fmi2DefaultExperiment(start_time=0.0, stop_time=1.0),
         interface_type="CoSimulation",

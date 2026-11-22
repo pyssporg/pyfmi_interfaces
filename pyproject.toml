@@ -3,20 +3,20 @@ requires = ["setuptools>=69", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "pyfmi_sysml2"
+name = "pyfmi-interfaces"
 dynamic = ["version"]
-description = "Generate FMI 2.0 CoSimulation artifacts from a SysML v2 architecture model."
+description = "Generate FMI 2.0 CoSimulation artifacts from a parser-free interface Reduction."
 readme = "README.md"
 requires-python = ">=3.11"
 license = { file = "LICENSE" }
 authors = [
   { name = "pyssp contributors" }
 ]
-# Both dependencies are direct URLs, not index lookups: they are immutable
-# release assets attached by each project's wheels workflow. The tag is
-# v<version>, and an unreleased tag makes this wheel uninstallable.
+# The FMI XML library is a direct URL, not an index lookup: it is an immutable
+# release asset attached by its wheels workflow. The tag is v<version>, and an
+# unreleased tag makes this wheel uninstallable. SysML ingestion lives in
+# ``pyfmi_sysml``; this package has no parser dependency.
 dependencies = [
-  "pycps-sysml2 @ https://github.com/pyssporg/pycps_sysml2/releases/download/v0.3.0/pycps_sysml2-0.3.0-py3-none-any.whl",
   "experimental-pyssp-standard @ https://github.com/pyssporg/experimental_pyssp_standard/releases/download/v0.9.4.dev0/experimental_pyssp_standard-0.9.4.dev0-py3-none-any.whl"
 ]
 
@@ -28,21 +28,21 @@ dev = [
 ]
 
 [project.scripts]
-pyfmi = "pyfmi_sysml2.cli:main"
+pyfmi = "pyfmi_interfaces.cli:main"
 
 [tool.setuptools]
 package-dir = {"" = "src"}
 include-package-data = true
 
 [tool.setuptools.package-data]
-pyfmi_sysml2 = ["fmi2_headers/*.h"]
+pyfmi_interfaces = ["fmi2_headers/*.h"]
 
 [tool.setuptools.dynamic]
-version = { attr = "pyfmi_sysml2.__version__" }
+version = { attr = "pyfmi_interfaces.__version__" }
 
 [tool.setuptools.packages.find]
 where = ["src"]
-include = ["pyfmi_sysml2*"]
+include = ["pyfmi_interfaces*", "pyfmi_sysml2*"]
 
 [tool.ruff]
 # Lint selection is explicit so a ruff upgrade cannot change the gate.

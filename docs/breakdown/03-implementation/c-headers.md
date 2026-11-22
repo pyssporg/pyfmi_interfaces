@@ -11,8 +11,9 @@ status: current
 
 `generate_c_headers()` writes `<prefix>_InterfaceCommon.h`, then one
 `<prefix>_<Component>.h` per exported component; `--component NAME` keeps one
-plus the common header, and an unknown name raises `KeyError`. `c-runtime` calls
-it, so both commands regenerate these headers and `c-headers` is header-only.
+plus the common header, and an unknown name raises `KeyError`. The
+`pyfmi-sysml c-runtime` command calls it, so both commands regenerate these
+headers and `c-headers` is header-only.
 `prefix` defaults to the package name; `header_stem()` keeps a direct FMU model
 at `Generator.h`, not `Generator_Generator.h`, and owns the file/identifier rule.
 

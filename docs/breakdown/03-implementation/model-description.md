@@ -17,7 +17,7 @@ Document fields:
 - `fmi_version="2.0"`, `model_name` = `<composition>.<component>` for a
   container root or the bare definition for a direct FMU model;
 - `guid` from the frozen uuid5 key `pyssp_sysml2/<composition>/<component>` or
-  `pyssp_sysml2/<definition>`, `generation_tool="pyfmi_sysml2 tooling"`;
+  `pyssp_sysml2/<definition>`, `generation_tool="pyfmi_interfaces tooling"`;
 - `generation_date_and_time` from the injected clock; omitted means the fixed
   `2000-01-01T00:00:00Z` epoch, and a naive time is refused;
 - `variable_naming_convention="structured"`;
@@ -43,14 +43,14 @@ Document fields:
 `render_model_description()` serializes with
 `Fmi2ModelDescriptionXmlCodec` and validates the object and text with
 `Fmi2ModelDescriptionValidator` before returning. `generate_model_description()`
-accepts a `Reduction`, an architecture, or its path; it writes
+accepts a parser-free `Reduction`; it writes
 `<output>/<Component>/modelDescription.xml` per selected component and returns
 the paths; a named component that is not exported is a `ValueError`.
 
-The typed `start` is stored as `Variable.start`; its FMI text is produced by
-`pycps_sysml2.core.format_value` inside the reduction and stored as
-`Variable.start_text`, so a Boolean is `true`/`false`, never `str(True)`, and
-this module never calls the dialect formatter.
+The typed `start` is stored as `Variable.start`; its FMI text is produced by the
+reduction builder (through `pycps_sysml2.core.format_value` in `pyfmi_sysml`)
+and stored as `Variable.start_text`, so a Boolean is `true`/`false`, never
+`str(True)`, and this module never calls the dialect formatter.
 
 FMI authoring attributes are not chosen here: guid policy, modelName override,
 units, and declared variability or initial are a standing non-goal (`INFO-018`).

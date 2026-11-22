@@ -25,7 +25,7 @@ except ModuleNotFoundError:  # Python 3.10 runtime without tomllib
 
 pytestmark = pytest.mark.static
 
-PACKAGE = "pyfmi_sysml2"
+PACKAGE = "pyfmi_interfaces"
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
@@ -39,13 +39,17 @@ FACADE = PACKAGE_ROOT / "__init__.py"
 
 CLI = PACKAGE_ROOT / "cli.py"
 
-#: The dialect library is a wheel dependency; importing it would make this
-#: package a fork of the parser instead of a consumer of it.
+#: The sibling artifact library is a wheel dependency, never a package this one
+#: imports.
 FORBIDDEN_IMPORT = "pyssp_sysml2"
 
-#: The only third parties ``core`` may import: the dialect and the FMI XML
-#: library whose document model and serializer this package maps onto.
-ALLOWED_CORE_THIRD_PARTY = frozenset({"pycps_sysml2", "pyssp_standard"})
+#: The SysML parser moved to ``pyfmi_sysml``; this package is parser-free, so no
+#: module may import it at all (not even under ``TYPE_CHECKING``).
+SYSML_PARSER = "pycps_sysml2"
+
+#: The only third party ``core`` may import: the FMI XML library whose document
+#: model and serializer this package maps onto.
+ALLOWED_CORE_THIRD_PARTY = frozenset({"pyssp_standard"})
 
 #: Directories under the package that are not artifact families.
 NON_FAMILY_DIRECTORIES = frozenset({"core", "fmi2_headers"})
@@ -64,14 +68,11 @@ EXPECTED_PUBLIC = frozenset(
         "Reduction",
         "Variable",
         "__version__",
-        "components",
         "fmi2_headers",
-        "fmu_units",
         "generate_c_headers",
         "generate_c_runtime",
         "generate_model_description",
         "generate_modelica",
-        "to_reduction",
     }
 )
 
@@ -271,30 +272,21 @@ def _is_type_checking(test: ast.expr) -> bool:
     return isinstance(test, ast.Attribute) and test.attr == "TYPE_CHECKING"
 
 
-def test_only_the_reduction_bridge_imports_the_dialect_at_runtime():
-    """One module reads the dialect; a generator's import chain never does.
+def test_sources_import_no_sysml_parser():
+    """``pyfmi_interfaces`` is parser-free; ``pyfmi_sysml`` owns ingestion.
 
-    Annotations may still name ``Architecture`` under ``TYPE_CHECKING``, which
-    is why only runtime imports count here.
+    The check walks every import, including ``TYPE_CHECKING`` blocks, so an
+    annotation alone cannot pull the parser back in.
     """
-    bridge = f"{PACKAGE}.core.reduction"
-    dialect = "pycps_sysml2"
-    offenders = []
-    bridge_imports = []
-    for path, module, tree in _modules():
-        for name, lineno in _runtime_imports(module, path, tree):
-            if name.split(".")[0] != dialect:
-                continue
-            if module == bridge:
-                bridge_imports.append(_location(path, lineno))
-            else:
-                offenders.append(_location(path, lineno))
-    assert bridge_imports, (
-        f"{bridge} must still be the module that loads {dialect}"
-    )
+    offenders = [
+        _location(path, lineno)
+        for path, module, tree in _modules()
+        for name, lineno in _imports(module, path, tree)
+        if name.split(".")[0] == SYSML_PARSER
+    ]
     assert not offenders, (
-        "every generator consumes a Reduction; only the reduction bridge may "
-        f"import {dialect} at runtime: {offenders}"
+        f"{SYSML_PARSER} is owned by pyfmi_sysml; no module here may import it: "
+        f"{offenders}"
     )
 
 
@@ -313,8 +305,8 @@ def test_core_imports_only_the_dialect_fmi_and_itself():
             elif name != core and not name.startswith(f"{core}."):
                 offenders.append(f"{_location(path, lineno)} imports {name}")
     assert not offenders, (
-        "core imports only stdlib, pycps_sysml2, pyssp_standard, and "
-        f"pyfmi_sysml2.core.*: {offenders}"
+        "core imports only stdlib, pyssp_standard, and "
+        f"pyfmi_interfaces.core.*: {offenders}"
     )
 
 
@@ -343,7 +335,7 @@ def test_a_family_imports_only_itself_and_core():
                 )
     assert not offenders, (
         "an artifact family must not import a sibling family; only its own "
-        f"modules and pyfmi_sysml2.core.* are allowed: {offenders}"
+        f"modules and pyfmi_interfaces.core.* are allowed: {offenders}"
     )
 
 
@@ -368,12 +360,13 @@ def test_family_packages_are_collected_only_at_the_top():
                     f"{_location(path, lineno)} imports family {target[1]}"
                 )
     assert not offenders, (
-        "only pyfmi_sysml2/__init__.py and pyfmi_sysml2/cli.py may collect "
+        "only pyfmi_interfaces/__init__.py and pyfmi_interfaces/cli.py may collect "
         f"artifact families: {offenders}"
     )
 
 
-def test_cli_registers_every_family_directory():
+def test_cli_registers_only_the_packaging_family():
+    """Source-taking commands moved to ``pyfmi-sysml``; ``package`` stays here."""
     registered = set()
     for node in ast.walk(_tree(CLI)):
         if isinstance(node, ast.ImportFrom) and node.level == 0 and node.module:
@@ -384,11 +377,9 @@ def test_cli_registers_every_family_directory():
                 and any(alias.name == "COMMANDS" for alias in node.names)
             ):
                 registered.add(parts[1])
-    directories = set(_family_names())
-    assert registered == directories, (
-        "cli.py COMMANDS registration must equal the artifact-family directories "
-        "(excluding core and fmi2_headers): "
-        f"registered={sorted(registered)} directories={sorted(directories)}"
+    assert registered == {"fmu"}, (
+        "cli.py must register only the packaging family; the source-taking "
+        f"families register in pyfmi_sysml: registered={sorted(registered)}"
     )
 
 
@@ -419,16 +410,20 @@ def test_every_module_is_reachable_from_a_root():
     )
 
 
-def test_runtime_dependencies_are_two_pinned_direct_urls():
+def test_runtime_dependency_is_one_pinned_direct_url():
     project = _pyproject()["project"]
     dependencies = project.get("dependencies", [])
-    assert len(dependencies) == 2, (
-        f"exactly two runtime dependencies expected, found {dependencies}"
+    assert len(dependencies) == 1, (
+        f"exactly one runtime dependency expected, found {dependencies}"
     )
     wrong = [dep for dep in dependencies if not DIRECT_URL.match(dep)]
     assert not wrong, f"runtime dependencies are not direct wheel URLs: {wrong}"
-    dialect = [dep for dep in dependencies if FORBIDDEN_IMPORT in dep]
-    assert not dialect, f"{FORBIDDEN_IMPORT} must not be a runtime dependency: {dialect}"
+    dialect = [
+        dep
+        for dep in dependencies
+        if FORBIDDEN_IMPORT in dep or SYSML_PARSER in dep
+    ]
+    assert not dialect, f"no SysML parser may be a runtime dependency: {dialect}"
 
 
 def test_python_floor_matches_pyproject():

@@ -1,54 +1,49 @@
-"""Generate FMI 2.0 CoSimulation artifacts from a SysML v2 architecture.
+"""Deprecated: import :mod:`pyfmi_interfaces` instead.
 
-The SysML dialect is owned by :mod:`pycps_sysml2`; this package implements the
-FMI half of it. The public surface is one function per artifact plus the
-``pyfmi`` command line:
+``pyfmi_sysml2`` is a compatibility shim kept for one deprecation window. It
+re-exports the public surface of :mod:`pyfmi_interfaces` and registers every
+``pyfmi_interfaces`` submodule under the matching ``pyfmi_sysml2`` name, so
+``import pyfmi_sysml2.core`` (and ``.c``, ``.model_description``,
+``.modelica``, ``.fmu``, ``.cli``) keeps working unchanged.
 
-- :func:`generate_model_description` — ``modelDescription.xml``
-- :func:`generate_c_headers` — C interface headers
-- :func:`generate_c_runtime` — C++17 FMI 2.0 CoSimulation runtime
-- :func:`generate_modelica` — Modelica connectors and package files
-- :func:`fmi2_headers` — the bundled FMI 2.0 standard C headers
-- :func:`fmu_units` — the ``:> FmuModel`` leaf definitions to export
-- :func:`to_reduction` — the parser-free input every generator accepts
-
-Parsing and generation are separable. :func:`to_reduction` turns an
-architecture (or a path) into a :class:`Reduction`; every generator accepts
-that reduction directly and then runs without importing ``pycps_sysml2``. The
-``.fmu`` archive is written by ``pyssp_standard``'s ``FMU`` facade; import
-``FMU`` from ``pyssp_standard`` and call ``FMU.package``.
+New code should import ``pyfmi_interfaces`` directly. This shim will be removed
+in a future release.
 """
 
-from pyfmi_sysml2.c import generate_c_headers, generate_c_runtime
-from pyfmi_sysml2.core import (
-    Component,
-    Experiment,
-    ExportIdentity,
-    Reduction,
-    Variable,
-    components,
-    fmi2_headers,
-    fmu_units,
-    to_reduction,
-)
-from pyfmi_sysml2.model_description import generate_model_description
-from pyfmi_sysml2.modelica import generate_modelica
+from __future__ import annotations
 
-__version__ = "0.4.0"
+import importlib
+import pkgutil
+import sys
 
-__all__ = [
-    "Component",
-    "Experiment",
-    "ExportIdentity",
-    "Reduction",
-    "Variable",
-    "__version__",
-    "components",
-    "fmi2_headers",
-    "fmu_units",
-    "generate_c_headers",
-    "generate_c_runtime",
-    "generate_model_description",
-    "generate_modelica",
-    "to_reduction",
-]
+import pyfmi_interfaces as _interface_package
+
+__version__ = _interface_package.__version__
+__all__ = list(_interface_package.__all__)
+
+
+def _reexport_public() -> None:
+    namespace = globals()
+    for name in _interface_package.__all__:
+        if name != "__version__":
+            namespace[name] = getattr(_interface_package, name)
+
+
+def _register_submodules() -> None:
+    prefix = _interface_package.__name__
+    for info in pkgutil.walk_packages(_interface_package.__path__, prefix + "."):
+        module = importlib.import_module(info.name)
+        legacy_name = __name__ + info.name[len(prefix) :]
+        sys.modules.setdefault(legacy_name, module)
+    # Attribute-style access, e.g. ``pyfmi_sysml2.core`` after a bare import.
+    for legacy_name, module in list(sys.modules.items()):
+        if legacy_name == __name__ or not legacy_name.startswith(__name__ + "."):
+            continue
+        parent_name, _, child = legacy_name.rpartition(".")
+        parent = sys.modules.get(parent_name)
+        if parent is not None:
+            setattr(parent, child, module)
+
+
+_reexport_public()
+_register_submodules()

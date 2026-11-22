@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.5.1] - 2026-11-22
 
 ### Added
 
@@ -48,6 +48,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `pyfmi package` now delegates to `pyssp_standard`'s `FMU` facade.
 - The Modelica oracle now also checks each generated partial model and builds a
   hand-written model against it, because `checkModel` does not balance-check.
+- Every generator accepts a `Reduction` (or a sequence of components) only; the
+  architecture/source branch is gone, so no module in this package imports a
+  SysML parser at any time. The source-taking commands and the `to_reduction`
+  bridge moved to the new `pyfmi_sysml` composition package.
 
 ### Removed
 
@@ -58,6 +62,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   fields, and the inline applied-set model literal (now the `applied` fixture).
 - Drop the in-package FMU archive writer; packaging is owned by
   `pyssp_standard`.
+- Remove `core/reduction.py` and the eight SysML-only exports
+  (`architecture`, `component`, `components`, `direction_causality`,
+  `export_identity`, `fmu_units`, `resolve_system`, `to_reduction`) from the
+  `core` and top-level facades; `ExportIdentity` now comes from `core.model`.
+- Remove the `model-description`, `c-headers`, `c-runtime`, and `modelica`
+  subcommands and their source-option helpers from the `pyfmi` CLI; they live
+  in `pyfmi-sysml`. `pyfmi package` stays here.
+- Drop `pycps-sysml2` from the runtime dependencies and from the packaging
+  metadata.
 
 ### Fixed
 
@@ -65,6 +78,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   with exactly `array` elements, and only the FMI element names and VR enum
   labels shift, so `base_index=1` indexes `gains[0]..[n-1]` instead of one past
   the end.
+
+## [0.5.0] - 2026-11-22
+
+### Renamed
+
+- Rename the distribution from `pyfmi_sysml2` to `pyfmi-interfaces` and the
+  importable package from `pyfmi_sysml2` to `pyfmi_interfaces`. The
+  `pyfmi_sysml2` import name remains as a deprecated compatibility shim that
+  re-exports the public surface and registers every `pyfmi_interfaces`
+  submodule, so existing imports keep working for one deprecation window.
+- The console script stays `pyfmi`, now targeting `pyfmi_interfaces.cli:main`.
+
+### Changed
+
+- The generated `modelDescription.xml` now stamps `generationTool` as
+  `pyfmi_interfaces tooling` instead of `pyfmi_sysml2 tooling`. Model GUIDs and
+  the `pyssp_sysml2` GUID namespace are unchanged.
 
 ## [0.4.0] - 2026-11-20
 

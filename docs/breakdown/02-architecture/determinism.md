@@ -20,7 +20,7 @@ prefix is frozen: a migrated build keeps every guid, and changing the prefix or
 the component spelling breaks stored guids.
 
 `generation_time` is injected on the Python API and on
-`pyfmi model-description --generation-time`; `None` means the fixed default
+`pyfmi-sysml model-description --generation-time`; `None` means the fixed default
 epoch `2000-01-01T00:00:00Z`, never a wall-clock read, so an un-injected build
 is byte-reproducible. A naive datetime is refused, and `utc_now()` is the
 opt-in wall clock. The document is stamped `YYYY-MM-DDTHH:MM:SSZ`; equal

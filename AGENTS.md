@@ -29,16 +29,21 @@ to read, not references of last resort.
 
 ## Repository Focus
 
-`pyfmi_sysml2` generates FMI 2.0 CoSimulation artifacts from a SysML v2
-architecture: `modelDescription.xml`, C interface headers, a C++17 runtime with
-a five-hook model seam, Modelica connectors with a partial-model implementer
-seam, and a packaged `.fmu`. The artifact is the library boundary; the `pyfmi`
-CLI, four generator functions, and `fmi2_headers` are the public surface.
+`pyfmi_interfaces` generates FMI 2.0 CoSimulation artifacts from a parser-free
+interface `Reduction`: `modelDescription.xml`, C interface headers, a C++17
+runtime with a five-hook model seam, Modelica connectors with a partial-model
+implementer seam, and a packaged `.fmu`. The artifact is the library boundary;
+the `pyfmi` CLI, four generator functions, and `fmi2_headers` are the public
+surface.
 
-- The SysML dialect is owned by `pycps_sysml2`; this package implements the FMI
-  half of that contract.
+- This package is parser-free. The SysML dialect and the `Reduction`
+  construction live in the `pyfmi_sysml` composition layer, which reads through
+  `pycps_sysml2`; this package implements the FMI half of the contract.
 - FMI XML is owned by `pyssp_standard.standard.fmi2`; this package maps the
   reduction onto it.
+- The `pyfmi_sysml2` import name is a deprecated compatibility shim: it only
+  re-exports this package and retires after the stated window. New code imports
+  `pyfmi_interfaces`.
 - The code is one `core/` package plus one subpackage per artifact family
   (`c/`, `model_description/`, `modelica/`, `fmu/`), plus the bundled
   `fmi2_headers/`. A family imports `core/` only and never another family; only
@@ -50,9 +55,10 @@ CLI, four generator functions, and `fmi2_headers` are the public surface.
 
 ## Hard constraints
 
-- **Never import `pyssp_sysml2`.** The two artifact libraries are siblings.
-  Dialect access goes through `pycps_sysml2`; SSP emission is not this
-  repository's job.
+- **Never import a parser or `pyssp_sysml2`.** The two artifact libraries are
+  siblings. `pycps_sysml2` is owned by `pyfmi_sysml`; every generator here
+  consumes a parser-free `Reduction`, and SSP emission is not this repository's
+  job.
 - **Never hand-roll ElementTree for FMI XML.** Build, serialize, and validate
   through `pyssp_standard.standard.fmi2` (`Fmi2ModelDescriptionDocument`,
   `Fmi2ModelDescriptionXmlCodec`, `Fmi2ModelDescriptionValidator`).
@@ -64,7 +70,7 @@ CLI, four generator functions, and `fmi2_headers` are the public surface.
   generated file or the packed `.fmu`, not against an intermediate string that
   the writer might not use.
 - **One variable set.** Every generator reads the reduction and the spelling
-  tables in `pyfmi_sysml2.core`; none re-derives variables, causalities, or
+  tables in `pyfmi_interfaces.core`; none re-derives variables, causalities, or
   value references, and none keeps a private type table.
 - **Never build generated code.** The package writes C++ sources; it does not
   invoke a compiler, emit a build system, or package an unbuilt binary. Build
@@ -99,8 +105,9 @@ CLI, four generator functions, and `fmi2_headers` are the public surface.
 ## Environment
 
 - Python >= 3.11. No virtualenv is tracked; create one per checkout.
-- Install: `python3 -m venv .venv && .venv/bin/pip install -e ".[dev]"`. Both
-  runtime dependencies are direct-URL wheels pinned to sibling GitHub releases.
+- Install: `python3 -m venv .venv && .venv/bin/pip install -e ".[dev]"`. The
+  runtime dependency is a direct-URL wheel pinned to a sibling GitHub release;
+  SysML ingestion and its parser dependencies live in `pyfmi_sysml`.
 - Tests: `.venv/bin/python -m pytest -q`; the CI subset is
   `.venv/bin/python -m pytest -m "not slow"`.
 - Lint: `.venv/bin/ruff check src tests`.

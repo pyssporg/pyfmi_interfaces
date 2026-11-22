@@ -2,14 +2,14 @@
 id: INFO-008
 type: info
 title: FMU packaging
-summary: pyfmi_sysml2 has no archive writer and no local staging layer; pyssp_standard's FMU.stage and FMU.package own layout, validation, staging, archive verification, and determinism, and the CLI calls FMU.package directly.
+summary: pyfmi_interfaces has no archive writer and no local staging layer; pyssp_standard's FMU.stage and FMU.package own layout, validation, staging, archive verification, and determinism, and the CLI calls FMU.package directly.
 date: 2026-11-17
 status: current
 ---
 
 # FMU packaging
 
-`pyfmi_sysml2` has no archive writer and no local staging layer. Packaging
+`pyfmi_interfaces` has no archive writer and no local staging layer. Packaging
 lives in `pyssp_standard`'s `FMU` facade; `fmu/__init__.py` only binds the
 command line to it:
 

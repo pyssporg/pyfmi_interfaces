@@ -19,9 +19,9 @@ first.
   setting one is a silent omission.
 - Scalar `start` values are strings in FMI text form. A Boolean must be
   `"true"`/`"false"`; Python's `str(True)` (`"True"`) is invalid. The reduction
-  keeps the typed value as `Variable.start`, formats the text once through
-  `pycps_sysml2.core.format_value`, and stores it as `Variable.start_text`, so
-  the generators never call the dialect formatter.
+  builder in `pyfmi_sysml` keeps the typed value as `Variable.start`, formats
+  the text once through `pycps_sysml2.core.format_value`, and stores it as
+  `Variable.start_text`, so the generators never call the dialect formatter.
 - `Fmi2ModelStructure` unknown `index` is the 1-based ScalarVariable position,
   not the 0-based `valueReference`. `Variable` carries both for this reason.
 - `Fmi2ModelDescriptionValidator.validate(document, xml)` performs semantic and
@@ -41,7 +41,7 @@ first.
   defaults, and verifies `modelDescription.xml` at the root and every
   `binaries/<platform>/<name>`.
 - `pyssp_standard.common.archive.fmu_layout.platform_component(platform)` is a
-  path-safety check only; it carries no platform allow-list. `pyfmi_sysml2`
+  path-safety check only; it carries no platform allow-list. `pyfmi_interfaces`
   keeps no wrapper either: its CLI pins the `linux64` token with argparse
   `choices` and passes `fmi_version="2.0"` at the call site.
 - `Fmi2ModelDescriptionSemanticValidator.validate_binary(document, name)`
@@ -49,5 +49,5 @@ first.
   `modelIdentifier` equals the binary stem.
 
 The pinned `experimental-pyssp-standard` v0.9.4.dev0 wheel carries `FMU.stage`
-and `FMU.package`; `pyfmi_sysml2` needs no editable sibling checkout and adds
+and `FMU.package`; `pyfmi_interfaces` needs no editable sibling checkout and adds
 no wrapper around either.

@@ -9,8 +9,8 @@ status: current
 
 # Release process
 
-The version is single-sourced: `pyfmi_sysml2.__version__` in
-`src/pyfmi_sysml2/__init__.py`, read by `setuptools` through
+The version is single-sourced: `pyfmi_interfaces.__version__` in
+`src/pyfmi_interfaces/__init__.py`, read by `setuptools` through
 `dynamic = ["version"]`. The current version is 0.3.0.
 
 Steps:

@@ -14,20 +14,18 @@ markers are declared in `pyproject.toml`:
 
 - **static** — a rule that holds without running the package: layering, family
   isolation, CLI registration matching the family directories, dependency
-  shape, fixture records, provenance, and the parser seam (only
-  `core/reduction.py` imports `pycps_sysml2` at runtime) (`test_layering.py`,
-  `test_fixture_policy.py`).
+  shape, fixture records, provenance, and the parser-free rule (no module
+  imports `pycps_sysml2`) (`test_layering.py`, `test_fixture_policy.py`).
 - **unit** — one object's behaviour, no artifact written. The reduction is
-  asserted through `pyfmi_sysml2.core` inside the artifact tests.
+  asserted through `pyfmi_interfaces.core` inside the artifact tests.
 - **component** — a generated artifact is the unit under test: the bytes of
   `modelDescription.xml`, a C header, a C++17 runtime source, a Modelica
   package, or a packed `.fmu`; the runtime also compiles, links, and executes
   its harness.
 - **contract** — two directions must agree: the value-reference enum between
   XML and header, one component identity across XML, header, and archive, and a
-  generator run from a `Reduction` producing the same bytes as a run from the
-  architecture path, with the dialect import blocked
-  (`test_cross_artifact.py`, `test_reduction_seam.py`).
+  generator run from a `Reduction` producing the same bytes with the dialect
+  import blocked (`test_cross_artifact.py`, `test_reduction_inputs.py`).
 - **system** — the CLI end to end: parsing, exit codes, files written by one
   `pyfmi` invocation; the packaged FMU is also built and loaded by fmpy
   (`test_cli.py`, `test_fmpy_load.py`).
