@@ -1,12 +1,12 @@
 """Build a ``Reduction`` by hand and write all four artifact families.
 
-Run from the repository root:
+Run from the workspace root:
 
-    python examples/build_reduction_artifacts.py [OUTPUT_DIR]
+    python repos/pyfmi_interfaces/examples/build_reduction_artifacts.py
 
-Only the standard library and ``pyfmi_interfaces`` are used. The script writes
-modelDescription.xml, C headers, C++17 runtime sources, and Modelica text; it
-does not compile or package anything.
+The artifacts land under ``build/examples/reduction-artifacts/`` unless
+``--out`` is given. The script writes modelDescription.xml, C headers, C++17
+runtime sources, and Modelica text; it does not compile or package anything.
 """
 
 from __future__ import annotations
@@ -102,24 +102,23 @@ def scale_reduction() -> Reduction:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description=__doc__)
+    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument(
-        "output",
-        nargs="?",
+        "--out",
         type=Path,
-        default=Path("build/examples"),
-        help="Output directory (default: build/examples).",
+        default=Path("build/examples/reduction-artifacts"),
+        help="output directory (default: build/examples/reduction-artifacts)",
     )
     args = parser.parse_args()
 
     reduction = scale_reduction()
     written: list[Path] = []
     written += generate_model_description(
-        reduction, args.output / "model-description", generation_time=GENERATION_TIME
+        reduction, args.out / "model-description", generation_time=GENERATION_TIME
     )
-    written += generate_c_headers(reduction, args.output / "c")
-    written += generate_c_runtime(reduction, args.output / "runtime")
-    written += generate_modelica(reduction, args.output / "modelica")
+    written += generate_c_headers(reduction, args.out / "c")
+    written += generate_c_runtime(reduction, args.out / "runtime")
+    written += generate_modelica(reduction, args.out / "modelica")
 
     for path in written:
         print(path)
