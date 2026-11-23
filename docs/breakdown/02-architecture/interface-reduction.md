@@ -45,3 +45,9 @@ not itself a composition root; the qualifier never reaches an artifact.
 `export_identity()` owns the naming rule: a container root names a component
 `<system>.<component>`, a direct FMU uses the bare definition name, and both
 guids derive from that one rule.
+
+`select_component()` in `core/model.py` is the single component-selection rule
+every generator uses: it returns the exported component whose name matches and
+raises `ValueError` for an unknown name. The guid key namespace literal
+`pyssp_sysml2` is a frozen identity; it must not be renamed with the
+distribution.

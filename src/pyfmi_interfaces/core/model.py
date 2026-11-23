@@ -149,6 +149,7 @@ class ExportIdentity:
 
     def guid_key(self, component: str) -> str:
         """Frozen uuid5 name of one exported component's guid."""
+        # Frozen identity: "pyssp_sysml2" is the guid namespace; never rename it.
         scope = "pyssp_sysml2" if self.direct else f"pyssp_sysml2/{self.system}"
         return f"{scope}/{component}"
 
@@ -185,3 +186,17 @@ class Reduction:
     experiment: Experiment | None = None
     root: str | None = None
     attributes: tuple[tuple[str, object], ...] = ()
+
+
+def select_component(reduction: Reduction, name: str) -> Component:
+    """Return the exported component named ``name``.
+
+    This is the one component-selection rule: a component is addressed by its
+    exported name, and an unknown name is a ``ValueError`` rather than a silent
+    miss. Generators call it instead of walking ``Reduction.components``
+    themselves.
+    """
+    for candidate in reduction.components:
+        if candidate.name == name:
+            return candidate
+    raise ValueError(f"No exported component named {name!r}")

@@ -62,9 +62,13 @@ EXPECTED_PYTHON = ">=3.11"
 #: The documented public surface of the facade, exactly.
 EXPECTED_PUBLIC = frozenset(
     {
+        "Annotation",
+        "AnnotationError",
         "Component",
         "Experiment",
         "ExportIdentity",
+        "ModelDescription",
+        "ModelDescriptionXmlCodec",
         "Reduction",
         "Variable",
         "__version__",
@@ -73,6 +77,7 @@ EXPECTED_PUBLIC = frozenset(
         "generate_c_runtime",
         "generate_model_description",
         "generate_modelica",
+        "select_component",
     }
 )
 

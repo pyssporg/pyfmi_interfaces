@@ -13,12 +13,17 @@ status: current
 
 - `__init__.py` the facade, `cli.py` the dispatcher collecting family `COMMANDS`;
 - `core/model.py` holds the parser-free interface model — `Component`, `Field`,
-  `PortGroup`, `Variable`, `Experiment`, `ExportIdentity`, and `Reduction`;
+  `PortGroup`, `Variable`, `Experiment`, `ExportIdentity`, and `Reduction` — plus
+  `select_component()`, the one component-selection rule;
 - `core/identity.py` the injected clock and uuid5 guid, `core/resources.py` the bundled-header lookup;
+- `core/annotations.py` the tool-independent `Annotation` value (`name` plus a
+  validated verbatim XML payload) and its error;
 - `core/cli.py` the `Command` registry, shared options, and error policy;
 - `core/spelling.py` every C, C++, `*_DataType`, and Modelica table, so no two artifacts spell a primitive differently;
 - `c/headers.py` the C interface headers, `c/runtime.py` the C++17 runtime and model seam;
-- `model_description/document.py` the XML document, `modelica/package.py` the connector set and implementer model;
+- `model_description/document.py` the one XML emitter: the document, the
+  `include_default_experiment` switch, the ordered `VendorAnnotations` view, and
+  its codec, `modelica/package.py` the connector set and implementer model;
 - `fmu/__init__.py` only the `pyfmi package` command, with packaging in `pyssp_standard`'s `FMU` facade;
 - `fmi2_headers/*.h` the bundled FMI 2.0.5 headers;
 - `src/pyfmi_sysml2/` a deprecated import shim that only re-exports the public

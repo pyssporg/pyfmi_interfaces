@@ -53,9 +53,10 @@ The four source-taking commands (`model-description`, `c-headers`, `c-runtime`,
 
 ## Python API
 
-The package exports four generator functions, `fmi2_headers`, and the reduction
-types (`Component`, `Variable`, `Reduction`). Every generator accepts a
-`Reduction` only:
+The package exports four generator functions, `fmi2_headers`, the reduction
+types (`Component`, `Variable`, `Reduction`), and `select_component(reduction,
+name)`, which returns the named exported component or raises `ValueError`. Every
+generator accepts a `Reduction` only:
 
 ```python
 from pathlib import Path

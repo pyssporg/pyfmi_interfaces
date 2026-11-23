@@ -7,6 +7,7 @@ dependency arrow points one way.
 
 from __future__ import annotations
 
+from pyfmi_interfaces.core.annotations import Annotation, AnnotationError
 from pyfmi_interfaces.core.identity import (
     DEFAULT_GENERATION_TIME,
     GENERATION_TIME_FORMAT,
@@ -24,6 +25,7 @@ from pyfmi_interfaces.core.model import (
     PortGroup,
     Reduction,
     Variable,
+    select_component,
 )
 from pyfmi_interfaces.core.resources import fmi2_headers
 from pyfmi_interfaces.core.spelling import (
@@ -42,6 +44,8 @@ __all__ = [
     "CPP_TYPES",
     "C_TYPES",
     "DATA_TYPE_TAGS",
+    "Annotation",
+    "AnnotationError",
     "DEFAULT_GENERATION_TIME",
     "DISCRETE_TYPES",
     "INPUT_START",
@@ -62,5 +66,6 @@ __all__ = [
     "guid",
     "modelica_type",
     "sanitize_identifier",
+    "select_component",
     "utc_now",
 ]
