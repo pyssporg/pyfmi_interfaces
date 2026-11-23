@@ -48,7 +48,7 @@ from pyfmi_interfaces.core import (
     select_component,
 )
 from pyfmi_interfaces.core.annotations import Annotation, AnnotationError
-from pyfmi_interfaces.core.identity import format_generation_time, guid
+from pyfmi_interfaces.core.identity import format_generation_time, resolve_guid
 
 #: FMI version emitted for every generated document.
 FMI_VERSION = "2.0"
@@ -105,7 +105,7 @@ def model_description_document(
         root=Fmi2ElementInfo(tag="fmiModelDescription"),
         fmi_version=FMI_VERSION,
         model_name=identity.model_name(component.name),
-        guid=guid(identity.guid_key(component.name)),
+        guid=resolve_guid(identity, component.name),
         description=component.doc or None,
         generation_tool=GENERATION_TOOL,
         generation_date_and_time=format_generation_time(generation_time),

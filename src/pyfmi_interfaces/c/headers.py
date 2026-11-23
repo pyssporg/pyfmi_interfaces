@@ -206,6 +206,7 @@ def component_header(
     *,
     direct: bool = False,
     system: str | None = None,
+    guid: str | None = None,
 ) -> str:
     """Text of the component header (no trailing newline).
 
@@ -213,7 +214,8 @@ def component_header(
     macro matches the guid ``generate_model_description`` writes for the same
     component. A direct FMU model (``direct=True``) needs none, because its
     guid key has no container level; without a system the macro falls back to
-    the component name, which is exact for direct models only.
+    the component name, which is exact for direct models only. A non-``None``
+    ``guid`` replaces the derived value verbatim.
     """
     stem = header_stem(package, component.name, direct=direct)
     upper = sanitize_identifier(package)
@@ -225,7 +227,12 @@ def component_header(
         if direct and package == component.name
         else f"{package}.{component.name}"
     )
-    guid = component_guid(system or component.name, component.name, direct=direct)
+    header_guid = component_guid(
+        system or component.name,
+        component.name,
+        direct=direct,
+        guid=guid,
+    )
     lines = [
         f"#ifndef {guard}",
         f"#define {guard}",
@@ -234,7 +241,7 @@ def component_header(
         "",
         f"/* Generated interface for {label}. Do not edit manually. */",
         "",
-        f"#define {upper_stem}_GUID \"{guid}\"",
+        f"#define {upper_stem}_GUID \"{header_guid}\"",
         "",
         f"typedef enum {stem}_ValueReference {{",
     ]
@@ -301,7 +308,8 @@ def generate_c_headers(
     starts with the common header, followed by one component header per
     exported component. Each component header carries a
     ``<PREFIX>_<COMPONENT>_GUID`` macro with the same guid the
-    modelDescription generator writes for that component. A direct FMU model
+    modelDescription generator writes for that component, including a
+    caller-supplied ``reduction.identity.guid``. A direct FMU model
     whose definition names the package uses that name once. ``component``
     restricts the output to one exported component while the common header
     still carries the payload types that component uses.
@@ -319,6 +327,7 @@ def generate_c_headers(
         exported = selected
     direct = reduction.identity.direct
     system = reduction.identity.system
+    guid = reduction.identity.guid
 
     directory = Path(output_dir)
     directory.mkdir(parents=True, exist_ok=True)
@@ -337,7 +346,7 @@ def generate_c_headers(
         )
         path.write_text(
             component_header(
-                package, item, direct=direct, system=system
+                package, item, direct=direct, system=system, guid=guid
             ),
             encoding="utf-8",
         )

@@ -15,6 +15,7 @@ from pyfmi_interfaces.core.identity import (
     component_guid,
     format_generation_time,
     guid,
+    resolve_guid,
     utc_now,
 )
 from pyfmi_interfaces.core.model import (
@@ -65,6 +66,7 @@ __all__ = [
     "format_generation_time",
     "guid",
     "modelica_type",
+    "resolve_guid",
     "sanitize_identifier",
     "select_component",
     "utc_now",

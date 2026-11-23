@@ -46,13 +46,44 @@ def format_generation_time(moment: datetime | None) -> str:
     return moment.astimezone(timezone.utc).strftime(GENERATION_TIME_FORMAT)
 
 
-def guid(key: str) -> str:
+def _uuid5_guid(key: str) -> str:
     """Format one uuid5 namespace key as an FMI ``guid``."""
     return "{" + str(uuid.uuid5(GUID_NAMESPACE, key)) + "}"
 
 
+def guid(key: str) -> str:
+    """Format one uuid5 namespace key as an FMI ``guid``."""
+    return _uuid5_guid(key)
+
+
+def _checked_guid(value: str, component: str) -> str:
+    """A caller-supplied guid, refused when it is empty or whitespace-only.
+
+    A valid override is returned exactly as given: FMI accepts both ``{uuid}``
+    and a bare ``uuid``, so this package never adds braces, strips, or
+    reformats it.
+    """
+    if not value.strip():
+        raise ValueError(
+            f"guid override for component {component!r} must not be empty or "
+            "whitespace-only"
+        )
+    return value
+
+
+def resolve_guid(identity: ExportIdentity, component: str) -> str:
+    """The guid of one exported component: the override, else the uuid5 value."""
+    if identity.guid is not None:
+        return _checked_guid(identity.guid, component)
+    return guid(identity.guid_key(component))
+
+
 def component_guid(
-    composition: str, component: str, *, direct: bool = False
+    composition: str,
+    component: str,
+    *,
+    direct: bool = False,
+    guid: str | None = None,
 ) -> str:
     """Stable FMI ``guid`` for one component of one export unit.
 
@@ -61,6 +92,9 @@ def component_guid(
     named differently, so a build generated earlier does not change a single
     guid. A direct FMU model has no container level; ``direct=True`` drops the
     root from the key, exactly as :class:`ExportIdentity` derives the
-    modelDescription guid.
+    modelDescription guid. A non-``None`` ``guid`` wins and is returned
+    verbatim, exactly as :func:`resolve_guid` does.
     """
-    return guid(ExportIdentity(composition, direct).guid_key(component))
+    if guid is not None:
+        return _checked_guid(guid, component)
+    return _uuid5_guid(ExportIdentity(composition, direct).guid_key(component))

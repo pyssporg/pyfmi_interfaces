@@ -7,8 +7,11 @@ object and nothing else.
 
 from __future__ import annotations
 
+import re
+from dataclasses import replace
 from datetime import datetime, timezone
 from pathlib import Path
+from xml.etree import ElementTree as ET
 
 import pytest
 
@@ -32,6 +35,10 @@ from pyfmi_interfaces.core.model import (
 pytestmark = pytest.mark.contract
 
 GENERATION_TIME = datetime(2026, 1, 1, tzinfo=timezone.utc)
+
+BARE_GUID = "01234567-89ab-cdef-0123-456789abcdef"
+BRACED_GUID = "{01234567-89ab-cdef-0123-456789abcdef}"
+DEFAULT_GUID = "{1cd5dff9-41fe-5fdf-abd6-fe39bc507661}"
 
 
 def _reduction() -> Reduction:
@@ -147,6 +154,31 @@ def test_emitters_are_deterministic_from_one_reduction(tmp_path: Path) -> None:
     generate_c_headers(reduction, second)
 
     assert _tree(first) == _tree(second)
+
+
+@pytest.mark.parametrize("override", [None, BARE_GUID, BRACED_GUID])
+def test_component_header_guid_matches_model_description(
+    tmp_path: Path, override: str | None
+) -> None:
+    """Drift caught: the header macro and the modelDescription guid disagree."""
+    reduction = _reduction()
+    if override is not None:
+        reduction = replace(
+            reduction, identity=ExportIdentity("Root", False, override)
+        )
+
+    description = generate_model_description(
+        reduction, tmp_path / "md", generation_time=GENERATION_TIME
+    )[0]
+    generate_c_headers(reduction, tmp_path / "c")
+
+    xml_guid = ET.fromstring(description.read_text(encoding="utf-8")).attrib["guid"]
+    header_text = (tmp_path / "c" / "Demo_Scale.h").read_text(encoding="utf-8")
+    macro = re.search(r'#define DEMO_SCALE_GUID "([^"]*)"', header_text)
+
+    assert macro is not None
+    assert macro.group(1) == xml_guid
+    assert xml_guid == (override if override is not None else DEFAULT_GUID)
 
 
 def test_facade_exposes_only_the_artifact_surface() -> None:

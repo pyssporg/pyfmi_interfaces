@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.2] - 2026-11-23
+
+### Added
+
+- `ExportIdentity.guid` carries an optional caller-supplied FMI `guid`
+  through `resolve_guid()`, the modelDescription writer, and the generated
+  component header macro. A producer that authors its own modelDescription can
+  now keep one guid across the document and the C runtime; `None` keeps the
+  frozen uuid5 rule unchanged.
+
+### Changed
+
+- `component_header(...)` and `generate_c_headers(...)` accept the override
+  from `reduction.identity.guid`; an empty override is a `ValueError`.
+
 ## [0.5.1] - 2026-11-22
 
 ### Added

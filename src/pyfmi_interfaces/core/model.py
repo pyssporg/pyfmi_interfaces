@@ -137,10 +137,14 @@ class ExportIdentity:
     part definition that is itself the FMU model (``:> FmuModel``) exports
     itself under its bare name, so the FMI identity of a direct FMU is the
     definition name rather than ``<name>.<name>``.
+
+    ``guid`` is an optional caller-supplied guid used verbatim for every
+    component; ``None`` keeps the frozen uuid5-derived guid.
     """
 
     system: str
     direct: bool
+    guid: str | None = None
 
     def model_name(self, component: str) -> str:
         """FMI ``modelName`` of one exported component."""

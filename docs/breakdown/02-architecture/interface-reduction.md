@@ -33,7 +33,9 @@ so no two artifacts spell a primitive differently.
 
 `ExportIdentity` owns the naming rule: a container root names a component
 `<system>.<component>`, a direct FMU uses the bare definition name, and both
-guids derive from that one rule.
+guids derive from that one rule. Its optional `guid` field carries a
+caller-supplied value through `resolve_guid()` and the C header macro, so a
+producer that authors its own modelDescription still gets one consistent guid.
 
 `select_component()` in `core/model.py` is the single component-selection rule
 every generator uses: it returns the exported component whose name matches and

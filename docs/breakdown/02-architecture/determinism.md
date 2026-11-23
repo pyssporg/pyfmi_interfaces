@@ -17,7 +17,11 @@ exported by a container root. A direct FMU model has no container level, so its
 guid is `uuid5(NAMESPACE_URL, "pyssp_sysml2/<definition>")` and its `modelName`
 is the bare definition name; `ExportIdentity` derives both. The `pyssp_sysml2/`
 prefix is frozen for byte-identical GUIDs from earlier releases: changing the
-prefix or the component spelling breaks stored guids.
+prefix or the component spelling breaks stored guids. `ExportIdentity.guid` is
+an optional caller-supplied override: `resolve_guid()` and the generated
+component header use it verbatim (bare or braced), so a producer that writes its
+own modelDescription keeps one guid across the document and the C macro; `None`
+keeps the uuid5 rule.
 
 `generation_time` is injected on the Python API; `None` means the fixed default
 epoch `2000-01-01T00:00:00Z`, never a wall-clock read, so an un-injected build
