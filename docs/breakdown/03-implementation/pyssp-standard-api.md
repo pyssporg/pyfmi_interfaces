@@ -18,10 +18,9 @@ first.
   The codec emits the `CoSimulation` element only when both are present, so
   setting one is a silent omission.
 - Scalar `start` values are strings in FMI text form. A Boolean must be
-  `"true"`/`"false"`; Python's `str(True)` (`"True"`) is invalid. The reduction
-  builder in `pyfmi_sysml` keeps the typed value as `Variable.start`, formats
-  the text once through `pycps_sysml2.core.format_value`, and stores it as
-  `Variable.start_text`, so the generators never call the dialect formatter.
+  `"true"`/`"false"`; Python's `str(True)` (`"True"`) is invalid. The caller
+  supplies the typed value as `Variable.start` and the formatted text as
+  `Variable.start_text`, so the generators never format a value.
 - `Fmi2ModelStructure` unknown `index` is the 1-based ScalarVariable position,
   not the 0-based `valueReference`. `Variable` carries both for this reason.
 - `Fmi2ModelDescriptionValidator.validate(document, xml)` performs semantic and

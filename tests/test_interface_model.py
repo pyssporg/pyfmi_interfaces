@@ -1,4 +1,4 @@
-"""Unit tests for the parser-free interface model helpers."""
+"""Unit tests for the interface model helpers."""
 
 from __future__ import annotations
 

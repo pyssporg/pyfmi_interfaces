@@ -37,4 +37,4 @@ state only.
 
 - Runnable fixtures and goldens: `tests/fixtures/`, `tests/golden/`.
 - Generated builds: `build/` and `/tmp`.
-- Sibling libraries: `pyfmi_sysml`, `pyssp_standard`, `pyssp_sysml2`.
+- Sibling libraries: `pyssp_standard`.

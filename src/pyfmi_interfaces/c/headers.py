@@ -1,8 +1,8 @@
-"""C interface headers for the FMI components of an architecture.
+"""C interface headers for the FMI components of an exported component set.
 
-One pair of files is written per architecture: a common header with the port
-payload structs and the value-reference mapping type, and one header per
-component with its FMI guid macro, its value-reference enum and its C++
+One pair of files is written per exported component set: a common header with
+the port payload structs and the value-reference mapping type, and one header
+per component with its FMI guid macro, its value-reference enum and its C++
 instance helper.
 
 The common header is plain C11: it is the part a C simulator may include to
@@ -35,8 +35,8 @@ CPP_END = "#endif  /* __cplusplus */"
 
 #: C11 and C++17 keywords; a port field or parameter may not use them as a
 #: struct member name, so the emitter appends ``_`` (``auto`` -> ``auto_``).
-#: The SysML field name and the FMI variable name are unaffected; only the C
-#: spelling of the member differs.
+#: The interface field name and the FMI variable name are unaffected; only the
+#: C spelling of the member differs.
 RESERVED = frozenset(
     """
     _Alignas _Alignof _Atomic _Bool _Complex _Generic _Imaginary _Noreturn
@@ -69,7 +69,7 @@ def member_expression(member: str) -> str:
 
 
 def common_header_name(package: str) -> str:
-    """File name of the architecture-wide header."""
+    """File name of the package-wide header."""
     return f"{package}_InterfaceCommon.h"
 
 
@@ -161,7 +161,7 @@ def interface_common_header(package: str, components: Sequence[Component]) -> st
         "#include <stddef.h>",
         "#include <stdint.h>",
         "",
-        f"/* Generated from architecture package {package}. Do not edit manually. */",
+        f"/* Generated from interface package {package}. Do not edit manually. */",
         "",
     ]
 
@@ -295,8 +295,8 @@ def generate_c_headers(
 ) -> list[Path]:
     """Write the C interface headers of ``reduction`` into ``output_dir``.
 
-    ``reduction`` is the parser-free interface model; it already fixes the
-    composition and the array index base. ``prefix`` defaults to the package
+    ``reduction`` is the interface model; it already fixes the export root and
+    the array index base. ``prefix`` defaults to the package
     name and decides the file names and the C type names. The returned list
     starts with the common header, followed by one component header per
     exported component. Each component header carries a

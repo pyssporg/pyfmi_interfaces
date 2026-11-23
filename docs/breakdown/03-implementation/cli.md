@@ -2,7 +2,7 @@
 id: INFO-009
 type: info
 title: CLI
-summary: The pyfmi entry point registers the package family and has one subcommand; the four source-taking generators moved to pyfmi-sysml, print one written path per line, exit 1 on handled input errors, and 2 on argument errors.
+summary: The pyfmi entry point registers the package family and has one subcommand; it prints one written path per line, exits 1 on handled input errors, and 2 on argument errors.
 date: 2026-11-17
 status: current
 ---
@@ -36,8 +36,5 @@ Behaviour:
   stderr and return 1; argparse keeps exit 2; anything unexpected propagates.
 
 The CLI adds no behaviour the API lacks: the handler calls the generator with
-the parsed arguments.
-
-The four source-taking commands (`model-description`, `c-headers`, `c-runtime`,
-`modelica`) live in `pyfmi_sysml` as `pyfmi-sysml`. They load the source there,
-build the `Reduction`, and call these generators; nothing here parses SysML.
+the parsed arguments. The four generators are Python functions; `pyfmi` only
+packages.

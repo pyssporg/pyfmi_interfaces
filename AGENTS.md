@@ -29,16 +29,14 @@ to read, not references of last resort.
 
 ## Repository Focus
 
-`pyfmi_interfaces` generates FMI 2.0 CoSimulation artifacts from a parser-free
+`pyfmi_interfaces` generates FMI 2.0 CoSimulation artifacts from a caller-built
 interface `Reduction`: `modelDescription.xml`, C interface headers, a C++17
 runtime with a five-hook model seam, Modelica connectors with a partial-model
 implementer seam, and a packaged `.fmu`. The artifact is the library boundary;
 the `pyfmi` CLI, four generator functions, and `fmi2_headers` are the public
 surface.
 
-- This package is parser-free. The SysML dialect and the `Reduction`
-  construction live in the `pyfmi_sysml` composition layer, which reads through
-  `pycps_sysml2`; this package implements the FMI half of the contract.
+- The input is always a `Reduction` the caller constructs.
 - FMI XML is owned by `pyssp_standard.standard.fmi2`; this package maps the
   reduction onto it.
 - The `pyfmi_sysml2` import name is a deprecated compatibility shim: it only
@@ -55,16 +53,15 @@ surface.
 
 ## Hard constraints
 
-- **Never import a parser or `pyssp_sysml2`.** The two artifact libraries are
-  siblings. `pycps_sysml2` is owned by `pyfmi_sysml`; every generator here
-  consumes a parser-free `Reduction`, and SSP emission is not this repository's
+- **The input is always a `Reduction` the caller constructs.** No module builds
+  or imports a reduction for the caller; SSP emission is not this repository's
   job.
 - **Never hand-roll ElementTree for FMI XML.** Build, serialize, and validate
   through `pyssp_standard.standard.fmi2` (`Fmi2ModelDescriptionDocument`,
   `Fmi2ModelDescriptionXmlCodec`, `Fmi2ModelDescriptionValidator`).
 - **Every artifact is reproducible from an injected `generation_time`.** The
   clock is a parameter, not an ambient read; a naive datetime is refused. The
-  same architecture and clock produce byte-identical files, including the
+  same reduction and clock produce byte-identical files, including the
   archive.
 - **The built artifact is the unit under test.** Assertions run against the
   generated file or the packed `.fmu`, not against an intermediate string that
@@ -106,8 +103,7 @@ surface.
 
 - Python >= 3.11. No virtualenv is tracked; create one per checkout.
 - Install: `python3 -m venv .venv && .venv/bin/pip install -e ".[dev]"`. The
-  runtime dependency is a direct-URL wheel pinned to a sibling GitHub release;
-  SysML ingestion and its parser dependencies live in `pyfmi_sysml`.
+  runtime dependency is a direct-URL wheel pinned to a sibling GitHub release.
 - Tests: `.venv/bin/python -m pytest -q`; the CI subset is
   `.venv/bin/python -m pytest -m "not slow"`.
 - Lint: `.venv/bin/ruff check src tests`.

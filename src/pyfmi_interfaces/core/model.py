@@ -4,10 +4,9 @@ A :class:`Component` carries the fields, the port groups and the scalar
 variables of one exported part definition; the generators map these objects
 onto their own output format and never re-derive the variable set.
 
-Nothing here imports the SysML dialect. A :class:`Reduction` is the complete,
-parser-free input of every generator: the exported components, the export
-identity, the package name, and the composition's experiment. The dialect is
-read only by :mod:`pyfmi_interfaces.core.reduction`, which builds a ``Reduction``.
+A :class:`Reduction` is the complete, caller-built input of every generator:
+the exported components, the export identity, the package name, and the export
+unit's experiment.
 """
 
 from __future__ import annotations
@@ -49,8 +48,8 @@ class Variable:
     """One FMI ScalarVariable, with its C member expression.
 
     ``start`` is the authored typed value (the neutral ``INPUT_START`` value
-    for an input); ``start_text`` is that value already formatted for FMI, so
-    the model never needs the dialect's value formatter.
+    for an input); ``start_text`` is that value already formatted for FMI, so no
+    generator formats a value.
     """
 
     name: str
@@ -149,14 +148,15 @@ class ExportIdentity:
 
     def guid_key(self, component: str) -> str:
         """Frozen uuid5 name of one exported component's guid."""
-        # Frozen identity: "pyssp_sysml2" is the guid namespace; never rename it.
+        # Frozen for byte-identical GUIDs from earlier releases; never rename
+        # the namespace.
         scope = "pyssp_sysml2" if self.direct else f"pyssp_sysml2/{self.system}"
         return f"{scope}/{component}"
 
 
 @dataclass(frozen=True)
 class Experiment:
-    """The composition's ``DefaultExperiment``, in FMI 2.0 terms.
+    """The export unit's ``DefaultExperiment``, in FMI 2.0 terms.
 
     All four are optional doubles, exactly as FMI 2.0.5 defines them; an absent
     field is omitted from the document.
@@ -173,11 +173,10 @@ class Reduction:
     """One export unit reduced to the input every artifact generator needs.
 
     ``components`` carries the complete variable set, ``identity`` the naming
-    rule, ``package`` the default header/type prefix, ``root`` the selected
-    composition name, ``attributes`` the root part definition's authored
-    attributes, and ``experiment`` the composition's optional default
-    experiment. A caller that already holds a ``Reduction`` can run any
-    generator without the SysML dialect installed.
+    rule, ``package`` the default header/type prefix, ``root`` the optional root
+    name, ``attributes`` the root part definition's authored attributes, and
+    ``experiment`` the export unit's optional default experiment. A caller that
+    already holds a ``Reduction`` can run any generator from that object alone.
     """
 
     components: tuple[Component, ...]

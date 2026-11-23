@@ -5,10 +5,10 @@ family exports a :class:`~pyfmi_interfaces.core.cli.Command` registry; collectin
 them here in ``--help`` order is the whole dispatcher. The shared option
 spellings live in :mod:`pyfmi_interfaces.core.cli`.
 
-The four source-taking generators live in ``pyfmi_sysml`` as ``pyfmi-sysml``;
-``pyfmi package`` stays here. An output location in and one written path on
-stdout is the shape. Argument errors are argparse's (exit 2), packaging errors
-are reported without a traceback (exit 1), and anything unexpected propagates.
+The four generators are Python functions; ``pyfmi package`` is the only command.
+An output location in and one written path on stdout is the shape. Argument
+errors are argparse's (exit 2), packaging errors are reported without a traceback
+(exit 1), and anything unexpected propagates.
 """
 
 from __future__ import annotations

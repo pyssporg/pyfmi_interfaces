@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "pyfmi-interfaces"
 dynamic = ["version"]
-description = "Generate FMI 2.0 CoSimulation artifacts from a parser-free interface Reduction."
+description = "Generate FMI 2.0 CoSimulation artifacts from a caller-built interface Reduction."
 readme = "README.md"
 requires-python = ">=3.11"
 license = { file = "LICENSE" }
@@ -14,8 +14,8 @@ authors = [
 ]
 # The FMI XML library is a direct URL, not an index lookup: it is an immutable
 # release asset attached by its wheels workflow. The tag is v<version>, and an
-# unreleased tag makes this wheel uninstallable. SysML ingestion lives in
-# ``pyfmi_sysml``; this package has no parser dependency.
+# unreleased tag makes this wheel uninstallable. This package is a pure artifact
+# generator: the input is a caller-built reduction.
 dependencies = [
   "experimental-pyssp-standard @ https://github.com/pyssporg/experimental_pyssp_standard/releases/download/v0.9.4.dev0/experimental_pyssp_standard-0.9.4.dev0-py3-none-any.whl"
 ]

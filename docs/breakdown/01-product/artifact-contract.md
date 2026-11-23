@@ -24,4 +24,6 @@ Archive layout: `modelDescription.xml` at the zip root, never nested; `binaries/
 
 Consistency: modelDescription, C headers, and C++ runtime carry the same numbered set from the one reduction; the Modelica package mirrors the same names and order, and the packager copies the files; the binary stem equals the `modelIdentifier`; repacking equal inputs yields identical bytes; `generationDateAndTime` comes from the injected clock, not the wall clock.
 
-The schema allows more than this contract emits: optional FMI features the dialect does not author, authoring attributes included, are absent rather than invented.
+The schema allows more than this contract emits: optional FMI features the
+`Reduction` does not carry, authoring attributes included, are absent rather
+than invented.

@@ -2,7 +2,7 @@
 id: INFO-011
 type: info
 title: Release process
-summary: Tag the single-sourced 0.3.0 version after a green matrix, let wheels.yml publish the wheel and sdist, and smoke-test the wheel in a clean venv.
+summary: Tag the single-sourced 0.5.1 version after a green matrix, let wheels.yml publish the wheel and sdist, and smoke-test the wheel in a clean venv.
 date: 2026-11-19
 status: current
 ---
@@ -11,7 +11,7 @@ status: current
 
 The version is single-sourced: `pyfmi_interfaces.__version__` in
 `src/pyfmi_interfaces/__init__.py`, read by `setuptools` through
-`dynamic = ["version"]`. The current version is 0.3.0.
+`dynamic = ["version"]`. The current version is 0.5.1.
 
 Steps:
 
@@ -22,15 +22,11 @@ Steps:
    wheel and one sdist and no `0.0.0`, compares the sdist version to the wheel
    version, checks the tag against the imported `__version__`, uploads `dist/`,
    and creates the GitHub release with `fail_on_unmatched_files: true`.
-5. Install the built wheel into a clean virtual environment and run a fixture
-   end to end from the installed package, not the source tree.
+5. Install the built wheel into a clean virtual environment, then run the
+   suite and `examples/build_reduction_artifacts.py` from the installed package,
+   not the source tree.
 
-The dependencies are direct-URL wheels pinned to sibling releases
-(`pycps-sysml2` v0.3.0 and `experimental-pyssp-standard` v0.9.4.dev0). A wheel
-is installable only when both release assets exist; a tag that points at a
-missing asset is not a release.
-
-The `pycps-sysml2` pin follows the dialect release the code reads: 0.3.0
-removed the `pyssp_*` control vocabulary this package no longer reads, and the
-code reads its experiment container and attribute classification. A later
-dialect change lands here in the same change as the code that depends on it.
+The dependency is a direct-URL wheel pinned to a sibling release
+(`experimental-pyssp-standard` v0.9.4.dev0). A wheel is installable only when
+that release asset exists; a tag that points at a missing asset is not a
+release.

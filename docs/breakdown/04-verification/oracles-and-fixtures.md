@@ -2,7 +2,7 @@
 id: TEST-003
 type: test
 title: Oracles, fixtures, and goldens
-summary: gcc and g++ syntax-check the headers, g++ compiles, links, and executes the runtime harness, fmpy validates and loads the packaged FMU, omc checkModel proves the Modelica package and buildModel the model seam, and seven shared fixtures carry case records and byte-compared goldens.
+summary: gcc and g++ syntax-check the headers, g++ compiles, links, and executes the runtime harness, fmpy validates and loads the packaged FMU, omc checkModel proves the Modelica package and buildModel the model seam, and hand-built reductions are the shared inputs with byte-compared goldens.
 date: 2026-11-19
 status: current
 ---
@@ -25,16 +25,12 @@ Oracles are external, independent of the writers, and skip with a stated reason:
 `checkModel` accepts a model with no equations, so the seam is proven with
 `buildModel`.
 
-Fixtures in `tests/fixtures/<subject>/<subject>.sysml` are the shared inputs:
-`minimal` (scalar parameters and ports), `sensor` (String/Boolean, list
-expansion), `controller` (parameters, `inout`, arrays), `bus` (second
-composition shape, shared ports), `applied` (a parameter set applied with
-`bind` and a typed default experiment container), `generator` (direct
-`:> FmuModel`), and `packages` (two-root load, included parts;
-`test_package_roots.py`).
+Tests construct their `Reduction` inputs by hand: a component with scalar
+parameters and ports, String/Boolean and list expansion, `inout` and arrays, a
+second shared-port shape, a direct FMU model, and multi-component selections.
 
 Each `case.md` records conversion, fault, level, input, expected, oracle, comparison, normalization, volatile fields, and update policy. Goldens live under
-`tests/golden/<artifact>/<subject>/` for `c-headers`, `c-runtime`, `model-description`, `modelica`, `package`, `cross-artifact`.
+`tests/golden/<artifact>/<subject>/`.
 
-Policy: no source-project name (`Aircraft`, `FuelSystem`, `FlightGearBridge`)
-may appear in `src/` or a golden; a test enforces it. Names are configuration.
+Policy: no example-specific project name (`Aircraft`, `FuelSystem`,
+`FlightGearBridge`) may appear in `src/` or a golden. Names are configuration.

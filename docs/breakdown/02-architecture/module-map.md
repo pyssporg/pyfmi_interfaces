@@ -2,7 +2,7 @@
 id: INFO-002
 type: info
 title: Module map
-summary: One core package plus one subpackage per artifact family; the package is parser-free, reads a Reduction built by pyfmi_sysml, and depends on pyssp_standard, never on pycps_sysml2 or pyssp_sysml2.
+summary: One core package plus one subpackage per artifact family; every generator reads a caller-built Reduction, and the package depends only on pyssp_standard.
 date: 2026-11-17
 status: current
 ---
@@ -12,7 +12,7 @@ status: current
 `src/pyfmi_interfaces/` is one `core/` package and one subpackage per artifact family; a new artifact type is a directory with one explicit registration line.
 
 - `__init__.py` the facade, `cli.py` the dispatcher collecting family `COMMANDS`;
-- `core/model.py` holds the parser-free interface model — `Component`, `Field`,
+- `core/model.py` holds the interface model — `Component`, `Field`,
   `PortGroup`, `Variable`, `Experiment`, `ExportIdentity`, and `Reduction` — plus
   `select_component()`, the one component-selection rule;
 - `core/identity.py` the injected clock and uuid5 guid, `core/resources.py` the bundled-header lookup;
@@ -38,13 +38,11 @@ families:
 Each family `__init__.py` exposes generators and a `COMMANDS` tuple; `cli.py`
 concatenates them, with a static test requiring registration to match the family
 directories. The package depends one way only, `pyfmi_interfaces` ->
-`pyssp_standard`; no SysML parser and no `pyssp_sysml2` import appears here, and
-every generator reads the variable set through `core/`.
+`pyssp_standard`; every generator reads the variable set through `core/`.
 
-**Interface model.** `pyfmi_sysml` owns the single parse and builds the
-parser-free `Reduction` (components, export identity, package name, and
-experiment). Every generator accepts that `Reduction` and works without the
-dialect, so a caller parses once and generates elsewhere.
+**Interface model.** The caller constructs the `Reduction` (components, export
+identity, package name, and experiment). Every generator accepts that
+`Reduction`.
 
 **Adding a family.** Add `<family>/__init__.py` and one emitter per artifact; read
 variables through `core.model` and spell primitives through `core.spelling`;

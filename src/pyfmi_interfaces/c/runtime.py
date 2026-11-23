@@ -1019,8 +1019,8 @@ def generate_c_runtime(
 ) -> list[Path]:
     """Write the C interface headers and the C++17 FMI runtime into ``output_dir``.
 
-    ``reduction`` is the parser-free interface model; it already fixes the
-    composition and the array index base.
+    ``reduction`` is the interface model; it already fixes the export root and
+    the array index base.
 
     Each exported component gets ``<stem>_fmi.cpp`` (regenerated),
     ``<stem>_hooks.h`` (regenerated), and ``<stem>_model.cpp`` (created only

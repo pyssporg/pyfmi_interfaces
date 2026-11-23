@@ -28,7 +28,7 @@ status: current
 - **Bridged locally:** the pinned document model also exposes no
   `VendorAnnotations`. `core/annotations.py` and the one emitter in
   `model_description/document.py` add the ordered, tool-independent annotation
-  view and its codec (`INFO-005`); no tool name is known there and the payload
+  view and its codec (`INFO-020`); no tool name is known there and the payload
   is opaque. This is a deliberate local bridge, not a claim that upstream models
   the element: the reduction-driven `generate_model_description()` still emits
   no annotation because it has none to carry.

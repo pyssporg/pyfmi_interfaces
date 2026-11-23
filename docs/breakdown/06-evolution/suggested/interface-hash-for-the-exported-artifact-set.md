@@ -12,7 +12,7 @@ status: suggested
 - **Question:** does the artifact carry anything that changes when the variable
   set changes and stays put when it does not?
 - **Evidence:** no. The guid is `uuid5` over a frozen
-  `pyssp_sysml2/<composition>/<component>` key (`pyssp_sysml2/<component>` for a
+  `pyssp_sysml2/<root>/<component>` key (`pyssp_sysml2/<component>` for a
   direct FMU), so adding, removing, retyping, or reordering a variable leaves
   it byte-identical while every later value reference moves. The name-derived C
   enum alias absorbs that shift inside the one tree we rewrite, but a consumer
@@ -33,7 +33,7 @@ status: suggested
   promise, consumers would read it as a guarantee the library does not make.
   Reproducibility holds only if the hash input is canonically ordered, not
   ordered by traversal accident.
-- **Acceptance:** two architectures differing by one variable inserted mid-component
+- **Acceptance:** two reductions differing by one variable inserted mid-component
   produce different hashes while the guid stays byte-identical; the same
-  architecture and `generation_time` produce byte-identical hash content; the
+  reduction and `generation_time` produce byte-identical hash content; the
   hash is read from the built artifact, not from an intermediate string.

@@ -1,11 +1,9 @@
 """Layering policy: what the package may import, own, and write.
 
-The package implements the FMI half of a SysML dialect; the dialect itself is a
-dependency, never a sibling. The package is split into a shared ``core`` and one
-self-contained subpackage per artifact family. These tests hold that boundary
-recursively: core imports no family, a family imports no sibling, only the
-facade and the CLI collect families, every family directory is registered, and
-every module is reachable.
+The package is split into a shared ``core`` and one self-contained subpackage
+per artifact family. These tests hold that boundary recursively: core imports no
+family, a family imports no sibling, only the facade and the CLI collect
+families, every family directory is registered, and every module is reachable.
 """
 
 from __future__ import annotations
@@ -39,13 +37,9 @@ FACADE = PACKAGE_ROOT / "__init__.py"
 
 CLI = PACKAGE_ROOT / "cli.py"
 
-#: The sibling artifact library is a wheel dependency, never a package this one
-#: imports.
-FORBIDDEN_IMPORT = "pyssp_sysml2"
-
-#: The SysML parser moved to ``pyfmi_sysml``; this package is parser-free, so no
-#: module may import it at all (not even under ``TYPE_CHECKING``).
-SYSML_PARSER = "pycps_sysml2"
+#: External parser packages no module may import, not even under
+#: ``TYPE_CHECKING``.
+FORBIDDEN_PARSER_PACKAGES = frozenset({"pyssp_sysml2", "pycps_sysml2"})
 
 #: The only third party ``core`` may import: the FMI XML library whose document
 #: model and serializer this package maps onto.
@@ -235,17 +229,19 @@ def _module_bindings(
     return bindings
 
 
-def test_sources_do_not_import_the_dialect_package():
+def test_sources_import_no_parser():
+    """No module may import an external parser.
+
+    The check walks every import, including ``TYPE_CHECKING`` blocks, so an
+    annotation alone cannot pull one back in.
+    """
     offenders = [
         _location(path, lineno)
         for path, module, tree in _modules()
         for name, lineno in _imports(module, path, tree)
-        if name.split(".")[0] == FORBIDDEN_IMPORT
+        if name.split(".")[0] in FORBIDDEN_PARSER_PACKAGES
     ]
-    assert not offenders, (
-        f"{FORBIDDEN_IMPORT} is a dependency, not a package this one imports: "
-        f"{offenders}"
-    )
+    assert not offenders, f"no module may import an external parser: {offenders}"
 
 
 def _runtime_imports(
@@ -277,25 +273,7 @@ def _is_type_checking(test: ast.expr) -> bool:
     return isinstance(test, ast.Attribute) and test.attr == "TYPE_CHECKING"
 
 
-def test_sources_import_no_sysml_parser():
-    """``pyfmi_interfaces`` is parser-free; ``pyfmi_sysml`` owns ingestion.
-
-    The check walks every import, including ``TYPE_CHECKING`` blocks, so an
-    annotation alone cannot pull the parser back in.
-    """
-    offenders = [
-        _location(path, lineno)
-        for path, module, tree in _modules()
-        for name, lineno in _imports(module, path, tree)
-        if name.split(".")[0] == SYSML_PARSER
-    ]
-    assert not offenders, (
-        f"{SYSML_PARSER} is owned by pyfmi_sysml; no module here may import it: "
-        f"{offenders}"
-    )
-
-
-def test_core_imports_only_the_dialect_fmi_and_itself():
+def test_core_imports_only_the_fmi_library_and_itself():
     core = f"{PACKAGE}.core"
     offenders = []
     for path, module, tree in _modules():
@@ -371,7 +349,7 @@ def test_family_packages_are_collected_only_at_the_top():
 
 
 def test_cli_registers_only_the_packaging_family():
-    """Source-taking commands moved to ``pyfmi-sysml``; ``package`` stays here."""
+    """``cli.py`` registers only the packaging family; the generators are API."""
     registered = set()
     for node in ast.walk(_tree(CLI)):
         if isinstance(node, ast.ImportFrom) and node.level == 0 and node.module:
@@ -383,8 +361,8 @@ def test_cli_registers_only_the_packaging_family():
             ):
                 registered.add(parts[1])
     assert registered == {"fmu"}, (
-        "cli.py must register only the packaging family; the source-taking "
-        f"families register in pyfmi_sysml: registered={sorted(registered)}"
+        "cli.py must register only the packaging family: "
+        f"registered={sorted(registered)}"
     )
 
 
@@ -423,12 +401,12 @@ def test_runtime_dependency_is_one_pinned_direct_url():
     )
     wrong = [dep for dep in dependencies if not DIRECT_URL.match(dep)]
     assert not wrong, f"runtime dependencies are not direct wheel URLs: {wrong}"
-    dialect = [
+    forbidden = [
         dep
         for dep in dependencies
-        if FORBIDDEN_IMPORT in dep or SYSML_PARSER in dep
+        if any(package in dep for package in FORBIDDEN_PARSER_PACKAGES)
     ]
-    assert not dialect, f"no SysML parser may be a runtime dependency: {dialect}"
+    assert not forbidden, f"no parser may be a runtime dependency: {forbidden}"
 
 
 def test_python_floor_matches_pyproject():

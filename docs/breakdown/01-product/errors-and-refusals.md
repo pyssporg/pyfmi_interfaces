@@ -2,7 +2,7 @@
 id: CP-003
 type: capability
 title: Errors and refusals
-summary: Ambiguous roots, flat parameters, non-fixed lists, retired tags, naive clocks, and platform or identifier mismatches are refused with an actionable message.
+summary: A naive clock, an unexported component, and platform or identifier mismatches are refused with an actionable message.
 date: 2026-11-19
 status: current
 ---
@@ -11,22 +11,13 @@ status: current
 
 Generation fails rather than guessing; each refusal names the offending model element or path.
 
-Model errors:
+Generation errors:
 
-- several part definitions could be the composition root — several marked
-  `:> FmuModel` definitions, or several container roots — or none: pass
-  `composition=`;
-- an unresolved port definition on a leaf part;
-- a flat parameter attribute where the parameter dialect is required;
-- a retired `pyssp_*` attribute: the dialect reports the container to declare
-  instead;
-- a multiplicity that is not a fixed length, or is not an integer;
 - a requested `component` that is not exported.
 
 Time errors:
 
-- a naive `generation_time`; the value must carry a timezone so the artifact does not depend on the host's locality;
-- a malformed CLI generation time (exit 2 from argparse).
+- a naive `generation_time`; the value must carry a timezone so the artifact does not depend on the host's locality.
 
 Packaging errors, raised by `pyssp_standard.FMU` and surfaced by `pyfmi package`:
 

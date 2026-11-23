@@ -12,15 +12,14 @@ status: current
 Three inputs could otherwise vary between runs; each is pinned.
 
 `component_guid()` is `uuid5(NAMESPACE_URL,
-"pyssp_sysml2/<composition>/<component>")`, formatted in braces, for a component
+"pyssp_sysml2/<root>/<component>")`, formatted in braces, for a component
 exported by a container root. A direct FMU model has no container level, so its
 guid is `uuid5(NAMESPACE_URL, "pyssp_sysml2/<definition>")` and its `modelName`
 is the bare definition name; `ExportIdentity` derives both. The `pyssp_sysml2/`
-prefix is frozen: a migrated build keeps every guid, and changing the prefix or
-the component spelling breaks stored guids.
+prefix is frozen for byte-identical GUIDs from earlier releases: changing the
+prefix or the component spelling breaks stored guids.
 
-`generation_time` is injected on the Python API and on
-`pyfmi-sysml model-description --generation-time`; `None` means the fixed default
+`generation_time` is injected on the Python API; `None` means the fixed default
 epoch `2000-01-01T00:00:00Z`, never a wall-clock read, so an un-injected build
 is byte-reproducible. A naive datetime is refused, and `utc_now()` is the
 opt-in wall clock. The document is stamped `YYYY-MM-DDTHH:MM:SSZ`; equal

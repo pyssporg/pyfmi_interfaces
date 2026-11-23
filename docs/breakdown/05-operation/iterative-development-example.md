@@ -10,19 +10,19 @@ status: current
 # Iterative development example
 
 `tests/iterative/` is the generator's loop made executable: three revisions
-of one architecture, one hand-written model, and a script that checks each
-outcome. `omc` is driven from the script, never by `pyfmi`.
+of one hand-built reduction, one hand-written model, and a script that checks
+each outcome. `omc` is driven from the script, never by `pyfmi`.
 
 The script runs four stages in a temporary directory:
 
-1. generate from `v1.sysml`, copy `logic.mo` over the scaffold, build — passes;
-2. regenerate from `v2.sysml`, which renames the input port `raw` to
+1. generate from the v1 reduction, copy `logic.mo` over the scaffold, build — passes;
+2. regenerate from the v2 reduction, which renames the input port `raw` to
    `command`, in the same directory — the checksum of `Scaler.mo` is unchanged
    and `buildModel` fails with `Variable raw.value not found in scope Scaler` at
    the model's own line;
 3. rename `raw.value` to `command.value` in the model — builds again, proving
    the fix is local to the implementer's file;
-4. regenerate from `v3.sysml`, which adds the output member `clipped` — the
+4. regenerate from the v3 reduction, which adds the output member `clipped` — the
    build fails with `Too few equations, under-determined system` and names
    `limited.clipped`.
 

@@ -2,7 +2,7 @@
 id: INFO-006
 type: info
 title: C header generation
-summary: generate_c_headers writes one plain-C common header plus one header per component; c-runtime runs it too, so c-headers is the header-only command.
+summary: generate_c_headers writes one plain-C common header plus one header per component; generate_c_runtime runs it too, so generate_c_headers is the header-only entry point.
 date: 2026-11-17
 status: current
 ---
@@ -10,10 +10,10 @@ status: current
 # C header generation
 
 `generate_c_headers()` writes `<prefix>_InterfaceCommon.h`, then one
-`<prefix>_<Component>.h` per exported component; `--component NAME` keeps one
-plus the common header, and an unknown name raises `KeyError`. The
-`pyfmi-sysml c-runtime` command calls it, so both commands regenerate these
-headers and `c-headers` is header-only.
+`<prefix>_<Component>.h` per exported component; `component=NAME` keeps one
+plus the common header, and an unknown name raises `KeyError`.
+`generate_c_runtime()` calls it, so both entry points regenerate these headers
+and `generate_c_headers()` is header-only.
 `prefix` defaults to the package name; `header_stem()` keeps a direct FMU model
 at `Generator.h`, not `Generator_Generator.h`, and owns the file/identifier rule.
 
@@ -35,8 +35,8 @@ Deliberate details:
 - outputs map `writable=false`; parameters and inputs `true`;
 - C/C++ keywords gain a trailing underscore on the struct member only;
 - arrays are fixed-size, exactly `array` elements and always zero-based;
-  `--base-index N` shifts only the FMI element names and VR enum labels;
+  `Field.base_index` shifts only the FMI element names and VR enum labels;
 - string defaults are C-escaped and quoted.
 
 The common header is C11; only the instance helper needs C++17. Both are
-checked with `-fsyntax-only` in `tests/test_c_headers.py`.
+checked with `-fsyntax-only` in `tests/test_headers.py`.

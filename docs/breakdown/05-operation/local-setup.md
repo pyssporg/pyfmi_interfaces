@@ -16,14 +16,12 @@ python3 -m venv venv
 ./venv/bin/pip install -e ".[dev]"
 ```
 
-The two runtime dependencies are direct-URL wheels, not index lookups:
+The runtime dependency is a direct-URL wheel, not an index lookup:
+`experimental-pyssp-standard` v0.9.4.dev0, the FMI XML and archive API.
 
-- `pycps-sysml2` v0.3.0, the SysML dialect whose experiment and attribute
-  classification API the code reads;
-- `experimental-pyssp-standard` v0.9.4.dev0, the FMI XML and archive API.
-
-They come from `github.com/pyssporg/<repo>/releases/download/v<version>/` assets,
-so bump the pin only after the sibling wheel exists; an unreleased tag breaks.
+It comes from
+`github.com/pyssporg/<repo>/releases/download/v<version>/`, so bump the pin only
+after the sibling wheel exists; an unreleased tag breaks.
 
 Commands:
 

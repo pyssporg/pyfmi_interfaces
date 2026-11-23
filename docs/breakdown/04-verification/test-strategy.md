@@ -14,8 +14,8 @@ markers are declared in `pyproject.toml`:
 
 - **static** — a rule that holds without running the package: layering, family
   isolation, CLI registration matching the family directories, dependency
-  shape, fixture records, provenance, and the parser-free rule (no module
-  imports `pycps_sysml2`) (`test_layering.py`, `test_fixture_policy.py`).
+  shape, fixture records, provenance, and the input rule (no module imports a
+  parser) (`test_layering.py`).
 - **unit** — one object's behaviour, no artifact written. The reduction is
   asserted through `pyfmi_interfaces.core` inside the artifact tests.
 - **component** — a generated artifact is the unit under test: the bytes of
@@ -24,8 +24,8 @@ markers are declared in `pyproject.toml`:
   its harness.
 - **contract** — two directions must agree: the value-reference enum between
   XML and header, one component identity across XML, header, and archive, and a
-  generator run from a `Reduction` producing the same bytes with the dialect
-  import blocked (`test_cross_artifact.py`, `test_reduction_inputs.py`).
+  generator run from a `Reduction` producing the same bytes on every run
+  (`test_cross_artifact.py`, `test_reduction_inputs.py`).
 - **system** — the CLI end to end: parsing, exit codes, files written by one
   `pyfmi` invocation; the packaged FMU is also built and loaded by fmpy
   (`test_cli.py`, `test_fmpy_load.py`).

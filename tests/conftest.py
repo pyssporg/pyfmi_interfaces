@@ -19,7 +19,7 @@ GOLDEN_ROOT = Path(__file__).parent / "golden"
 
 
 def fixture_path(subject: str, name: str) -> Path:
-    """Path of one architecture fixture file."""
+    """Path of one reduction input file."""
     return FIXTURE_ROOT / subject / name
 
 

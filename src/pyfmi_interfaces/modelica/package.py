@@ -1,6 +1,6 @@
-"""Modelica interface packages generated from a SysML architecture.
+"""Modelica interface packages generated from a reduction.
 
-The connector set is the sysml-side mirror of the FMI interface: one ``connector``
+The connector set is the Modelica mirror of the FMI interface: one ``connector``
 per distinct port definition used by the exported components, with the same
 fields in the same order the FMI reduction uses. The names are configuration,
 not constants: the root package, the enclosing ``within`` clause, and the
@@ -235,8 +235,8 @@ def generate_modelica(
 ) -> list[Path]:
     """Write the Modelica interface package and return every file it wrote.
 
-    ``reduction`` is the parser-free interface model; it already fixes the
-    composition. ``output_dir/<package>/`` holds ``package.mo``, ``package.order``,
+    ``reduction`` is the interface model; it already fixes the export root.
+    ``output_dir/<package>/`` holds ``package.mo``, ``package.order``,
     ``Interfaces.mo`` (the four primitive input/output aliases),
     ``GeneratedInterfaces.mo`` (one connector per port definition), and per
     exported component ``<Name>_Interface.mo`` (parameters and connector

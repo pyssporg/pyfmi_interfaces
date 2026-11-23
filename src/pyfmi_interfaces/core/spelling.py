@@ -39,7 +39,7 @@ DATA_TYPE_TAGS = {
 #: FMI 2.0 allows ``continuous`` variability only for Real variables.
 DISCRETE_TYPES = ("Integer", "Boolean", "String")
 
-#: FMI 2.0 requires a start value on inputs; the dialect authors none, so the
+#: FMI 2.0 requires a start value on inputs; the caller authors none, so the
 #: neutral zero value of each primitive stands in.
 INPUT_START = {"Real": 0.0, "Integer": 0, "Boolean": False, "String": ""}
 

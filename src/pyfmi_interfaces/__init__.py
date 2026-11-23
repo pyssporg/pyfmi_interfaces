@@ -1,8 +1,7 @@
 """Generate FMI 2.0 CoSimulation artifacts from a reduced interface model.
 
-The SysML dialect and the reduction that reads it live in ``pyfmi_sysml``; this
-package is parser-free. The public surface is one function per artifact plus the
-``pyfmi`` command line:
+The caller supplies the reduction; this package is a pure artifact generator.
+The public surface is one function per artifact plus the ``pyfmi`` command line:
 
 - :func:`generate_model_description` — ``modelDescription.xml``
 - :func:`generate_c_headers` — C interface headers
@@ -14,8 +13,8 @@ package is parser-free. The public surface is one function per artifact plus the
 - :class:`ModelDescription` / :class:`ModelDescriptionXmlCodec` — the
   annotation-aware FMI 2.0 document view and its one canonical emitter
 
-Every generator accepts a :class:`Reduction` and runs without importing a SysML
-parser. The ``.fmu`` archive is written by ``pyssp_standard``'s ``FMU`` facade;
+Every generator accepts a :class:`Reduction` and runs from that input alone. The
+``.fmu`` archive is written by ``pyssp_standard``'s ``FMU`` facade;
 import ``FMU`` from ``pyssp_standard`` and call ``FMU.package``.
 """
 

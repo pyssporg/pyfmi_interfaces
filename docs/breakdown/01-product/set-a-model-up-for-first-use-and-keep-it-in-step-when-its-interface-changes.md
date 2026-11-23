@@ -10,10 +10,10 @@ status: current
 # Set a model up for first use and keep it in step when its interface changes
 
 The implementer asks: give me the interfaces my model must satisfy, and give
-them to me again when the architecture's interface moves.
+them to me again when the interface moves.
 
 - **Actor:** the engineer writing and maintaining the implementation behind a
-  SysML architecture.
+  specified interface.
 - **Goal:** start from generated interfaces instead of a hand-copied variable
   list, and absorb an interface change without reconciling artifacts by hand.
 - **Observable outcome:** after each change the generated artifacts and the

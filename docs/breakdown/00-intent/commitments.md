@@ -14,9 +14,8 @@ first.
 
 - **The artifact is the library boundary.** Only FMI XML, C headers, C++ runtime
   sources, Modelica text, and the `.fmu` archive cross to another project.
-- **One interface model.** Every generator reads a parser-free `Reduction`
-  built by `pyfmi_sysml`; this package never imports a SysML parser or
-  `pyssp_sysml2`.
+- **One interface model.** Every generator reads the `Reduction` the caller
+  constructs; that reduction is the complete input.
 - **One FMI serializer.** FMI XML is built, serialized, and validated only
   through `pyssp_standard.standard.fmi2`.
 - **Packaging is upstream.** `pyfmi package` delegates to `pyssp_standard.FMU`;

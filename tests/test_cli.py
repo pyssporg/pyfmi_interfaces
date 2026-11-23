@@ -1,7 +1,7 @@
 """System tests for the ``pyfmi`` packaging command.
 
-The source-taking generator commands moved to ``pyfmi-sysml``; this module pins
-the shell contract that stayed here: ``pyfmi package`` and its argparse surface.
+This module pins the shell contract of the one command: ``pyfmi package`` and
+its argparse surface.
 """
 
 from __future__ import annotations

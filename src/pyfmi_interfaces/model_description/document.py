@@ -60,9 +60,9 @@ GENERATION_TOOL = "pyfmi_interfaces tooling"
 def default_experiment(
     experiment: Experiment | None,
 ) -> Fmi2DefaultExperiment | None:
-    """The composition's ``DefaultExperiment``, or ``None`` when unset.
+    """The export unit's ``DefaultExperiment``, or ``None`` when unset.
 
-    The experiment is the typed container the dialect recognizes, never an
+    The experiment is the typed container the caller supplies, never an
     attribute name. A plain ``DefaultExperiment`` supplies ``startTime`` and
     ``stopTime``; the packaged ``Experiment`` specialization adds ``stepSize``
     and ``tolerance``. FMI 2.0.5 defines all four as optional doubles, so every
@@ -87,8 +87,8 @@ def model_description_document(
 ) -> Fmi2ModelDescriptionDocument:
     """The FMI 2.0 document for one component, before serialization.
 
-    ``reduction`` is the parser-free interface model; it already fixes the
-    composition and the array index base. ``include_default_experiment=False``
+    ``reduction`` is the interface model; it already fixes the export root and
+    the array index base. ``include_default_experiment=False``
     omits ``DefaultExperiment`` even when the reduction carries an experiment.
     """
     if isinstance(component, str):
@@ -165,8 +165,8 @@ def generate_model_description(
 ) -> list[Path]:
     """Write ``<output_dir>/<Component>/modelDescription.xml`` per leaf.
 
-    ``reduction`` is the parser-free interface model; it already fixes the
-    composition and the array index base. ``component`` narrows the run to one
+    ``reduction`` is the interface model; it already fixes the export root and
+    the array index base. ``component`` narrows the run to one
     component and fails when it is not exported. ``generation_time`` fixes
     ``generationDateAndTime``; ``None`` stamps the fixed default epoch
     (2000-01-01T00:00:00Z), so an un-injected build is byte-reproducible, a

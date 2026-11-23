@@ -9,8 +9,7 @@ status: current
 
 # Non-goals
 
-The package refuses work that belongs to the implementer, the dialect, or
-another release.
+The package refuses work that belongs to the implementer or another release.
 
 - FMI Model Exchange and FMI 3.0.
 - Binary platforms other than `linux64`.

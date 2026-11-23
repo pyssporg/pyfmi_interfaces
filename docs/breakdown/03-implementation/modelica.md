@@ -33,7 +33,7 @@ underscore; fields keep type and array size, arrays expanding to scalars.
 
 Configuration, never constants: `package` defaults to `GeneratedInterfaces`;
 `within` nests the root in an existing scope (only the root `package.mo` carries
-the bare `within`); names come from the architecture, nothing domain-specific.
+the bare `within`); names come from the `Reduction`, nothing domain-specific.
 
 The package is not an FMU: it carries no FMI export annotation and no
 executable. A Modelica wrapper around a compiled FMU is a non-goal (`INFO-018`).

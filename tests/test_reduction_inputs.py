@@ -1,13 +1,12 @@
 """Contract: every emitter runs from a hand-built ``Reduction`` alone.
 
-These are the reduction-driven tests that stayed in ``pyfmi_interfaces``. They
-construct the parser-free model directly, so a generator cannot depend on a
-SysML source, a composition name, or a parser import to produce its artifact.
+These are the reduction-driven tests for ``pyfmi_interfaces``. They construct
+the interface model directly, so every emitter is driven by the same input
+object and nothing else.
 """
 
 from __future__ import annotations
 
-import builtins
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -113,7 +112,7 @@ def _tree(root: Path) -> dict[str, bytes]:
 
 
 def test_every_emitter_accepts_a_reduction(tmp_path: Path) -> None:
-    """Drift caught: a generator requires a source or an architecture again."""
+    """Drift caught: a generator requires more than the reduction again."""
     reduction = _reduction()
 
     descriptions = generate_model_description(
@@ -150,31 +149,8 @@ def test_emitters_are_deterministic_from_one_reduction(tmp_path: Path) -> None:
     assert _tree(first) == _tree(second)
 
 
-def test_emitters_never_import_the_dialect(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    """Drift caught: a parser import sneaks back into an emitter."""
-    reduction = _reduction()
-    real_import = builtins.__import__
-
-    def blocked(name, *args, **kwargs):
-        if name.split(".")[0] == "pycps_sysml2":
-            raise AssertionError(f"emitter imported the dialect: {name}")
-        return real_import(name, *args, **kwargs)
-
-    monkeypatch.setattr(builtins, "__import__", blocked)
-
-    generate_model_description(
-        reduction, tmp_path / "md", generation_time=GENERATION_TIME
-    )
-    generate_c_headers(reduction, tmp_path / "c")
-    generate_c_runtime(reduction, tmp_path / "rt")
-    generate_modelica(reduction, tmp_path / "mo")
-
-
-def test_the_sysml_surface_is_gone_from_interfaces() -> None:
+def test_facade_exposes_only_the_artifact_surface() -> None:
     names = {
-        "architecture",
         "component",
         "components",
         "direction_causality",
