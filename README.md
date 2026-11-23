@@ -16,14 +16,15 @@ re-exports this package for one deprecation window. New code imports
 `pyfmi_interfaces`.
 
 - Users: this file, `examples/`, and `pyfmi --help`.
-- Contributors: `AGENTS.md`, then `docs/breakdown/00-intent/intent.md`.
-- Current contracts and design: `docs/breakdown/README.md`.
+- Contributors: [`AGENTS.md`](AGENTS.md), then
+  [`docs/breakdown/00-intent/intent.md`](docs/breakdown/00-intent/intent.md).
+- Current contracts and design: [`docs/breakdown/README.md`](docs/breakdown/README.md).
 
 ## Install
 
 The runtime dependency is a direct-URL wheel pinned to a sibling GitHub release
 (`experimental-pyssp-standard` v0.9.4.dev0), so the tag must exist before an
-install resolves. `pyfmi_interfaces` is version 0.5.1 and requires Python 3.11
+install resolves. `pyfmi_interfaces` is version 0.5.2 and requires Python 3.11
 or newer.
 
 ```bash
@@ -163,3 +164,17 @@ pyfmi package -o OUT --model-description PATH --binary PATH \
 
 The four generators are Python functions; `pyfmi` only packages. See
 `examples/` for a complete build-then-package walkthrough.
+
+## Development
+
+Install the dev extra as above, then run everything through the venv:
+
+```bash
+venv/bin/python -m pytest               # everything, slow included
+venv/bin/python -m pytest -m "not slow" # the CI subset
+venv/bin/ruff check src tests
+```
+
+`UPDATE_GOLDENS=1` rewrites the byte-compared goldens locally and has no effect
+when `CI` is set; review the diff before committing a golden. Contributor
+rules, layering, and the oracle set are in [`AGENTS.md`](AGENTS.md).

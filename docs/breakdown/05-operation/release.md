@@ -2,7 +2,7 @@
 id: INFO-011
 type: info
 title: Release process
-summary: Tag the single-sourced 0.5.1 version after a green matrix, let wheels.yml publish the wheel and sdist, and smoke-test the wheel in a clean venv.
+summary: Tag the single-sourced 0.5.2 version after a green matrix, let wheels.yml publish the wheel and sdist, and smoke-test the wheel in a clean venv.
 date: 2026-11-19
 status: current
 ---
@@ -11,7 +11,7 @@ status: current
 
 The version is single-sourced: `pyfmi_interfaces.__version__` in
 `src/pyfmi_interfaces/__init__.py`, read by `setuptools` through
-`dynamic = ["version"]`. The current version is 0.5.1.
+`dynamic = ["version"]`. The current version is 0.5.2.
 
 Steps:
 
