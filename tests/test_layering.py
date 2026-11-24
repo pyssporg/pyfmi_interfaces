@@ -39,7 +39,7 @@ CLI = PACKAGE_ROOT / "cli.py"
 
 #: External parser packages no module may import, not even under
 #: ``TYPE_CHECKING``.
-FORBIDDEN_PARSER_PACKAGES = frozenset({"pyssp_sysml2", "pycps_sysml2"})
+FORBIDDEN_PARSER_PACKAGES = frozenset({"pyssp_sysml", "pycps_sysml"})
 
 #: The only third party ``core`` may import: the FMI XML library whose document
 #: model and serializer this package maps onto.
