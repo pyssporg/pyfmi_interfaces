@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.3] - 2026-11-24
+
+### Changed
+
+- Follow the sibling package renames: the `experimental-pyssp-standard`
+  dependency URL now points at the `pyssp_standard_exp` repository, and the
+  layering test forbids the renamed `pyssp_sysml`/`pycps_sysml` parser packages.
+
+### Docs
+
+- Correct README install and version guidance, link the contributor documents,
+  and document the venv-based test and lint commands; align the release notes.
+
+### Tests and examples
+
+- Align the examples walkthrough with `--out` and a run-first README.
+
 ## [0.5.2] - 2026-11-23
 
 ### Added

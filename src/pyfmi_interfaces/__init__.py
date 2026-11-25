@@ -37,7 +37,7 @@ from pyfmi_interfaces.model_description import (
 )
 from pyfmi_interfaces.modelica import generate_modelica
 
-__version__ = "0.5.2"
+__version__ = "0.5.3"
 
 __all__ = [
     "Annotation",
